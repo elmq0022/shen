@@ -1,4 +1,4 @@
-# SHENLONG
+# SHEN
 
 ## Status
 
@@ -18,4 +18,4 @@ A token based authorization service supporting roles based access control (RBAC)
 - Users can belong to one or more user groups
 - User groups can be mapped to one or more combinations of application and RBAC role 
 - None is a valid RBAC role and implies that the application does not use RBAC or manages RBAC itself
-- Shenlong provides a CLI for administration of the above. 
+- shen provides a CLI for administration of the above. 

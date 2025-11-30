@@ -6,6 +6,8 @@ Postgres for db and Docker / Docker Compose for local dev
 golang-migrate for versioned db migrations
 sqlc for auto-generating Go code from SQL queries
 
+## Authorization Flow
+
 ## Schema Design
 
 
