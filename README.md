@@ -6,7 +6,7 @@ In Development
 
 ## Description
 
-A token based authorization service supporting roles based access control (RBAC), written in go.
+A token based authorization service that facilitates Role-Based Access Control (RBAC), written in go.
 
 ## Goals
 
