@@ -17,12 +17,13 @@
 
 #### `shen_user`
 
-| Field    | Type   | Description                      |
-|----------|--------|----------------------------------|
-| pk       | PK     | Primary key                      |
-| username | string | User identifier                  |
-| active   | bool   | Account active status            |
-| role     | FK     | Foreign key to `shen_user_roles` |
+| Field           | Type   | Description                      |
+|-----------------|--------|----------------------------------|
+| pk              | PK     | Primary key                      |
+| username        | string | User identifier                  |
+| hashed_password | string | Hashed password                  |
+| active          | bool   | Account active status            |
+| role            | FK     | Foreign key to `shen_user_roles` |
 
 #### `shen_user_roles`
 
@@ -73,6 +74,19 @@
 | group_fk             | FK   | Foreign key to `shen_group`                |
 | application_fk       | FK   | Foreign key to `shen_application`          |
 | application_role_fk  | FK   | Foreign key to `shen_application_role`     |
+
+#### `shen_tokens`
+
+| Field          | Type      | Description                                  |
+|----------------|-----------|----------------------------------------------|
+| pk             | PK        | Primary key                                  |
+| name           | string    | Token name/identifier                        |
+| token          | string    | Hashed token value                           |
+| user_fk        | FK        | Foreign key to `shen_user` (nullable)        |
+| application_fk | FK        | Foreign key to `shen_application` (nullable) |
+| created_at     | timestamp | Token creation timestamp                     |
+| expires_at     | timestamp | Token expiration timestamp                   |
+| revoked        | bool      | Token revocation status                      |
 
 
 ## CLI Design
@@ -130,8 +144,8 @@ Custom RBAC roles are not supported in the initial implementation to help narrow
 
 ### Available Roles
 
+- **none** - Service account permissions
 - **viewer** - Read-only access
-- **service** - Service account permissions
 - **auditor** - Audit and compliance access
 - **operator** - Operational management
 - **admin** - Full administrative access
