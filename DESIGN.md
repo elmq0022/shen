@@ -9,7 +9,95 @@
 
 ## Authorization Flow
 
-*To be documented*
+
+### Verify identity with user name and password
+
+User logs in using this endpoint by submitting their username and password
+
+POST /api/v1/auth/login
+
+payload: {
+    username: string,
+    password: string 
+}
+
+
+In return they get back a long lived jwt to interact with the shen application this would be stored locally for use with the CLI to interact with shen for generating or rejecting tokens this token would not have any specific audience or rbac associated
+with it.
+
+status code: 200
+response: {
+    token: string (encoded jwt)
+}
+
+### Obtain a Personal Access Tokens Scoped to an Applications
+
+user submits a request to this endpoint and recieves a PAT with a default exp of 1 month
+optionally submits an *exp* paramter as an iso date time
+request must include the long userns long lived JWT from the identity verification in the header to verify their identity. 
+Token is named so it can be rejected later by a user or an admin
+the apppliation name is also submitted to scope the token to a specific application
+
+POST /api/v1/token/:name/:app
+
+headers
+
+authorization-type Bearer: string (encoded jwt)
+
+params :
+- exp: iso string in utc optional
+
+response: {
+    name: string
+    pat: string
+}
+
+shen presents the plain text PAT to the user but only stores the hashed value
+will use bcrpyt or argon to has the PAT.
+
+### Verify Application Access from PAT
+
+POST /api/v1/authorize
+
+user submits pat and an app name to shen
+if they are authorized to use the application
+they get back an encoded short live jwt containing
+
+- username
+- aud
+- exp
+- role
+
+this is stateless but forces them to have shen regenerate permission regularly
+
+payload: {
+    pat: string
+    app: string
+}
+
+response: {
+    token: short lived jwt
+    exp: iso date time utc
+}
+
+
+### Request Application Access
+
+if the token has not expired submit the encoded token to applicaton
+in the authorization bearer header of request
+the application then decodes the jwt with the shen's public key
+
+the application must verify:
+
+- username
+- audience
+- exp
+- RBAC
+
+from the encoded JWT.
+
+If JWT is expired the user must resubmit their PAT to get a new short lived JWT. 
+
 
 ## Schema Design
 
@@ -36,7 +124,7 @@
 | created_at | timestamp | N      | N     | Role creation timestamp             |
 | updated_at | timestamp | N      | N     | Role last update timestamp          |
 
-**Available roles:** `server`, `user`, `admin`
+**Available roles:** `service`, `user`, `admin`
 
 #### `shen_group`
 
@@ -91,7 +179,7 @@
 | created_at          | timestamp | N      | N     | Assignment creation timestamp         |
 | updated_at          | timestamp | N      | N     | Assignment last update timestamp      |
 
-**Composite unique constraint:** `(group_fk, application_fk, application_role_fk)` - A group can only have one specific role per application
+**Composite unique constraint:** `(group_fk, application_fk)` - A group can only have one specific role per application
 
 #### `shen_tokens`
 
