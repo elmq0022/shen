@@ -115,7 +115,7 @@ POST /api/v1/authorize
 **Process:**
 
 1. Shen verifies the hashed token is valid, matches an active token record, and has not expired
-2. The application scope is determined from the token record (`application_fk`)
+2. The application scope is determined from the token record (`application_id`)
 3. User's role is resolved via group memberships (see Role Resolution below)
 4. A short-lived JWT is generated and returned
 
@@ -269,6 +269,11 @@ TODO: Design token revocation API and workflow. Key questions to address:
 - How are revoked long-lived JWTs tracked?
 - Should there be a token revocation list or blacklist?
 
+Administators can revoke any user or service account tokens. Users can only reject their own tokens.
+The endpoint to revoke a token is:
+
+DELETE /api/v1/token/:id
+
 
 ## Initial Bootstrap and Setup
 
@@ -319,7 +324,7 @@ On startup, Shen will seed the following reference data if not present:
 
 | Field           | Type      | Unique | Index | Description                                          |
 |:----------------|:----------|:-------|:------|:-----------------------------------------------------|
-| pk              | PK        | Y      | -     | Primary key                                          |
+| id              | PK        | Y      | -     | Primary key                                          |
 | username        | string    | Y      | Y     | User identifier (enforced lowercase)                 |
 | hashed_password | string    | N      | N     | Hashed password (nullable - NULL for service accounts)|
 | active          | bool      | N      | N     | Account active status                                |
@@ -333,7 +338,7 @@ On startup, Shen will seed the following reference data if not present:
 
 | Field      | Type      | Unique | Index | Description                         |
 |:-----------|:----------|:-------|:------|:------------------------------------|
-| pk         | PK        | Y      | -     | Primary key                         |
+| id         | PK        | Y      | -     | Primary key                         |
 | name       | string    | Y      | N     | Role name (enforced lowercase)      |
 | created_at | timestamp | N      | N     | Role creation timestamp             |
 | updated_at | timestamp | N      | N     | Role last update timestamp          |
@@ -347,7 +352,7 @@ On startup, Shen will seed the following reference data if not present:
 
 | Field      | Type      | Unique | Index | Description                         |
 |:-----------|:----------|:-------|:------|:------------------------------------|
-| pk         | PK        | Y      | -     | Primary key                         |
+| id         | PK        | Y      | -     | Primary key                         |
 | name       | string    | Y      | Y     | Group name (enforced lowercase)     |
 | created_at | timestamp | N      | N     | Group creation timestamp            |
 | updated_at | timestamp | N      | N     | Group last update timestamp         |
@@ -356,19 +361,19 @@ On startup, Shen will seed the following reference data if not present:
 
 | Field      | Type      | Unique | Index | Description                      |
 |:-----------|:----------|:-------|:------|:---------------------------------|
-| pk         | PK        | Y      | -     | Primary key                      |
-| user_fk    | FK        | N      | Y     | Foreign key to `shen_user`       |
-| group_fk   | FK        | N      | Y     | Foreign key to `shen_group`      |
+| id         | PK        | Y      | -     | Primary key                      |
+| user_id    | FK        | N      | Y     | Foreign key to `shen_user`       |
+| group_id   | FK        | N      | Y     | Foreign key to `shen_group`      |
 | created_at | timestamp | N      | N     | Assignment creation timestamp    |
 | updated_at | timestamp | N      | N     | Assignment last update timestamp |
 
-**Composite unique constraint:** `(user_fk, group_fk)` - A user can only be assigned to a group once
+**Composite unique constraint:** `(user_id, group_id)` - A user can only be assigned to a group once
 
 #### `shen_application`
 
 | Field      | Type      | Unique | Index | Description                            |
 |:-----------|:----------|:-------|:------|:---------------------------------------|
-| pk         | PK        | Y      | -     | Primary key                            |
+| id         | PK        | Y      | -     | Primary key                            |
 | name       | string    | Y      | Y     | Application name (enforced lowercase)  |
 | created_at | timestamp | N      | N     | Application creation timestamp         |
 | updated_at | timestamp | N      | N     | Application last update timestamp      |
@@ -377,7 +382,7 @@ On startup, Shen will seed the following reference data if not present:
 
 | Field      | Type      | Unique | Index | Description                                 |
 |:-----------|:----------|:-------|:------|:--------------------------------------------|
-| pk         | PK        | Y      | -     | Primary key                                 |
+| id         | PK        | Y      | -     | Primary key                                 |
 | priority   | integer   | N      | Y     | Role priority                               |
 | name       | string    | Y      | N     | Role name (enforced lowercase)              |
 | created_at | timestamp | N      | N     | Application role creation timestamp         |
@@ -389,38 +394,41 @@ On startup, Shen will seed the following reference data if not present:
 
 | Field               | Type      | Unique | Index | Description                           |
 |:--------------------|:----------|:-------|:------|:--------------------------------------|
-| pk                  | PK        | Y      | -     | Primary key                           |
-| group_fk            | FK        | N      | Y     | Foreign key to `shen_group`           |
-| application_fk      | FK        | N      | Y     | Foreign key to `shen_application`     |
-| application_role_fk | FK        | N      | Y     | Foreign key to `shen_application_role`|
+| id                  | PK        | Y      | -     | Primary key                           |
+| group_id            | FK        | N      | Y     | Foreign key to `shen_group`           |
+| application_id      | FK        | N      | Y     | Foreign key to `shen_application`     |
+| application_role_id | FK        | N      | Y     | Foreign key to `shen_application_role`|
 | created_at          | timestamp | N      | N     | Assignment creation timestamp         |
 | updated_at          | timestamp | N      | N     | Assignment last update timestamp      |
 
-**Composite unique constraint:** `(group_fk, application_fk)` - A group can only have one specific role per application
+**Composite unique constraint:** `(group_id, application_id)` - A group can only have one specific role per application
 
 #### `shen_tokens`
 
 | Field          | Type      | Unique | Index | Description                                       |
 |:---------------|:----------|:-------|:------|:--------------------------------------------------|
-| pk             | PK        | Y      | -     | Primary key                                       |
+| id             | PK        | Y      | -     | Primary key                                       |
 | name           | string    | N      | Y     | Token name/identifier (enforced lowercase)        |
 | token          | string    | Y      | Y     | Hashed token value                                |
-| user_fk        | FK        | N      | Y     | Foreign key to `shen_user` (nullable)             |
-| application_fk | FK        | N      | Y     | Foreign key to `shen_application` (nullable)      |
+| user_id        | FK        | N      | Y     | Foreign key to `shen_user` (nullable)             |
+| application_id | FK        | N      | Y     | Foreign key to `shen_application` (nullable)      |
 | created_at     | timestamp | N      | N     | Token creation timestamp                          |
 | expires_at     | timestamp | N      | N     | Token expiration timestamp                        |
 | revoked        | bool      | N      | N     | Token revocation status                           |
 | revoked_at     | timestamp | N      | N     | Token revocation timestamp (nullable)             |
 
-**Composite unique constraint:** `(user_fk, application_fk, name)` - A user can only have one token with the same name per application
+**Composite unique constraint:** `(user_id, application_id, name)` - A user can only have one token with the same name per application
+
+This table stores PATs and service tokens. These long lived tokens can be submitted to obtain a short-lived stateless 
+JWT which can be used to authenticate to a specific application.
 
 #### `shen_sessions`
 
 | Field          | Type      | Unique | Index | Description                                       |
 |:---------------|:----------|:-------|:------|:--------------------------------------------------|
-| pk             | PK        | Y      | -     | Primary key                                       |
+| id             | PK        | Y      | -     | Primary key                                       |
 | token          | string    | Y      | Y     | Hashed session token value                        |
-| user_fk        | FK        | N      | Y     | Foreign key to `shen_user`                        |
+| user_id        | FK        | N      | Y     | Foreign key to `shen_user`                        |
 | created_at     | timestamp | N      | N     | Session creation timestamp                        |
 | expires_at     | timestamp | N      | N     | Session expiration timestamp                      |
 | revoked        | bool      | N      | N     | Session revocation status                         |
@@ -475,7 +483,7 @@ shenctl app delete <app-name>   # Soft delete (mark as inactive)
 ```bash
 shenctl token list [user]                    # List tokens (user optional, admin only)
 shenctl token create <token-name> <app> [user]  # Create token (user optional, admin only)
-shenctl token revoke <token-name>            # Revoke a token
+shenctl token revoke <id>            # Revoke a token
 ```
 
 ## RBAC Roles
