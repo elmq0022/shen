@@ -93,30 +93,31 @@ Shen provides:
 
 ## Architecture Diagram
 
-```
-┌──────────┐
-│  User    │
-└────┬─────┘
-     │ 1. Login (username/password)
-     ▼
-┌──────────────────┐
-│  Shen Server     │──► Session Token (database-backed)
-└────┬─────────────┘
-     │ 2. Create PAT (session token required)
-     ▼
-┌──────────────────┐
-│  PAT Storage     │──► PAT (hashed, scoped to app)
-└────┬─────────────┘
-     │ 3. Exchange PAT for JWT
-     ▼
-┌──────────────────┐
-│  JWT Generator   │──► Short-lived JWT (signed)
-└────┬─────────────┘
-     │ 4. Access application with JWT
-     ▼
-┌──────────────────┐
-│  Application     │──► Verifies JWT with public key
-└──────────────────┘
+```mermaid
+sequenceDiagram
+    participant User
+    participant Shen
+    participant App
+
+    Note over User,Shen: 1. Authentication
+    User->>Shen: POST /api/v1/auth/login (username, password)
+    Shen-->>User: Session Token (database-backed)
+
+    Note over User,Shen: 2. Create PAT
+    User->>Shen: POST /api/v1/token/:name/:app (session token)
+    Shen-->>User: PAT (hashed, scoped to app)
+
+    Note over User,Shen: 3. Exchange PAT for JWT
+    User->>Shen: POST /api/v1/authorize (PAT)
+    Shen->>Shen: Resolve role via groups
+    Shen-->>User: Short-lived JWT (7 min, signed)
+
+    Note over User,App: 4. Access Application
+    User->>App: GET /api/resource (JWT)
+    App->>Shen: GET /.well-known/jwks.json
+    Shen-->>App: Public key
+    App->>App: Verify JWT signature & claims
+    App-->>User: Resource data
 ```
 
 ## Development Status
