@@ -54,6 +54,12 @@ Shen provides:
    - Available application roles
    - Role priorities and resolution
 
+10. **[Future Enhancements](./docs/10-future-enhancements.md)**
+   - Token lifecycle notifications (expiration reminders, security alerts)
+   - Audit logging
+   - Key rotation
+   - MFA, rate limiting, webhooks, OAuth 2.0
+
 ## Key Concepts
 
 ### Token Types

@@ -42,7 +42,30 @@ shenctl app delete <app-name>   # Soft delete (mark as inactive)
 ## Token Management
 
 ```bash
-shenctl token list [user]                    # List tokens (user optional, admin only)
-shenctl token create <token-name> <app> [user]  # Create token (user optional, admin only)
-shenctl token revoke <id>            # Revoke a token
+# List tokens
+shenctl token list                           # List your own tokens
+shenctl token list --user <username>         # List tokens for specific user (admin only)
+
+# Create tokens
+shenctl token create <token-name> <app>      # Create token for yourself
+shenctl token create <token-name> <app> <user>  # Create token for specific user (admin only)
+
+# Revoke tokens
+shenctl token revoke <id>                    # Revoke a specific token by ID
+shenctl token revoke-all <username>          # Revoke all tokens for a user (admin only)
+
+# Cleanup
+shenctl token cleanup                        # Remove expired tokens (admin only)
+```
+
+## Session Management
+
+```bash
+# List sessions
+shenctl session list                         # List your own sessions
+shenctl session list --user <username>       # List sessions for specific user (admin only)
+
+# Revoke sessions
+shenctl session revoke <id>                  # Revoke a specific session by ID
+shenctl session revoke-all <username>        # Revoke all sessions for a user (admin only)
 ```

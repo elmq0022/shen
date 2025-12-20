@@ -22,7 +22,8 @@ POST /api/v1/auth/login
 In return they receive a session token to interact with the Shen application. This token is stored locally and used to authorize the user/CLI to interact with Shen. Users can then manage their PATs for applications or check their group memberships. Administrators have all user privileges plus the ability to manage users, groups, applications, and RBAC settings.
 
 The session token is a random string stored in the database (in `shen_sessions` table) with:
-- 1 month expiration (configurable via `SHEN_SESSION_EXPIRY_SECONDS`)
+
+- 30 days expiration (configurable via `SHEN_SESSION_EXPIRY_DAYS`)
 - Can be instantly revoked by administrators
 - Validated on every request to Shen
 

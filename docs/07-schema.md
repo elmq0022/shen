@@ -9,12 +9,15 @@
 | id              | PK        | Y      | -     | Primary key                                          |
 | username        | string    | Y      | Y     | User identifier (enforced lowercase)                 |
 | hashed_password | string    | N      | N     | Hashed password (nullable - NULL for service accounts)|
-| active          | bool      | N      | N     | Account active status                                |
-| role            | FK        | N      | Y     | Foreign key to `shen_user_roles`                     |
+| active          | bool      | N      | N     | Account active status (default: true)                |
+| role            | FK        | N      | Y     | Foreign key to `shen_user_roles` (default: 'user')   |
 | created_at      | timestamp | N      | N     | User creation timestamp                              |
 | updated_at      | timestamp | N      | N     | User last update timestamp                           |
 
 **Important:** Service accounts (role=`service`) must have `hashed_password = NULL`. These accounts cannot authenticate to Shen's management API.
+
+**Foreign key constraints:**
+- `role` REFERENCES `shen_user_roles(id)` ON DELETE RESTRICT
 
 ### `shen_user_roles`
 
@@ -36,6 +39,7 @@
 |:-----------|:----------|:-------|:------|:------------------------------------|
 | id         | PK        | Y      | -     | Primary key                         |
 | name       | string    | Y      | Y     | Group name (enforced lowercase)     |
+| active     | bool      | N      | N     | Group active status                 |
 | created_at | timestamp | N      | N     | Group creation timestamp            |
 | updated_at | timestamp | N      | N     | Group last update timestamp         |
 
@@ -51,12 +55,17 @@
 
 **Composite unique constraint:** `(user_id, group_id)` - A user can only be assigned to a group once
 
+**Foreign key constraints:**
+- `user_id` REFERENCES `shen_user(id)` ON DELETE CASCADE
+- `group_id` REFERENCES `shen_group(id)` ON DELETE CASCADE
+
 ### `shen_application`
 
 | Field      | Type      | Unique | Index | Description                            |
 |:-----------|:----------|:-------|:------|:---------------------------------------|
 | id         | PK        | Y      | -     | Primary key                            |
 | name       | string    | Y      | Y     | Application name (enforced lowercase)  |
+| active     | bool      | N      | N     | Application active status              |
 | created_at | timestamp | N      | N     | Application creation timestamp         |
 | updated_at | timestamp | N      | N     | Application last update timestamp      |
 
@@ -85,6 +94,11 @@
 
 **Composite unique constraint:** `(group_id, application_id)` - A group can only have one specific role per application
 
+**Foreign key constraints:**
+- `group_id` REFERENCES `shen_group(id)` ON DELETE CASCADE
+- `application_id` REFERENCES `shen_application(id)` ON DELETE CASCADE
+- `application_role_id` REFERENCES `shen_application_role(id)` ON DELETE RESTRICT
+
 ### `shen_tokens`
 
 | Field          | Type      | Unique | Index | Description                                       |
@@ -92,14 +106,18 @@
 | id             | PK        | Y      | -     | Primary key                                       |
 | name           | string    | N      | Y     | Token name/identifier (enforced lowercase)        |
 | token          | string    | Y      | Y     | Hashed token value                                |
-| user_id        | FK        | N      | Y     | Foreign key to `shen_user` (nullable)             |
-| application_id | FK        | N      | Y     | Foreign key to `shen_application` (nullable)      |
-| created_at     | timestamp | N      | N     | Token creation timestamp                          |
-| expires_at     | timestamp | N      | N     | Token expiration timestamp                        |
-| revoked        | bool      | N      | N     | Token revocation status                           |
+| user_id        | FK        | N      | Y     | Foreign key to `shen_user`                        |
+| application_id | FK        | N      | Y     | Foreign key to `shen_application`                 |
+| created_at     | timestamp | N      | Y     | Token creation timestamp                          |
+| expires_at     | timestamp | N      | Y     | Token expiration timestamp                        |
+| revoked        | bool      | N      | Y     | Token revocation status                           |
 | revoked_at     | timestamp | N      | N     | Token revocation timestamp (nullable)             |
 
 **Composite unique constraint:** `(user_id, application_id, name)` - A user can only have one token with the same name per application
+
+**Foreign key constraints:**
+- `user_id` REFERENCES `shen_user(id)` ON DELETE CASCADE
+- `application_id` REFERENCES `shen_application(id)` ON DELETE CASCADE
 
 This table stores PATs and service tokens. These long lived tokens can be submitted to obtain a short-lived stateless JWT which can be used to authenticate to a specific application.
 
@@ -111,8 +129,11 @@ This table stores PATs and service tokens. These long lived tokens can be submit
 | token          | string    | Y      | Y     | Hashed session token value                        |
 | user_id        | FK        | N      | Y     | Foreign key to `shen_user`                        |
 | created_at     | timestamp | N      | N     | Session creation timestamp                        |
-| expires_at     | timestamp | N      | N     | Session expiration timestamp                      |
-| revoked        | bool      | N      | N     | Session revocation status                         |
+| expires_at     | timestamp | N      | Y     | Session expiration timestamp                      |
+| revoked        | bool      | N      | Y     | Session revocation status                         |
 | revoked_at     | timestamp | N      | N     | Session revocation timestamp (nullable)           |
 
 This table stores session tokens used for authenticating users to the Shen management API (not application PATs).
+
+**Foreign key constraints:**
+- `user_id` REFERENCES `shen_user(id)` ON DELETE CASCADE

@@ -2,7 +2,7 @@
 
 ## 1. Obtain a Personal Access Token Scoped to an Application
 
-User submits a request to create a PAT with a default expiration of 1 month. The PAT is scoped to a specific application and can be optionally configured with a custom expiration date.
+User submits a request to create a PAT with a default expiration of 30 days. The PAT is scoped to a specific application and can be optionally configured with a custom expiration date.
 
 **Endpoint:**
 ```
@@ -23,7 +23,7 @@ Authorization: Bearer <session-token>
 
 **Response:**
 
-Shen presents the plaintext PAT to the user **only once**. The hashed value is stored using bcrypt or argon2.
+Shen presents the plaintext PAT to the user **only once**. The hashed value is stored using argon2.
 
 ```
 Status: 200 OK
@@ -32,7 +32,8 @@ Status: 200 OK
 ```json
 {
     "name": "my-prod-token",
-    "pat": "shen_pat_a1b2c3d4e5f6..."
+    "pat": "shen_pat_a1b2c3d4e5f6...",
+    "exp": "2025-12-15T15:30:00Z" 
 }
 ```
 
@@ -70,8 +71,9 @@ POST /api/v1/authorize
 **Short-lived JWT contains:**
 - `username` - User identifier
 - `aud` - Application name (from the PAT record)
-- `exp` - Expiration (7 minutes by default, configurable via `SHEN_JWT_SECONDS_TO_EXPIRY`)
+- `exp` - Expiration (420 sec, or 7 min, by default, configurable via `SHEN_JWT_SECONDS_TO_EXPIRY`)
 - `role` - Effective application role (determined by group memberships)
+- `iat` - Issued at iso utc date time as a string
 
 **Why short-lived tokens?**
 Forcing frequent JWT regeneration reduces the window for malicious activity and ensures permission changes (group memberships, role assignments) take effect quickly.
@@ -159,4 +161,4 @@ The application must verify the following JWT claims:
 
 **Token Expiration:**
 
-If the JWT has expired, the user or client must resubmit the PAT to `/api/v1/authorize` to obtain a new short-lived JWT.
+If the JWT has expired, the user or client must resubmit the PAT to `/api/v1/authorize` to obtain a new short-lived JWT. Since the PAT is already long-lived, there's no need for a refresh token.
