@@ -8,7 +8,7 @@
 |:----------------|:----------|:-------|:------|:-----------------------------------------------------|
 | id              | PK        | Y      | -     | Primary key                                          |
 | username        | string    | Y      | Y     | User identifier (enforced lowercase)                 |
-| hashed_password | string    | N      | N     | Hashed password (nullable - NULL for service accounts)|
+| hashed_password | string    | N      | N     | Hashed password using Argon2 (nullable - NULL for service accounts)|
 | active          | bool      | N      | N     | Account active status (default: true)                |
 | role            | FK        | N      | Y     | Foreign key to `shen_user_roles` (default: 'user')   |
 | created_at      | timestamp | N      | N     | User creation timestamp                              |
@@ -16,10 +16,12 @@
 
 **Important:** Service accounts (role=`service`) must have `hashed_password = NULL`. These accounts cannot authenticate to Shen's management API.
 
-**Foreign key constraints:**
-- `role` REFERENCES `shen_user_roles(id)` ON DELETE RESTRICT
+**Password Hashing:** User passwords are hashed using Argon2id with recommended parameters for password storage.
 
-### `shen_user_roles`
+**Foreign key constraints:**
+- `role` REFERENCES `shen_user_role(id)` ON DELETE RESTRICT
+
+### `shen_user_role`
 
 | Field      | Type      | Unique | Index | Description                         |
 |:-----------|:----------|:-------|:------|:------------------------------------|
@@ -35,13 +37,13 @@
 
 ### `shen_group`
 
-| Field      | Type      | Unique | Index | Description                         |
-|:-----------|:----------|:-------|:------|:------------------------------------|
-| id         | PK        | Y      | -     | Primary key                         |
-| name       | string    | Y      | Y     | Group name (enforced lowercase)     |
-| active     | bool      | N      | N     | Group active status                 |
-| created_at | timestamp | N      | N     | Group creation timestamp            |
-| updated_at | timestamp | N      | N     | Group last update timestamp         |
+| Field      | Type      | Unique | Index | Description                                |
+|:-----------|:----------|:-------|:------|:-------------------------------------------|
+| id         | PK        | Y      | -     | Primary key                                |
+| name       | string    | Y      | Y     | Group name (enforced lowercase)            |
+| active     | bool      | N      | N     | Group active status (default: true)        |
+| created_at | timestamp | N      | N     | Group creation timestamp                   |
+| updated_at | timestamp | N      | N     | Group last update timestamp                |
 
 ### `shen_user_group`
 
@@ -61,13 +63,13 @@
 
 ### `shen_application`
 
-| Field      | Type      | Unique | Index | Description                            |
-|:-----------|:----------|:-------|:------|:---------------------------------------|
-| id         | PK        | Y      | -     | Primary key                            |
-| name       | string    | Y      | Y     | Application name (enforced lowercase)  |
-| active     | bool      | N      | N     | Application active status              |
-| created_at | timestamp | N      | N     | Application creation timestamp         |
-| updated_at | timestamp | N      | N     | Application last update timestamp      |
+| Field      | Type      | Unique | Index | Description                                   |
+|:-----------|:----------|:-------|:------|:----------------------------------------------|
+| id         | PK        | Y      | -     | Primary key                                   |
+| name       | string    | Y      | Y     | Application name (enforced lowercase)         |
+| active     | bool      | N      | N     | Application active status (default: true)     |
+| created_at | timestamp | N      | N     | Application creation timestamp                |
+| updated_at | timestamp | N      | N     | Application last update timestamp             |
 
 ### `shen_application_role`
 
@@ -126,9 +128,9 @@ This table stores PATs and service tokens. These long lived tokens can be submit
 | Field          | Type      | Unique | Index | Description                                       |
 |:---------------|:----------|:-------|:------|:--------------------------------------------------|
 | id             | PK        | Y      | -     | Primary key                                       |
-| token          | string    | Y      | Y     | Hashed session token value                        |
+| token          | string    | Y      | Y     | Hashed session token value (SHA-256)              |
 | user_id        | FK        | N      | Y     | Foreign key to `shen_user`                        |
-| created_at     | timestamp | N      | N     | Session creation timestamp                        |
+| created_at     | timestamp | N      | Y     | Session creation timestamp                        |
 | expires_at     | timestamp | N      | Y     | Session expiration timestamp                      |
 | revoked        | bool      | N      | Y     | Session revocation status                         |
 | revoked_at     | timestamp | N      | N     | Session revocation timestamp (nullable)           |

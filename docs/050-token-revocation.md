@@ -216,6 +216,8 @@ Shen uses **stateless JWT verification** - applications verify JWTs using the pu
 
 Session tokens can also be revoked to force users to re-authenticate.
 
+### Revoke Single Session
+
 **Endpoint:**
 ```
 DELETE /api/v1/session/:id
@@ -234,7 +236,57 @@ Same as PAT revocation but operates on `shen_sessions` table:
 **Use Cases:**
 - User logs out (revokes their own session)
 - Admin forces logout (security incident, account compromise)
+
+### Revoke All User Sessions
+
+**Endpoint:**
+```
+DELETE /api/v1/sessions/user/:username
+```
+
+**Path Parameters:**
+- `:username` - Username of the account
+
+**Headers:**
+```
+Authorization: Bearer <session-token>
+```
+
+**Authorization:**
+- Admin only
+
+**Process:**
+
+1. Validate session token and verify user is admin
+2. Find all sessions for the specified user
+3. Update all session records:
+   - Set `revoked = true`
+   - Set `revoked_at = NOW()`
+4. Return count of revoked sessions
+
+**Response:**
+
+```
+Status: 200 OK
+```
+
+```json
+{
+  "username": "alice",
+  "sessions_revoked": 3
+}
+```
+
+**Error Responses:**
+
+- `401 Unauthorized` - Invalid or expired session token
+- `403 Forbidden` - User is not an administrator
+- `404 Not Found` - Username does not exist
+
+**Use Cases:**
 - Admin disables account (revokes all sessions for that user)
+- Account compromise response
+- Force user to re-authenticate on all devices
 
 ---
 
@@ -253,7 +305,7 @@ shenctl token revoke 42
 # Revoke all tokens for a user (admin only)
 shenctl token revoke-all <username>
 
-# Cleanup expired tokens (admin only)
+# Cleanup expired and revoked tokens (admin only)
 shenctl token cleanup
 
 # List active sessions
@@ -274,7 +326,16 @@ Revoked tokens are kept in the database (soft delete) for:
 - Forensic analysis
 - Preventing token reuse
 
-**Recommendation:** Implement a cleanup job to purge revoked tokens after a retention period (e.g., 90 days).
+**Token Cleanup Behavior:**
+
+The `shenctl token cleanup` command removes tokens from the database that meet ANY of these criteria:
+- `expires_at` is in the past (expired tokens)
+- `revoked = true` AND `revoked_at` is older than retention period (default: 90 days)
+
+This preserves recently revoked tokens for audit purposes while removing old expired and revoked tokens to prevent database bloat.
+
+**Configuration:**
+- `SHEN_TOKEN_RETENTION_DAYS` - Number of days to retain revoked tokens (default: 90)
 
 ### Emergency Revocation
 

@@ -2,7 +2,7 @@
 
 ## User Login with Username and Password
 
-User logs in by submitting their credentials to the authentication endpoint.
+User logs in by submitting their credentials to the authentication endpoint. Passwords are verified against Argon2id hashes stored in the database.
 
 **Endpoint:**
 ```
@@ -21,11 +21,12 @@ POST /api/v1/auth/login
 
 In return they receive a session token to interact with the Shen application. This token is stored locally and used to authorize the user/CLI to interact with Shen. Users can then manage their PATs for applications or check their group memberships. Administrators have all user privileges plus the ability to manage users, groups, applications, and RBAC settings.
 
-The session token is a random string stored in the database (in `shen_sessions` table) with:
+The session token is a cryptographically secure random string (32 bytes), hashed using SHA-256 and stored in the database (in `shen_sessions` table) with:
 
 - 30 days expiration (configurable via `SHEN_SESSION_EXPIRY_DAYS`)
 - Can be instantly revoked by administrators
 - Validated on every request to Shen
+- Plaintext token returned only once at creation time
 
 ```
 Status: 200 OK

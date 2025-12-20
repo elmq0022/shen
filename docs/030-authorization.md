@@ -65,15 +65,16 @@ POST /api/v1/authorize
 
 1. Shen verifies the hashed token is valid, matches an active token record, and has not expired
 2. The application scope is determined from the token record (`application_id`)
-3. User's role is resolved via group memberships (see Role Resolution below)
-4. A short-lived JWT is generated and returned
+3. Verify the application is active (`shen_application.active = true`)
+4. User's role is resolved via group memberships (see Role Resolution below)
+5. A short-lived JWT is generated and returned
 
 **Short-lived JWT contains:**
 - `username` - User identifier
 - `aud` - Application name (from the PAT record)
-- `exp` - Expiration (420 sec, or 7 min, by default, configurable via `SHEN_JWT_SECONDS_TO_EXPIRY`)
+- `exp` - Expiration (420 sec, or 7 min, by default, configurable via `SHEN_JWT_SECONDS_TO_EXPIRY`) - NumericDate (Unix timestamp)
 - `role` - Effective application role (determined by group memberships)
-- `iat` - Issued at iso utc date time as a string
+- `iat` - Issued at timestamp - NumericDate (Unix timestamp)
 
 **Why short-lived tokens?**
 Forcing frequent JWT regeneration reduces the window for malicious activity and ensures permission changes (group memberships, role assignments) take effect quickly.
