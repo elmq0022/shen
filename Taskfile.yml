@@ -1,0 +1,28 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  POSTGRES_USER: shen
+  POSTGRES_PASSWORD: shen_dev_password
+  POSTGRES_DB: shen
+  PORT: "5432"
+  POSTGRESQL_URL: 'postgres://{{.POSTGRES_USER}}:{{.POSTGRES_PASSWORD}}@localhost:{{.PORT}}/{{.POSTGRES_DB}}?sslmode=disable'
+
+tasks:
+  services:up:
+    cmds:
+      - docker compose up -d
+  services:down:
+    cmds:
+      - docker compose down
+  db:migrate:up:
+    cmds:
+      - migrate -database {{.POSTGRESQL_URL}} -path ./db/migrations up
+  db:migrate:down:
+    cmds:
+      - migrate -database {{.POSTGRESQL_URL}} -path ./db/migrations down
+  db:shell:
+    cmds:
+      - PGPASSWORD={{.POSTGRES_PASSWORD}} psql -h localhost -p {{.PORT}} -U {{.POSTGRES_USER}} -d {{.POSTGRES_DB}}
+
