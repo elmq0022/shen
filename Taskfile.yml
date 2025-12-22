@@ -25,4 +25,7 @@ tasks:
   db:shell:
     cmds:
       - PGPASSWORD={{.POSTGRES_PASSWORD}} psql -h localhost -p {{.PORT}} -U {{.POSTGRES_USER}} -d {{.POSTGRES_DB}}
-
+  db:reset:
+    cmds:
+      - task: db:migrate:down
+      - task: db:migrate:up
