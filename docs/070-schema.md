@@ -45,7 +45,7 @@
 | created_at | timestamp | N      | N     | Group creation timestamp                   |
 | updated_at | timestamp | N      | N     | Group last update timestamp                |
 
-### `shen_user_group`
+### `shen_user_group_member`
 
 | Field      | Type      | Unique | Index | Description                      |
 |:-----------|:----------|:-------|:------|:---------------------------------|
@@ -60,6 +60,24 @@
 **Foreign key constraints:**
 - `user_id` REFERENCES `shen_user(id)` ON DELETE CASCADE
 - `group_id` REFERENCES `shen_group(id)` ON DELETE CASCADE
+
+### `shen_user_group_manager`
+
+| Field      | Type      | Unique | Index | Description                           |
+|:-----------|:----------|:-------|:------|:--------------------------------------|
+| id         | PK        | Y      | -     | Primary key                           |
+| user_id    | FK        | N      | Y     | Foreign key to `shen_user`            |
+| group_id   | FK        | N      | Y     | Foreign key to `shen_group`           |
+| created_at | timestamp | N      | N     | Manager assignment creation timestamp |
+| updated_at | timestamp | N      | N     | Manager assignment last update timestamp |
+
+**Composite unique constraint:** `(user_id, group_id)` - A user can only be a manager of a group once
+
+**Foreign key constraints:**
+- `user_id` REFERENCES `shen_user(id)` ON DELETE CASCADE
+- `group_id` REFERENCES `shen_group(id)` ON DELETE CASCADE
+
+This table defines which users are managers of which groups. Group managers can add/remove members from groups they manage, but cannot modify group settings or assign other managers (admin-only operations).
 
 ### `shen_application`
 
@@ -83,7 +101,7 @@
 
 **Available roles:** `authenticated`, `viewer`, `auditor`, `operator`, `admin`
 
-### `shen_group_application_role`
+### `shen_group_application_role_assignment`
 
 | Field               | Type      | Unique | Index | Description                           |
 |:--------------------|:----------|:-------|:------|:--------------------------------------|

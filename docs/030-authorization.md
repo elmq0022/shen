@@ -97,8 +97,8 @@ Status: 200 OK
 When a user is a member of multiple groups with different roles for the same application, Shen determines the effective role by selecting the **highest priority** role across all groups.
 
 **Resolution Process:**
-1. Lookup all groups the user belongs to (via `shen_user_group`)
-2. For each group, find the role assigned for the target application (via `shen_group_application_role`)
+1. Lookup all groups the user belongs to (via `shen_user_group_member`)
+2. For each group, find the role assigned for the target application (via `shen_group_application_role_assignment`)
 3. Select the role with the highest priority value (via `shen_application_role.priority`)
 4. Include this role in the JWT
 

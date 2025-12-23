@@ -85,6 +85,7 @@ Shen provides:
 - **Groups** are assigned **roles** for specific **applications**
 - When a user has multiple groups with different roles for the same app, the **highest priority** role wins
 - **Service accounts** use the same permission model but cannot access Shen's management API
+- **Group managers** are users with elevated privileges to manage membership of specific groups, enabling self-service team management without requiring admin intervention
 
 ## Quick Start
 
