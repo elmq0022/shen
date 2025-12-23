@@ -6,12 +6,12 @@ User submits a request to create a PAT with a default expiration of 30 days. The
 
 **Endpoint:**
 ```
-POST /api/v1/token/:name/:app
+POST /api/v1/token/:name/:application
 ```
 
 **Path Parameters:**
 - `:name` - Token identifier (enforced lowercase)
-- `:app` - Application name to scope the token to
+- `:application` - Application name to scope the token to
 
 **Headers:**
 ```
@@ -98,7 +98,7 @@ When a user is a member of multiple groups with different roles for the same app
 
 **Resolution Process:**
 1. Lookup all groups the user belongs to (via `shen_user_group_member`)
-2. For each group, find the permission assigned for the target application (via `shen_group_app_permission`)
+2. For each group, find the permission assigned for the target application (via `shen_group_application_permission`)
 3. Select the permission with the highest priority value (via `shen_permission.priority`)
 4. Include this permission in the JWT
 
@@ -109,7 +109,7 @@ When a user is a member of multiple groups with different roles for the same app
 
 **Error Responses:**
 - `401 Unauthorized` - Invalid, expired, or revoked PAT
-- `403 Forbidden` - User no longer has access to the application (not in any groups with roles for this app)
+- `403 Forbidden` - User no longer has access to the application (not in any groups with roles for this application)
 - `404 Not Found` - Application not found
 
 ---

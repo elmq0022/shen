@@ -25,7 +25,7 @@ shenctl user add-groups ci-deploy ops-team
 
 **3. Administrator creates token for service account:**
 ```bash
-shenctl token create deploy-token my-app ci-deploy
+shenctl token create deploy-token my-application ci-deploy
 # Token is created and linked to ci-deploy service account
 ```
 

@@ -83,7 +83,7 @@ Shen provides:
 
 - **Users** are assigned to **groups**
 - **Groups** are assigned **roles** for specific **applications**
-- When a user has multiple groups with different roles for the same app, the **highest priority** role wins
+- When a user has multiple groups with different roles for the same application, the **highest priority** role wins
 - **Service accounts** use the same permission model but cannot access Shen's management API
 - **Group managers** are users with elevated privileges to manage membership of specific groups, enabling self-service team management without requiring admin intervention
 
@@ -91,11 +91,11 @@ Shen provides:
 
 1. Start Shen server (bootstraps admin account and keys)
 2. Login with `shenctl`: `shenctl auth login`
-3. Create an application: `shenctl app create my-app`
+3. Create an application: `shenctl application create my-application`
 4. Create a group: `shenctl group create developers`
-5. Assign role to group: `shenctl group assign-role developers my-app=viewer`
+5. Assign role to group: `shenctl group assign-role developers my-application=viewer`
 6. Add user to group: `shenctl user add-groups alice developers`
-7. Create PAT: `shenctl token create alice-token my-app`
+7. Create PAT: `shenctl token create alice-token my-application`
 8. Use PAT to get JWT for application access
 
 ## Architecture Diagram
@@ -111,8 +111,8 @@ sequenceDiagram
     Shen-->>User: Session Token (database-backed)
 
     Note over User,Shen: 2. Create PAT
-    User->>Shen: POST /api/v1/token/:name/:app (session token)
-    Shen-->>User: PAT (hashed, scoped to app)
+    User->>Shen: POST /api/v1/token/:name/:application (session token)
+    Shen-->>User: PAT (hashed, scoped to application)
 
     Note over User,Shen: 3. Exchange PAT for JWT
     User->>Shen: POST /api/v1/authorize (PAT)

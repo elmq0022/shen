@@ -101,7 +101,7 @@ This table defines which users are managers of which groups. Group managers can 
 
 **Available permissions:** `authenticated`, `viewer`, `auditor`, `operator`, `admin`
 
-### `shen_group_app_permission`
+### `shen_group_application_permission`
 
 | Field         | Type      | Unique | Index | Description                           |
 |:--------------|:----------|:-------|:------|:--------------------------------------|
