@@ -42,18 +42,22 @@ shenctl keys rotate
 
 This generates a new key pair and updates the JWKS endpoint. Applications will automatically fetch the new public key on their next verification.
 
-## Database Seeding
+## Database Migrations
 
-On startup, Shen will seed the following reference data if not present:
+Shen uses database migrations to set up the schema and seed reference data. Run migrations before first startup:
 
-**User Roles** (`shen_user_role`):
+```bash
+migrate -database $DATABASE_URL -path ./db/migrations up
+```
+
+**User Roles** (`shen_user_role`) - seeded via migration:
 - `service`
 - `user`
 - `admin`
 
-**Application Roles** (`shen_application_role`):
-- `authenticated` (priority: 0) - Authentication only, no Shen-managed authorization
-- `viewer` (priority: 100)
-- `auditor` (priority: 200)
-- `operator` (priority: 300)
-- `admin` (priority: 400)
+**Permissions** (`shen_permission`) - seeded via migration:
+- `authenticated` (priority: 100) - Authentication only, no Shen-managed authorization
+- `viewer` (priority: 200)
+- `auditor` (priority: 300)
+- `operator` (priority: 400)
+- `admin` (priority: 500)

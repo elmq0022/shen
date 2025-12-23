@@ -94,7 +94,7 @@ This table defines which users are managers of which groups. Group managers can 
 | Field      | Type      | Unique | Index | Description                                 |
 |:-----------|:----------|:-------|:------|:--------------------------------------------|
 | id         | PK        | Y      | -     | Primary key                                 |
-| priority   | integer   | N      | Y     | Permission priority                         |
+| priority   | integer   | Y      | Y     | Permission priority                         |
 | name       | string    | Y      | N     | Permission name (enforced lowercase)        |
 | created_at | timestamp | N      | N     | Permission creation timestamp               |
 | updated_at | timestamp | N      | N     | Permission last update timestamp            |

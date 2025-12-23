@@ -1,0 +1,5 @@
+BEGIN;
+
+DROP TABLE IF EXISTS shen_permission;
+
+COMMIT;
