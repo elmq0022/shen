@@ -10,6 +10,12 @@ CREATE TABLE IF NOT EXISTS shen_permission (
 
 CREATE INDEX shen_permission_priority_idx ON shen_permission(priority);
 
+-- Create trigger for shen_permission
+CREATE TRIGGER update_shen_permission_updated_at
+    BEFORE UPDATE ON shen_permission
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
 -- Insert default permissions
 INSERT INTO shen_permission (priority, name) VALUES
     (100, 'authenticated'),

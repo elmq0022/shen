@@ -13,4 +13,10 @@ CREATE TABLE IF NOT EXISTS shen_user(
 
 CREATE INDEX idx_user_role ON shen_user(role);
 
+-- Create trigger for shen_user
+CREATE TRIGGER update_shen_user_updated_at
+    BEFORE UPDATE ON shen_user
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
 COMMIT;

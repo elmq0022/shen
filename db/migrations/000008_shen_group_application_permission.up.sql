@@ -17,4 +17,10 @@ CREATE INDEX shen_group_application_permission_group_id_idx ON shen_group_applic
 CREATE INDEX shen_group_application_permission_application_id_idx ON shen_group_application_permission(application_id);
 CREATE INDEX shen_group_application_permission_permission_id_idx ON shen_group_application_permission(permission_id);
 
+-- Create trigger for shen_group_application_permission
+CREATE TRIGGER update_shen_group_application_permission_updated_at
+    BEFORE UPDATE ON shen_group_application_permission
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
 COMMIT;

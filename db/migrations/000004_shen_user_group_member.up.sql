@@ -14,4 +14,10 @@ CREATE TABLE IF NOT EXISTS shen_user_group_member(
 CREATE INDEX idx_user_id_member_user ON shen_user_group_member(user_id);
 CREATE INDEX idx_group_id_member_group ON shen_user_group_member(group_id);
 
+-- Create trigger for shen_user_group_member
+CREATE TRIGGER update_shen_user_group_member_updated_at
+    BEFORE UPDATE ON shen_user_group_member
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
 COMMIT;

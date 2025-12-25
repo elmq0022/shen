@@ -10,4 +10,10 @@ CREATE TABLE IF NOT EXISTS shen_group (
 
 CREATE INDEX idx_group_name ON shen_group(name);
 
+-- Create trigger for shen_group
+CREATE TRIGGER update_shen_group_updated_at
+    BEFORE UPDATE ON shen_group
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
 COMMIT;
