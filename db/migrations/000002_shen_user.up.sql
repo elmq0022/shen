@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS shen_user(
     role INTEGER NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_user_role FOREIGN KEY (role) REFERENCES shen_user_role(id) ON DELETE RESTRICT
+    CONSTRAINT fk_user_role_id FOREIGN KEY (role) REFERENCES shen_user_role(id) ON DELETE RESTRICT
 );
 
 CREATE INDEX idx_user_role ON shen_user(role);

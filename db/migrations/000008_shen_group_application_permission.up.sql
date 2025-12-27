@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS shen_group_application_permission (
     permission_id INTEGER NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_group_id_group_group_application_permission FOREIGN KEY (group_id) REFERENCES shen_group(id) ON DELETE CASCADE,
-    CONSTRAINT fk_application_id_group_group_application_permission FOREIGN KEY (application_id) REFERENCES shen_application(id) ON DELETE CASCADE,
-    CONSTRAINT fk_permission_id_group_group_application_permission FOREIGN KEY (permission_id) REFERENCES shen_permission(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_gap_group_id FOREIGN KEY (group_id) REFERENCES shen_group(id) ON DELETE CASCADE,
+    CONSTRAINT fk_gap_application_id FOREIGN KEY (application_id) REFERENCES shen_application(id) ON DELETE CASCADE,
+    CONSTRAINT fk_gap_permission_id FOREIGN KEY (permission_id) REFERENCES shen_permission(id) ON DELETE RESTRICT,
     CONSTRAINT unique_group_application UNIQUE (group_id, application_id)
 );
 
