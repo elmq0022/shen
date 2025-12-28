@@ -229,7 +229,7 @@ DELETE /api/v1/session/:id
 
 **Process:**
 
-Same as PAT revocation but operates on `shen_sessions` table:
+Same as PAT revocation but operates on `shen_session` table:
 - Set `revoked = true`
 - Set `revoked_at = NOW()`
 

@@ -21,7 +21,7 @@ POST /api/v1/auth/login
 
 In return they receive a session token to interact with the Shen application. This token is stored locally and used to authorize the user/CLI to interact with Shen. Users can then manage their PATs for applications or check their group memberships. Group managers have user privileges plus the ability to add/remove members from groups they manage. Administrators have all privileges including the ability to manage users, groups, applications, RBAC settings, and assign group managers.
 
-The session token is a cryptographically secure random string (32 bytes), hashed using SHA-256 and stored in the database (in `shen_sessions` table) with:
+The session token is a cryptographically secure random string (32 bytes), hashed using SHA-256 and stored in the database (in `shen_session` table) with:
 
 - 30 days expiration (configurable via `SHEN_SESSION_EXPIRY_DAYS`)
 - Can be instantly revoked by administrators

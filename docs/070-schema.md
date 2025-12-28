@@ -143,12 +143,12 @@ This table defines which users are managers of which groups. Group managers can 
 
 This table stores PATs and service tokens. These long lived tokens can be submitted to obtain a short-lived stateless JWT which can be used to authenticate to a specific application.
 
-### `shen_sessions`
+### `shen_session`
 
 | Field          | Type      | Unique | Index | Description                                       |
 |:---------------|:----------|:-------|:------|:--------------------------------------------------|
 | id             | PK        | Y      | -     | Primary key                                       |
-| token          | string    | Y      | Y     | Hashed session token value (SHA-256)              |
+| hashed_token   | string    | Y      | Y     | Hashed session token value (SHA-256)              |
 | user_id        | FK        | N      | Y     | Foreign key to `shen_user`                        |
 | created_at     | timestamp | N      | Y     | Session creation timestamp                        |
 | expires_at     | timestamp | N      | Y     | Session expiration timestamp                      |
