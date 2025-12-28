@@ -13,7 +13,7 @@ WHERE
   id = $1
 LIMIT 1;
 
--- name: GetUserByUserName :one
+-- name: GetUserByUsername :one
 SELECT
   id,
   username,

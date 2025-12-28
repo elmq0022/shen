@@ -156,7 +156,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id int32) (ShenUser, error) {
 	return i, err
 }
 
-const getUserByUserName = `-- name: GetUserByUserName :one
+const getUserByUsername = `-- name: GetUserByUsername :one
 SELECT
   id,
   username,
@@ -172,8 +172,8 @@ WHERE
 LIMIT 1
 `
 
-func (q *Queries) GetUserByUserName(ctx context.Context, username string) (ShenUser, error) {
-	row := q.db.QueryRow(ctx, getUserByUserName, username)
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (ShenUser, error) {
+	row := q.db.QueryRow(ctx, getUserByUsername, username)
 	var i ShenUser
 	err := row.Scan(
 		&i.ID,
