@@ -18,7 +18,7 @@ This document captures features and improvements planned for future releases but
 - Batch processing to avoid overwhelming the notification system
 
 **Implementation Considerations:**
-- Background worker/cron job to scan `shen_tokens.expires_at` daily
+- Background worker/cron job to scan `shen_token.expires_at` daily
 - Notification delivery service (SMTP for email, HTTP client for webhooks)
 - Track last notification sent to avoid duplicates
 - Add `shen_user.email` field to schema
@@ -44,7 +44,7 @@ CREATE TABLE shen_notification_preferences (
 CREATE TABLE shen_notification_log (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES shen_user(id),
-    token_id INT REFERENCES shen_tokens(id),
+    token_id INT REFERENCES shen_token(id),
     notification_type VARCHAR(50), -- 'expiration_reminder', 'token_created', 'token_revoked'
     sent_at TIMESTAMP,
     channel VARCHAR(50)

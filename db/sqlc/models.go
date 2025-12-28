@@ -54,7 +54,7 @@ type ShenSession struct {
 type ShenToken struct {
 	ID            int32            `json:"id"`
 	Name          string           `json:"name"`
-	Token         string           `json:"token"`
+	HashedToken   string           `json:"hashed_token"`
 	UserID        int32            `json:"user_id"`
 	ApplicationID int32            `json:"application_id"`
 	CreatedAt     pgtype.Timestamp `json:"created_at"`

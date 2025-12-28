@@ -119,13 +119,13 @@ This table defines which users are managers of which groups. Group managers can 
 - `application_id` REFERENCES `shen_application(id)` ON DELETE CASCADE
 - `permission_id` REFERENCES `shen_permission(id)` ON DELETE RESTRICT
 
-### `shen_tokens`
+### `shen_token`
 
 | Field          | Type      | Unique | Index | Description                                       |
 |:---------------|:----------|:-------|:------|:--------------------------------------------------|
 | id             | PK        | Y      | -     | Primary key                                       |
 | name           | string    | N      | Y     | Token name/identifier (enforced lowercase)        |
-| token          | string    | Y      | Y     | Hashed token value (Argon2id)                     |
+| hashed_token   | string    | Y      | Y     | Hashed token value (Argon2id)                     |
 | user_id        | FK        | N      | Y     | Foreign key to `shen_user`                        |
 | application_id | FK        | N      | Y     | Foreign key to `shen_application`                 |
 | created_at     | timestamp | N      | Y     | Token creation timestamp                          |

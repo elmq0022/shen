@@ -16,7 +16,7 @@ DELETE /api/v1/token/:id
 ```
 
 **Path Parameters:**
-- `:id` - Token ID (primary key from `shen_tokens` table)
+- `:id` - Token ID (primary key from `shen_token` table)
 
 **Headers:**
 ```
@@ -29,7 +29,7 @@ Authorization: Bearer <session-token>
 2. Lookup token by ID
 3. Check authorization:
    - If user is admin → allow
-   - If user owns the token (`shen_tokens.user_id == current_user.id`) → allow
+   - If user owns the token (`shen_token.user_id == current_user.id`) → allow
    - Otherwise → 403 Forbidden
 4. Update token record:
    - Set `revoked = true`
@@ -197,7 +197,7 @@ When a PAT is revoked:
 
 1. **Immediate Effect:** The next call to `POST /api/v1/authorize` with this PAT will fail with `401 Unauthorized`
 2. **Existing JWTs:** Already-issued JWTs remain valid until expiration (max 7 minutes by default)
-3. **Database State:** Token record remains in `shen_tokens` table with `revoked=true` (soft delete, not hard delete)
+3. **Database State:** Token record remains in `shen_token` table with `revoked=true` (soft delete, not hard delete)
 
 ### Why Not Invalidate Existing JWTs?
 
