@@ -42,13 +42,13 @@ type ShenPermission struct {
 }
 
 type ShenSession struct {
-	ID        int32            `json:"id"`
-	Token     string           `json:"token"`
-	UserID    int32            `json:"user_id"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	ExpiresAt pgtype.Timestamp `json:"expires_at"`
-	Revoked   bool             `json:"revoked"`
-	RevokedAt pgtype.Timestamp `json:"revoked_at"`
+	ID          int32            `json:"id"`
+	HashedToken string           `json:"hashed_token"`
+	UserID      int32            `json:"user_id"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	ExpiresAt   pgtype.Timestamp `json:"expires_at"`
+	Revoked     bool             `json:"revoked"`
+	RevokedAt   pgtype.Timestamp `json:"revoked_at"`
 }
 
 type ShenToken struct {
