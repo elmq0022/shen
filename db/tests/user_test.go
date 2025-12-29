@@ -40,4 +40,13 @@ func TestCreateAndGetUser(t *testing.T) {
 	require.NoError(t, err, "Failed to get user by username")
 	assert.Equal(t, created.ID, fetchedByUsername.ID)
 	assert.Equal(t, "tyler.durden", fetchedByUsername.Username)
+
+	// Deactivate User
+	err = tdb.Queries.DeactivateUser(tdb.Ctx, created.ID)
+	require.NoError(t, err, "Failed to deactivate user")
+
+	// Verify user is deactivated
+	deactivated, err := tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
+	require.NoError(t, err, "Failed to get deactivated user")
+	assert.False(t, deactivated.Active, "User should be deactivated")
 }
