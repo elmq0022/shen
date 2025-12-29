@@ -50,3 +50,97 @@ func TestCreateAndGetUser(t *testing.T) {
 	require.NoError(t, err, "Failed to get deactivated user")
 	assert.False(t, deactivated.Active, "User should be deactivated")
 }
+
+func TestUpdateUserPassword(t *testing.T) {
+	tdb := SetupTestDB(t)
+
+	// Create user
+	created, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
+		Username:       "marla.singer",
+		HashedPassword: pgtype.Text{String: "oldhash", Valid: true},
+		Role:           2,
+	})
+	require.NoError(t, err, "Failed to create user")
+
+	// Update password
+	err = tdb.Queries.UpdateUserPassword(tdb.Ctx, db.UpdateUserPasswordParams{
+		ID:             created.ID,
+		HashedPassword: pgtype.Text{String: "newhash", Valid: true},
+	})
+	require.NoError(t, err, "Failed to update password")
+
+	// Verify password updated
+	updated, err := tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
+	require.NoError(t, err, "Failed to get updated user")
+	assert.Equal(t, "newhash", updated.HashedPassword.String)
+	assert.Equal(t, created.Username, updated.Username)
+}
+
+func TestUpdateUserRole(t *testing.T) {
+	tdb := SetupTestDB(t)
+
+	// Create user
+	created, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
+		Username:       "robert.paulson",
+		HashedPassword: pgtype.Text{String: "hash123", Valid: true},
+		Role:           2,
+	})
+	require.NoError(t, err, "Failed to create user")
+
+	// Update role
+	err = tdb.Queries.UpdateUserRole(tdb.Ctx, db.UpdateUserRoleParams{
+		ID:   created.ID,
+		Role: 1,
+	})
+	require.NoError(t, err, "Failed to update role")
+
+	// Verify role updated
+	updated, err := tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
+	require.NoError(t, err, "Failed to get updated user")
+	assert.Equal(t, int32(1), updated.Role)
+	assert.Equal(t, created.Username, updated.Username)
+}
+
+func TestActivateUser(t *testing.T) {
+	tdb := SetupTestDB(t)
+
+	// Create and deactivate user
+	created, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
+		Username:       "angel.face",
+		HashedPassword: pgtype.Text{String: "hash123", Valid: true},
+		Role:           2,
+	})
+	require.NoError(t, err, "Failed to create user")
+
+	err = tdb.Queries.DeactivateUser(tdb.Ctx, created.ID)
+	require.NoError(t, err, "Failed to deactivate user")
+
+	// Activate user
+	err = tdb.Queries.ActivateUser(tdb.Ctx, created.ID)
+	require.NoError(t, err, "Failed to activate user")
+
+	// Verify user is active
+	activated, err := tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
+	require.NoError(t, err, "Failed to get activated user")
+	assert.True(t, activated.Active, "User should be active")
+}
+
+func TestDeleteUser(t *testing.T) {
+	tdb := SetupTestDB(t)
+
+	// Create user
+	created, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
+		Username:       "big.bob",
+		HashedPassword: pgtype.Text{String: "hash123", Valid: true},
+		Role:           2,
+	})
+	require.NoError(t, err, "Failed to create user")
+
+	// Delete user
+	err = tdb.Queries.DeleteUser(tdb.Ctx, created.ID)
+	require.NoError(t, err, "Failed to delete user")
+
+	// Verify deletion - should get error when trying to fetch
+	_, err = tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
+	assert.Error(t, err, "Should get error when fetching deleted user")
+}
