@@ -53,3 +53,14 @@ tasks:
     cmds:
       - task: db:reset
       - go test -v -tags=integration ./db/tests/...
+
+  test:unit:
+    desc: Run unit tests (no database)
+    cmds:
+      - go test -v ./...
+
+  test:all:
+    desc: Run all tests
+    cmds:
+      - task: test:unit
+      - task: test:integration
