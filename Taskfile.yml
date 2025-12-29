@@ -15,30 +15,28 @@ tasks:
 
   db:migrate:up:
     desc: Run all pending database migrations
-    deps:
-      - db:up
     cmds:
+      - task: db:up
       - migrate -database ${DATABASE_URL} -path ./db/migrations up
 
   db:migrate:down:
     desc: Rollback all database migrations
-    deps:
-      - db:up
     cmds:
+      - task: db:up
       - migrate -database ${DATABASE_URL} -path ./db/migrations down -all
 
   db:shell:
     desc: Open PostgreSQL shell (psql)
-    deps:
-      - db:up
     cmds:
+      - task: db:up
       - PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -p ${POSTGRES_PORT} -U ${POSTGRES_USER} -d ${POSTGRES_DB}
 
   db:reset:
     desc: Reset database schema (down + up migrations)
     cmds:
-      - task: db:migrate:down
-      - task: db:migrate:up
+      - task: db:up
+      - migrate -database ${DATABASE_URL} -path ./db/migrations down -all
+      - migrate -database ${DATABASE_URL} -path ./db/migrations up
 
   db:migrate:create:
     desc: Create a new migration file (usage - task db:migrate:create -- migration_name)
@@ -52,8 +50,6 @@ tasks:
 
   test:integration:
     desc: Start database, reset schema, and run integration tests
-    deps:
-      - db:up
-      - db:reset
     cmds:
+      - task: db:reset
       - go test -v -tags=integration ./db/tests/...
