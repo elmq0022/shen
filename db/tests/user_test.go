@@ -34,14 +34,12 @@ func TestCreateAndGetUser(t *testing.T) {
 	// Get user by ID
 	fetched, err := tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
 	require.NoError(t, err, "Failed to get user by ID")
-	assert.Equal(t, created.ID, fetched.ID)
-	assert.Equal(t, created.Username, fetched.Username)
+	assert.Equal(t, created, fetched)
 
 	// Get user by username
 	fetchedByUsername, err := tdb.Queries.GetUserByUsername(tdb.Ctx, "tyler.durden")
 	require.NoError(t, err, "Failed to get user by username")
-	assert.Equal(t, created.ID, fetchedByUsername.ID)
-	assert.Equal(t, "tyler.durden", fetchedByUsername.Username)
+	assert.Equal(t, created, fetchedByUsername)
 
 	// Deactivate User
 	err = tdb.Queries.DeactivateUser(tdb.Ctx, created.ID)
