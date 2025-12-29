@@ -4,5 +4,8 @@
   },
   "[sql]": {
     "editor.defaultFormatter": "bradymholt.pgformatter"
+  },
+   "gopls": {
+    "build.buildFlags": ["-tags=integration"]
   }
 }
