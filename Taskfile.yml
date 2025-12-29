@@ -2,18 +2,11 @@
 
 version: '3'
 
-vars:
-  POSTGRES_USER: shen
-  POSTGRES_PASSWORD: shen_dev_password
-  POSTGRES_DB: shen
-  PORT: "5432"
-  POSTGRESQL_URL: 'postgres://{{.POSTGRES_USER}}:{{.POSTGRES_PASSWORD}}@localhost:{{.PORT}}/{{.POSTGRES_DB}}?sslmode=disable'
-
 tasks:
   db:up:
     desc: Start PostgreSQL database service
     cmds:
-      - docker compose up -d postgres
+      - docker compose up -d --wait postgres
 
   db:down:
     desc: Stop PostgreSQL database service
@@ -25,21 +18,21 @@ tasks:
     deps:
       - db:up
     cmds:
-      - migrate -database {{.POSTGRESQL_URL}} -path ./db/migrations up
+      - migrate -database ${DATABASE_URL} -path ./db/migrations up
 
   db:migrate:down:
     desc: Rollback all database migrations
     deps:
       - db:up
     cmds:
-      - migrate -database {{.POSTGRESQL_URL}} -path ./db/migrations down -all
+      - migrate -database ${DATABASE_URL} -path ./db/migrations down -all
 
   db:shell:
     desc: Open PostgreSQL shell (psql)
     deps:
       - db:up
     cmds:
-      - PGPASSWORD={{.POSTGRES_PASSWORD}} psql -h localhost -p {{.PORT}} -U {{.POSTGRES_USER}} -d {{.POSTGRES_DB}}
+      - PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -p ${POSTGRES_PORT} -U ${POSTGRES_USER} -d ${POSTGRES_DB}
 
   db:reset:
     desc: Reset database schema (down + up migrations)
