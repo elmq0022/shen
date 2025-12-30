@@ -251,3 +251,25 @@ func TestListUsers(t *testing.T) {
 	require.NoError(t, err, "Failed to count all users")
 	assert.Equal(t, int64(3), totalUsers)
 }
+
+func TestCheckUsernameExists(t *testing.T) {
+	tdb := SetupTestDB(t)
+
+	// create user
+	_, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
+		Username:       "lou",
+		HashedPassword: pgtype.Text{String: "hash123", Valid: true},
+		Role:           2,
+	})
+	require.NoError(t, err, "Failed to create user")
+
+	// check existing username
+	exists, err := tdb.Queries.CheckUsernameExists(tdb.Ctx, "lou")
+	require.NoError(t, err, "Failed to check username exists")
+	assert.True(t, exists)
+
+	// check non-existent username
+	exists, err = tdb.Queries.CheckUsernameExists(tdb.Ctx, "ricky")
+	require.NoError(t, err, "Failed to check non-existent username")
+	assert.False(t, exists)
+}
