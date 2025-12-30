@@ -187,4 +187,67 @@ func TestListActiveUsers(t *testing.T) {
 	require.NoError(t, err, "Failed to list users")
 	assert.Equal(t, len(users), 1)
 	assert.Equal(t, usernames[2], users[0].Username)
+
+	// deactivate middle user and verify filtering
+	userToDeactivate, err := tdb.Queries.GetUserByUsername(tdb.Ctx, usernames[1])
+	require.NoError(t, err, "Failed to get user to deactivate")
+	err = tdb.Queries.DeactivateUser(tdb.Ctx, userToDeactivate.ID)
+	require.NoError(t, err, "Failed to deactivate user")
+
+	numberActiveUsers, err = tdb.Queries.CountActiveUsers(tdb.Ctx)
+	require.NoError(t, err, "Failed to count active users after deactivation")
+	assert.Equal(t, int64(2), numberActiveUsers)
+
+	users, err = tdb.Queries.ListActiveUsers(tdb.Ctx, db.ListActiveUsersParams{
+		Limit:  10,
+		Offset: 0,
+	})
+	require.NoError(t, err, "Failed to list active users after deactivation")
+	assert.Equal(t, 2, len(users))
+	assert.Equal(t, usernames[0], users[0].Username)
+	assert.Equal(t, usernames[2], users[1].Username)
+}
+
+func TestListUsers(t *testing.T) {
+	tdb := SetupTestDB(t)
+
+	usernames := []string{
+		"narrator",
+		"chloe",
+		"mechanic",
+	}
+
+	// create users
+	for _, username := range usernames {
+		_, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
+			Username:       username,
+			HashedPassword: pgtype.Text{String: username + "-hash123", Valid: true},
+			Role:           2,
+		})
+		require.NoError(t, err, "Failed to create user")
+	}
+
+	// deactivate one user
+	userToDeactivate, err := tdb.Queries.GetUserByUsername(tdb.Ctx, "chloe")
+	require.NoError(t, err, "Failed to get user to deactivate")
+	err = tdb.Queries.DeactivateUser(tdb.Ctx, userToDeactivate.ID)
+	require.NoError(t, err, "Failed to deactivate user")
+
+	slices.Sort(usernames)
+
+	// ListUsers should return all users including deactivated
+	allUsers, err := tdb.Queries.ListUsers(tdb.Ctx, db.ListUsersParams{
+		Limit:  10,
+		Offset: 0,
+	})
+	require.NoError(t, err, "Failed to list all users")
+	assert.Equal(t, 3, len(allUsers))
+	assert.Equal(t, usernames[0], allUsers[0].Username)
+	assert.Equal(t, usernames[1], allUsers[1].Username)
+	assert.Equal(t, usernames[2], allUsers[2].Username)
+
+	// verify count includes all users
+	totalUsers, err := tdb.Queries.CountUsers(tdb.Ctx)
+	require.NoError(t, err, "Failed to count all users")
+	assert.Equal(t, int64(3), totalUsers)
 }
