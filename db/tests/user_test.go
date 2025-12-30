@@ -3,6 +3,7 @@
 package db_tests
 
 import (
+	"slices"
 	"testing"
 
 	db "github.com/elmq0022/shen/db/sqlc"
@@ -143,4 +144,47 @@ func TestDeleteUser(t *testing.T) {
 	// Verify deletion - should get error when trying to fetch
 	_, err = tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
 	assert.Error(t, err, "Should get error when fetching deleted user")
+}
+
+func TestListActiveUsers(t *testing.T) {
+	tdb := SetupTestDB(t)
+
+	usernames := []string{
+		"tyler.durden",
+		"robert.paulson",
+		"marla.singer",
+	}
+
+	for _, username := range usernames {
+		tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
+			Username:       username,
+			HashedPassword: pgtype.Text{String: username + "-hash123", Valid: true},
+			Role:           1,
+		})
+	}
+
+	numberActiveUsers, err := tdb.Queries.CountActiveUsers(tdb.Ctx)
+	require.NoError(t, err, "Failed to count users")
+	assert.Equal(t, int64(len(usernames)), int64(numberActiveUsers))
+
+	slices.Sort(usernames)
+
+	// first page of users
+	users, err := tdb.Queries.ListActiveUsers(tdb.Ctx, db.ListActiveUsersParams{
+		Limit:  2,
+		Offset: 0,
+	})
+	require.NoError(t, err, "Failed to list users")
+	assert.Equal(t, len(users), 2)
+	assert.Equal(t, usernames[0], users[0].Username)
+	assert.Equal(t, usernames[1], users[1].Username)
+
+	// second page of users
+	users, err = tdb.Queries.ListActiveUsers(tdb.Ctx, db.ListActiveUsersParams{
+		Limit:  2,
+		Offset: 2,
+	})
+	require.NoError(t, err, "Failed to list users")
+	assert.Equal(t, len(users), 1)
+	assert.Equal(t, usernames[2], users[0].Username)
 }
