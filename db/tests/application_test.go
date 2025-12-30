@@ -92,16 +92,24 @@ func TestListActiveApplications(t *testing.T) {
 
 	slices.Sort(appNames)
 
-	// list all active apps
+	// first page of apps
 	apps, err := tdb.Queries.ListActiveApplications(tdb.Ctx, db.ListActiveApplicationsParams{
-		Limit:  10,
+		Limit:  2,
 		Offset: 0,
 	})
 	require.NoError(t, err, "Failed to list active applications")
-	assert.Equal(t, 3, len(apps))
+	assert.Equal(t, 2, len(apps))
 	assert.Equal(t, appNames[0], apps[0].Name)
 	assert.Equal(t, appNames[1], apps[1].Name)
-	assert.Equal(t, appNames[2], apps[2].Name)
+
+	// second page of apps
+	apps, err = tdb.Queries.ListActiveApplications(tdb.Ctx, db.ListActiveApplicationsParams{
+		Limit:  2,
+		Offset: 2,
+	})
+	require.NoError(t, err, "Failed to list active applications")
+	assert.Equal(t, 1, len(apps))
+	assert.Equal(t, appNames[2], apps[0].Name)
 
 	// deactivate middle app and verify filtering
 	appToDeactivate, err := tdb.Queries.GetApplicationByName(tdb.Ctx, appNames[1])
@@ -133,13 +141,32 @@ func TestListApplications(t *testing.T) {
 		require.NoError(t, err, "Failed to create application")
 	}
 
+	slices.Sort(appNames)
+
+	// first page of apps
+	apps, err := tdb.Queries.ListApplications(tdb.Ctx, db.ListApplicationsParams{
+		Limit:  2,
+		Offset: 0,
+	})
+	require.NoError(t, err, "Failed to list applications")
+	assert.Equal(t, 2, len(apps))
+	assert.Equal(t, appNames[0], apps[0].Name)
+	assert.Equal(t, appNames[1], apps[1].Name)
+
+	// second page of apps
+	apps, err = tdb.Queries.ListApplications(tdb.Ctx, db.ListApplicationsParams{
+		Limit:  2,
+		Offset: 2,
+	})
+	require.NoError(t, err, "Failed to list applications")
+	assert.Equal(t, 1, len(apps))
+	assert.Equal(t, appNames[2], apps[0].Name)
+
 	// deactivate one app
 	appToDeactivate, err := tdb.Queries.GetApplicationByName(tdb.Ctx, "compuserve")
 	require.NoError(t, err, "Failed to get app to deactivate")
 	err = tdb.Queries.DeactivateApplication(tdb.Ctx, appToDeactivate.ID)
 	require.NoError(t, err, "Failed to deactivate application")
-
-	slices.Sort(appNames)
 
 	// ListApplications should return all apps including deactivated
 	allApps, err := tdb.Queries.ListApplications(tdb.Ctx, db.ListApplicationsParams{
