@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS shen_permission (
     priority INTEGER UNIQUE NOT NULL,
     name VARCHAR(64) UNIQUE NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_permission_name_lowercase CHECK (name = LOWER(name))
 );
 
 CREATE INDEX shen_permission_priority_idx ON shen_permission(priority);

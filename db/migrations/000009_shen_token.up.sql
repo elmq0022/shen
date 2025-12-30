@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS shen_token (
     CONSTRAINT fk_token_user_id FOREIGN KEY (user_id) REFERENCES shen_user(id) ON DELETE CASCADE,
     CONSTRAINT fk_token_application_id FOREIGN KEY (application_id) REFERENCES shen_application(id) ON DELETE CASCADE,
     CONSTRAINT unique_user_application_name UNIQUE (user_id, application_id, name),
-    CONSTRAINT unique_hashed_token UNIQUE (hashed_token)
+    CONSTRAINT unique_hashed_token UNIQUE (hashed_token),
+    CONSTRAINT chk_token_name_lowercase CHECK (name = LOWER(name))
 );
 
 CREATE INDEX shen_token_user_id_idx ON shen_token(user_id);
