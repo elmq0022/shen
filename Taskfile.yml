@@ -3,6 +3,12 @@
 version: '3'
 
 tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list-all
+    silent: true
+
   db:up:
     desc: Start PostgreSQL database service
     cmds:
