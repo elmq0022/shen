@@ -273,3 +273,54 @@ func TestCheckUsernameExists(t *testing.T) {
 	require.NoError(t, err, "Failed to check non-existent username")
 	assert.False(t, exists)
 }
+
+func TestListUsersByRole(t *testing.T) {
+	tdb := SetupTestDB(t)
+
+	// create users with different roles
+	adminUsers := []string{"raymond.hessel", "richard.chesler"}
+	memberUsers := []string{"bob.flanagan", "steph"}
+
+	for _, username := range adminUsers {
+		_, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
+			Username:       username,
+			HashedPassword: pgtype.Text{String: username + "-hash123", Valid: true},
+			Role:           1, // admin role
+		})
+		require.NoError(t, err, "Failed to create admin user")
+	}
+
+	for _, username := range memberUsers {
+		_, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
+			Username:       username,
+			HashedPassword: pgtype.Text{String: username + "-hash123", Valid: true},
+			Role:           2, // member role
+		})
+		require.NoError(t, err, "Failed to create member user")
+	}
+
+	slices.Sort(adminUsers)
+	slices.Sort(memberUsers)
+
+	// list admin users (role 1)
+	admins, err := tdb.Queries.ListUsersByRole(tdb.Ctx, db.ListUsersByRoleParams{
+		Role:   1,
+		Limit:  10,
+		Offset: 0,
+	})
+	require.NoError(t, err, "Failed to list admin users")
+	assert.Equal(t, 2, len(admins))
+	assert.Equal(t, adminUsers[0], admins[0].Username)
+	assert.Equal(t, adminUsers[1], admins[1].Username)
+
+	// list member users (role 2)
+	members, err := tdb.Queries.ListUsersByRole(tdb.Ctx, db.ListUsersByRoleParams{
+		Role:   2,
+		Limit:  10,
+		Offset: 0,
+	})
+	require.NoError(t, err, "Failed to list member users")
+	assert.Equal(t, 2, len(members))
+	assert.Equal(t, memberUsers[0], members[0].Username)
+	assert.Equal(t, memberUsers[1], members[1].Username)
+}
