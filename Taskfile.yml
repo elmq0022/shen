@@ -52,7 +52,7 @@ tasks:
     desc: Start database, reset schema, and run integration tests
     cmds:
       - task: db:reset
-      - go test -v -tags=integration ./db/tests/...
+      - go test -v -count=1 -tags=integration ./db/tests/... {{.CLI_ARGS}}
 
   test:unit:
     desc: Run unit tests (no database)
