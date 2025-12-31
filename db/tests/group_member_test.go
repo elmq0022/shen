@@ -61,6 +61,17 @@ func sortUsersByUsername(users []db.ShenUser) {
 	})
 }
 
+func sortGroupsByName(groups []db.ShenGroup) {
+	slices.SortFunc(groups, func(a, b db.ShenGroup) int {
+		if a.Name < b.Name {
+			return -1
+		} else if a.Name == b.Name {
+			return 0
+		}
+		return 1
+	})
+}
+
 func TestListUsersByGroup(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
@@ -88,4 +99,34 @@ func TestListUsersByGroup(t *testing.T) {
 	})
 	require.NoError(t, err, "Failed to retrieve Group2 members")
 	assert.Equal(t, group2Members, fetchedGroup2Members)
+}
+
+func TestListGroupsByUser(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	user1Groups := []db.ShenGroup{f.Group1, f.Group2}
+	addUsersToGroup(t, tdb, []db.ShenUser{f.User1}, f.Group1)
+	addUsersToGroup(t, tdb, []db.ShenUser{f.User1}, f.Group2)
+	sortGroupsByName(user1Groups)
+
+	user2Groups := []db.ShenGroup{f.Group1}
+	addUsersToGroup(t, tdb, []db.ShenUser{f.User2}, f.Group1)
+	sortGroupsByName(user2Groups)
+
+	fetchedUser1Groups, err := tdb.Queries.ListGroupsByUser(tdb.Ctx, db.ListGroupsByUserParams{
+		UserID: f.User1.ID,
+		Limit:  10,
+		Offset: 0,
+	})
+	require.NoError(t, err, "Failed to retrieve User1 groups")
+	assert.Equal(t, user1Groups, fetchedUser1Groups)
+
+	fetchedUser2Groups, err := tdb.Queries.ListGroupsByUser(tdb.Ctx, db.ListGroupsByUserParams{
+		UserID: f.User2.ID,
+		Limit:  10,
+		Offset: 0,
+	})
+	require.NoError(t, err, "Failed to retrieve User2 groups")
+	assert.Equal(t, user2Groups, fetchedUser2Groups)
 }
