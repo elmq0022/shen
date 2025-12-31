@@ -130,3 +130,25 @@ func TestListGroupsByUser(t *testing.T) {
 	require.NoError(t, err, "Failed to retrieve User2 groups")
 	assert.Equal(t, user2Groups, fetchedUser2Groups)
 }
+
+func TestIsUserInGroup(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	addUsersToGroup(t, tdb, []db.ShenUser{f.User1}, f.Group1)
+	addUsersToGroup(t, tdb, []db.ShenUser{f.User2}, f.Group2)
+
+	isUser1InGroup1, err := tdb.Queries.IsUserInGroup(tdb.Ctx, db.IsUserInGroupParams{
+		UserID:  f.User1.ID,
+		GroupID: f.Group1.ID,
+	})
+	require.NoError(t, err, "Failed to check if User1 is in Group1")
+	assert.True(t, isUser1InGroup1, "User1 should be in Group1")
+
+	isUser1InGroup2, err := tdb.Queries.IsUserInGroup(tdb.Ctx, db.IsUserInGroupParams{
+		UserID:  f.User1.ID,
+		GroupID: f.Group2.ID,
+	})
+	require.NoError(t, err, "Failed to check if User1 is in Group2")
+	assert.False(t, isUser1InGroup2, "User1 should not be in Group2")
+}
