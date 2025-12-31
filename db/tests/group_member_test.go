@@ -152,3 +152,35 @@ func TestIsUserInGroup(t *testing.T) {
 	require.NoError(t, err, "Failed to check if User1 is in Group2")
 	assert.False(t, isUser1InGroup2, "User1 should not be in Group2")
 }
+
+func TestListAllGroupMembers(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	addUsersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2, f.Admin}, f.Group1)
+	addUsersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
+
+	allMembers, err := tdb.Queries.ListAllGroupMembers(tdb.Ctx, db.ListAllGroupMembersParams{
+		Limit:  10,
+		Offset: 0,
+	})
+	require.NoError(t, err, "Failed to retrieve all group members")
+
+	expected := []struct {
+		GroupName string
+		Username  string
+	}{
+		{"test-group-1", "test.admin"},
+		{"test-group-1", "test.user1"},
+		{"test-group-1", "test.user2"},
+		{"test-group-2", "test.user1"},
+		{"test-group-2", "test.user2"},
+	}
+
+	require.Len(t, allMembers, len(expected), "Should have 5 total group memberships")
+
+	for i, exp := range expected {
+		assert.Equal(t, exp.GroupName, allMembers[i].GroupName)
+		assert.Equal(t, exp.Username, allMembers[i].Username)
+	}
+}
