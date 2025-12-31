@@ -11,47 +11,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type UserOption func(*userConfig)
+const (
+	RoleService int32 = 1
+	RoleUser    int32 = 2
+	RoleAdmin   int32 = 3
+)
 
-type userConfig struct {
-	hashedPassword string
-	role           int32
-}
-
-func WithPassword(password string) UserOption {
-	return func(c *userConfig) {
-		c.hashedPassword = password
-	}
-}
-
-func WithAdminRole() UserOption {
-	return func(c *userConfig) {
-		c.role = 1
-	}
-}
-
-func WithMemberRole() UserOption {
-	return func(c *userConfig) {
-		c.role = 2
-	}
-}
-
-func CreateTestUser(t *testing.T, tdb *TestDB, username string, opts ...UserOption) db.ShenUser {
+func CreateTestUser(t *testing.T, tdb *TestDB, username string, role int32) db.ShenUser {
 	t.Helper()
-
-	config := &userConfig{
-		hashedPassword: username + "-hash123",
-		role:           2,
-	}
-
-	for _, opt := range opts {
-		opt(config)
-	}
 
 	user, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
 		Username:       username,
-		HashedPassword: pgtype.Text{String: config.hashedPassword, Valid: true},
-		Role:           config.role,
+		HashedPassword: pgtype.Text{String: username + "-hash123", Valid: true},
+		Role:           role,
 	})
 	require.NoError(t, err, "Failed to create test user: %s", username)
 
@@ -86,7 +58,7 @@ func CreateTestUsers(t *testing.T, tdb *TestDB, prefix string, count int) []db.S
 	users := make([]db.ShenUser, count)
 	for i := 0; i < count; i++ {
 		username := fmt.Sprintf("%s-%d", prefix, i+1)
-		users[i] = CreateTestUser(t, tdb, username, WithMemberRole())
+		users[i] = CreateTestUser(t, tdb, username, RoleUser)
 	}
 
 	return users
@@ -137,9 +109,9 @@ func CreateStandardFixtures(t *testing.T, tdb *TestDB) *StandardFixtures {
 	t.Helper()
 
 	return &StandardFixtures{
-		User1:  CreateTestUser(t, tdb, "test.user1", WithPassword("password123"), WithMemberRole()),
-		User2:  CreateTestUser(t, tdb, "test.user2", WithPassword("password456"), WithMemberRole()),
-		Admin:  CreateTestUser(t, tdb, "test.admin", WithPassword("adminpass"), WithAdminRole()),
+		User1:  CreateTestUser(t, tdb, "test.user1", RoleUser),
+		User2:  CreateTestUser(t, tdb, "test.user2", RoleUser),
+		Admin:  CreateTestUser(t, tdb, "test.admin", RoleAdmin),
 		Group1: CreateTestGroup(t, tdb, "test-group-1"),
 		Group2: CreateTestGroup(t, tdb, "test-group-2"),
 		App1:   CreateTestApplication(t, tdb, "test-app-1"),
