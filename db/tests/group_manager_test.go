@@ -3,7 +3,6 @@
 package db_tests
 
 import (
-	"fmt"
 	"testing"
 
 	db "github.com/elmq0022/shen/db/sqlc"
@@ -33,20 +32,6 @@ func TestCreateGroupManager(t *testing.T) {
 
 	_, err = tdb.Queries.GetUserGroupManagerByID(tdb.Ctx, created.ID)
 	require.Error(t, err, "Group manager should not exist after removal")
-}
-
-func addManagersToGroup(t *testing.T, tdb *TestDB, users []db.ShenUser, group db.ShenGroup) {
-	t.Helper()
-	for _, user := range users {
-		_, err := tdb.Queries.AddManagerToGroup(tdb.Ctx, db.AddManagerToGroupParams{
-			UserID:  user.ID,
-			GroupID: group.ID,
-		})
-		require.NoError(
-			t, err,
-			fmt.Sprintf("Failed to add manager: %s to group: %s", user.Username, group.Name),
-		)
-	}
 }
 
 func TestListManagersByGroup(t *testing.T) {

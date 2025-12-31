@@ -3,8 +3,6 @@
 package db_tests
 
 import (
-	"fmt"
-	"slices"
 	"testing"
 
 	db "github.com/elmq0022/shen/db/sqlc"
@@ -34,42 +32,6 @@ func TestCreateGroupMember(t *testing.T) {
 
 	_, err = tdb.Queries.GetUserGroupMemberByID(tdb.Ctx, created.ID)
 	require.Error(t, err, "Group member should not exist after removal")
-}
-
-func addUsersToGroup(t *testing.T, tdb *TestDB, users []db.ShenUser, group db.ShenGroup) {
-	t.Helper()
-	for _, user := range users {
-		_, err := tdb.Queries.AddUserToGroup(tdb.Ctx, db.AddUserToGroupParams{
-			UserID:  user.ID,
-			GroupID: group.ID,
-		})
-		require.NoError(
-			t, err,
-			fmt.Sprintf("Failed to add user: %s to group: %s", user.Username, group.Name),
-		)
-	}
-}
-
-func sortUsersByUsername(users []db.ShenUser) {
-	slices.SortFunc(users, func(a, b db.ShenUser) int {
-		if a.Username < b.Username {
-			return -1
-		} else if a.Username == b.Username {
-			return 0
-		}
-		return 1
-	})
-}
-
-func sortGroupsByName(groups []db.ShenGroup) {
-	slices.SortFunc(groups, func(a, b db.ShenGroup) int {
-		if a.Name < b.Name {
-			return -1
-		} else if a.Name == b.Name {
-			return 0
-		}
-		return 1
-	})
 }
 
 func TestListUsersByGroup(t *testing.T) {
