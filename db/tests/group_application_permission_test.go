@@ -51,3 +51,22 @@ func TestSetGroupApplicationPermission(t *testing.T) {
 	assert.Equal(t, created.ID, updated.ID, "ID should not change on upsert")
 	assert.Equal(t, PermissionAdmin, fetchedAfterUpdate.PermissionID)
 }
+
+func TestGetGroupApplicationPermissionByID(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	created, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group1.ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionViewer,
+	})
+	require.NoError(t, err, "Failed to create group application permission")
+
+	fetched, err := tdb.Queries.GetGroupApplicationPermissionByID(tdb.Ctx, created.ID)
+	require.NoError(t, err, "Failed to get group application permission by ID")
+	assert.Equal(t, created, fetched)
+
+	_, err = tdb.Queries.GetGroupApplicationPermissionByID(tdb.Ctx, 999)
+	require.Error(t, err, "Should get error for non-existent ID")
+}
