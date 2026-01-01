@@ -70,3 +70,27 @@ func TestGetGroupApplicationPermissionByID(t *testing.T) {
 	_, err = tdb.Queries.GetGroupApplicationPermissionByID(tdb.Ctx, 999)
 	require.Error(t, err, "Should get error for non-existent ID")
 }
+
+func TestDeleteGroupApplicationPermission(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	created, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group1.ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionOperator,
+	})
+	require.NoError(t, err, "Failed to create group application permission")
+
+	_, err = tdb.Queries.GetGroupApplicationPermissionByID(tdb.Ctx, created.ID)
+	require.NoError(t, err, "Failed to verify permission exists before deletion")
+
+	err = tdb.Queries.DeleteGroupApplicationPermission(tdb.Ctx, db.DeleteGroupApplicationPermissionParams{
+		GroupID:       created.GroupID,
+		ApplicationID: created.ApplicationID,
+	})
+	require.NoError(t, err, "Failed to delete group application permission")
+
+	_, err = tdb.Queries.GetGroupApplicationPermissionByID(tdb.Ctx, created.ID)
+	require.Error(t, err, "Should get error when fetching deleted permission")
+}
