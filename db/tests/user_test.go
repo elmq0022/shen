@@ -12,227 +12,182 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateAndGetUser(t *testing.T) {
+func TestCreateUser(t *testing.T) {
 	tdb := SetupTestDB(t)
 
-	// Create user
-	created, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
-		Username:       "tyler.durden",
-		HashedPassword: pgtype.Text{String: "hash123", Valid: true},
-		Role:           2,
-	})
-	require.NoError(t, err, "Failed to create user")
+	created := CreateTestUser(t, tdb, "alice", RoleUser)
 
 	// Verify created user fields
-	assert.Equal(t, "tyler.durden", created.Username)
+	assert.Equal(t, "alice", created.Username)
 	assert.True(t, created.HashedPassword.Valid)
-	assert.Equal(t, "hash123", created.HashedPassword.String)
-	assert.Equal(t, int32(2), created.Role)
+	assert.Equal(t, "alice-hash123", created.HashedPassword.String)
+	assert.Equal(t, RoleUser, created.Role)
 	assert.True(t, created.Active, "User should be active by default")
 	assert.NotZero(t, created.ID)
 	assert.NotZero(t, created.CreatedAt)
+}
+
+func TestGetUser(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
 
 	// Get user by ID
-	fetched, err := tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
+	fetched, err := tdb.Queries.GetUserByID(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to get user by ID")
-	assert.Equal(t, created, fetched)
+	assert.Equal(t, f.User1, fetched)
 
 	// Get user by username
-	fetchedByUsername, err := tdb.Queries.GetUserByUsername(tdb.Ctx, "tyler.durden")
+	fetchedByUsername, err := tdb.Queries.GetUserByUsername(tdb.Ctx, "test.user1")
 	require.NoError(t, err, "Failed to get user by username")
-	assert.Equal(t, created, fetchedByUsername)
+	assert.Equal(t, f.User1, fetchedByUsername)
+}
 
-	// Deactivate User
-	err = tdb.Queries.DeactivateUser(tdb.Ctx, created.ID)
+func TestDeactivateUser(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	err := tdb.Queries.DeactivateUser(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to deactivate user")
 
-	// Verify user is deactivated
-	deactivated, err := tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
+	deactivated, err := tdb.Queries.GetUserByID(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to get deactivated user")
 	assert.False(t, deactivated.Active, "User should be deactivated")
 }
 
 func TestUpdateUserPassword(t *testing.T) {
 	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
 
-	// Create user
-	created, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
-		Username:       "marla.singer",
-		HashedPassword: pgtype.Text{String: "oldhash", Valid: true},
-		Role:           2,
-	})
-	require.NoError(t, err, "Failed to create user")
+	oldPassword := f.User1.HashedPassword.String
 
 	// Update password
-	err = tdb.Queries.UpdateUserPassword(tdb.Ctx, db.UpdateUserPasswordParams{
-		ID:             created.ID,
-		HashedPassword: pgtype.Text{String: "newhash", Valid: true},
+	newPassword := "newhash"
+	err := tdb.Queries.UpdateUserPassword(tdb.Ctx, db.UpdateUserPasswordParams{
+		ID:             f.User1.ID,
+		HashedPassword: pgtype.Text{String: newPassword, Valid: true},
 	})
 	require.NoError(t, err, "Failed to update password")
 
 	// Verify password updated
-	updated, err := tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
+	updated, err := tdb.Queries.GetUserByID(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to get updated user")
-	assert.Equal(t, "newhash", updated.HashedPassword.String)
-	assert.Equal(t, created.Username, updated.Username)
+	assert.Equal(t, newPassword, updated.HashedPassword.String)
+	assert.NotEqual(t, oldPassword, updated.HashedPassword.String)
+	assert.Equal(t, f.User1.Username, updated.Username)
 }
 
 func TestUpdateUserRole(t *testing.T) {
 	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
 
-	// Create user
-	created, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
-		Username:       "robert.paulson",
-		HashedPassword: pgtype.Text{String: "hash123", Valid: true},
-		Role:           2,
-	})
-	require.NoError(t, err, "Failed to create user")
+	assert.Equal(t, RoleUser, f.User1.Role)
 
-	// Update role
-	err = tdb.Queries.UpdateUserRole(tdb.Ctx, db.UpdateUserRoleParams{
-		ID:   created.ID,
-		Role: 1,
+	// Update role to admin
+	err := tdb.Queries.UpdateUserRole(tdb.Ctx, db.UpdateUserRoleParams{
+		ID:   f.User1.ID,
+		Role: RoleAdmin,
 	})
 	require.NoError(t, err, "Failed to update role")
 
 	// Verify role updated
-	updated, err := tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
+	updated, err := tdb.Queries.GetUserByID(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to get updated user")
-	assert.Equal(t, int32(1), updated.Role)
-	assert.Equal(t, created.Username, updated.Username)
+	assert.Equal(t, RoleAdmin, updated.Role)
+	assert.Equal(t, f.User1.Username, updated.Username)
 }
 
 func TestActivateUser(t *testing.T) {
 	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
 
-	// Create and deactivate user
-	created, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
-		Username:       "angel.face",
-		HashedPassword: pgtype.Text{String: "hash123", Valid: true},
-		Role:           2,
-	})
-	require.NoError(t, err, "Failed to create user")
-
-	err = tdb.Queries.DeactivateUser(tdb.Ctx, created.ID)
+	// Deactivate user first
+	err := tdb.Queries.DeactivateUser(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to deactivate user")
 
 	// Activate user
-	err = tdb.Queries.ActivateUser(tdb.Ctx, created.ID)
+	err = tdb.Queries.ActivateUser(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to activate user")
 
 	// Verify user is active
-	activated, err := tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
+	activated, err := tdb.Queries.GetUserByID(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to get activated user")
 	assert.True(t, activated.Active, "User should be active")
 }
 
 func TestDeleteUser(t *testing.T) {
 	tdb := SetupTestDB(t)
-
-	// Create user
-	created, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
-		Username:       "big.bob",
-		HashedPassword: pgtype.Text{String: "hash123", Valid: true},
-		Role:           2,
-	})
-	require.NoError(t, err, "Failed to create user")
+	f := CreateStandardFixtures(t, tdb)
 
 	// Delete user
-	err = tdb.Queries.DeleteUser(tdb.Ctx, created.ID)
+	err := tdb.Queries.DeleteUser(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to delete user")
 
 	// Verify deletion - should get error when trying to fetch
-	_, err = tdb.Queries.GetUserByID(tdb.Ctx, created.ID)
+	_, err = tdb.Queries.GetUserByID(tdb.Ctx, f.User1.ID)
 	assert.Error(t, err, "Should get error when fetching deleted user")
 }
 
 func TestListActiveUsers(t *testing.T) {
 	tdb := SetupTestDB(t)
 
-	usernames := []string{
-		"tyler.durden",
-		"robert.paulson",
-		"marla.singer",
-	}
+	// Create test users
+	users := CreateTestUsers(t, tdb, "user", 3)
 
-	for _, username := range usernames {
-		tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
-			Username:       username,
-			HashedPassword: pgtype.Text{String: username + "-hash123", Valid: true},
-			Role:           1,
-		})
-	}
+	usernames := []string{"user-1", "user-2", "user-3"}
+	slices.Sort(usernames)
 
 	numberActiveUsers, err := tdb.Queries.CountActiveUsers(tdb.Ctx)
 	require.NoError(t, err, "Failed to count users")
-	assert.Equal(t, int64(len(usernames)), int64(numberActiveUsers))
-
-	slices.Sort(usernames)
+	assert.Equal(t, int64(len(users)), numberActiveUsers)
 
 	// first page of users
-	users, err := tdb.Queries.ListActiveUsers(tdb.Ctx, db.ListActiveUsersParams{
+	page1, err := tdb.Queries.ListActiveUsers(tdb.Ctx, db.ListActiveUsersParams{
 		Limit:  2,
 		Offset: 0,
 	})
 	require.NoError(t, err, "Failed to list users")
-	assert.Equal(t, len(users), 2)
-	assert.Equal(t, usernames[0], users[0].Username)
-	assert.Equal(t, usernames[1], users[1].Username)
+	assert.Len(t, page1, 2)
+	assert.Equal(t, usernames[0], page1[0].Username)
+	assert.Equal(t, usernames[1], page1[1].Username)
 
 	// second page of users
-	users, err = tdb.Queries.ListActiveUsers(tdb.Ctx, db.ListActiveUsersParams{
+	page2, err := tdb.Queries.ListActiveUsers(tdb.Ctx, db.ListActiveUsersParams{
 		Limit:  2,
 		Offset: 2,
 	})
 	require.NoError(t, err, "Failed to list users")
-	assert.Equal(t, len(users), 1)
-	assert.Equal(t, usernames[2], users[0].Username)
+	assert.Len(t, page2, 1)
+	assert.Equal(t, usernames[2], page2[0].Username)
 
 	// deactivate middle user and verify filtering
-	userToDeactivate, err := tdb.Queries.GetUserByUsername(tdb.Ctx, usernames[1])
-	require.NoError(t, err, "Failed to get user to deactivate")
-	err = tdb.Queries.DeactivateUser(tdb.Ctx, userToDeactivate.ID)
+	err = tdb.Queries.DeactivateUser(tdb.Ctx, users[1].ID)
 	require.NoError(t, err, "Failed to deactivate user")
 
 	numberActiveUsers, err = tdb.Queries.CountActiveUsers(tdb.Ctx)
 	require.NoError(t, err, "Failed to count active users after deactivation")
 	assert.Equal(t, int64(2), numberActiveUsers)
 
-	users, err = tdb.Queries.ListActiveUsers(tdb.Ctx, db.ListActiveUsersParams{
+	activeUsers, err := tdb.Queries.ListActiveUsers(tdb.Ctx, db.ListActiveUsersParams{
 		Limit:  10,
 		Offset: 0,
 	})
 	require.NoError(t, err, "Failed to list active users after deactivation")
-	assert.Equal(t, 2, len(users))
-	assert.Equal(t, usernames[0], users[0].Username)
-	assert.Equal(t, usernames[2], users[1].Username)
+	assert.Len(t, activeUsers, 2)
+	assert.Equal(t, usernames[0], activeUsers[0].Username)
+	assert.Equal(t, usernames[2], activeUsers[1].Username)
 }
 
 func TestListUsers(t *testing.T) {
 	tdb := SetupTestDB(t)
 
-	usernames := []string{
-		"narrator",
-		"chloe",
-		"mechanic",
-	}
-
-	// create users
-	for _, username := range usernames {
-		_, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
-			Username:       username,
-			HashedPassword: pgtype.Text{String: username + "-hash123", Valid: true},
-			Role:           2,
-		})
-		require.NoError(t, err, "Failed to create user")
-	}
+	// Create test users
+	users := CreateTestUsers(t, tdb, "user", 3)
 
 	// deactivate one user
-	userToDeactivate, err := tdb.Queries.GetUserByUsername(tdb.Ctx, "chloe")
-	require.NoError(t, err, "Failed to get user to deactivate")
-	err = tdb.Queries.DeactivateUser(tdb.Ctx, userToDeactivate.ID)
+	err := tdb.Queries.DeactivateUser(tdb.Ctx, users[1].ID)
 	require.NoError(t, err, "Failed to deactivate user")
 
+	usernames := []string{"user-1", "user-2", "user-3"}
 	slices.Sort(usernames)
 
 	// ListUsers should return all users including deactivated
@@ -241,7 +196,7 @@ func TestListUsers(t *testing.T) {
 		Offset: 0,
 	})
 	require.NoError(t, err, "Failed to list all users")
-	assert.Equal(t, 3, len(allUsers))
+	assert.Len(t, allUsers, 3)
 	assert.Equal(t, usernames[0], allUsers[0].Username)
 	assert.Equal(t, usernames[1], allUsers[1].Username)
 	assert.Equal(t, usernames[2], allUsers[2].Username)
@@ -254,22 +209,15 @@ func TestListUsers(t *testing.T) {
 
 func TestCheckUsernameExists(t *testing.T) {
 	tdb := SetupTestDB(t)
-
-	// create user
-	_, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
-		Username:       "lou",
-		HashedPassword: pgtype.Text{String: "hash123", Valid: true},
-		Role:           2,
-	})
-	require.NoError(t, err, "Failed to create user")
+	f := CreateStandardFixtures(t, tdb)
 
 	// check existing username
-	exists, err := tdb.Queries.CheckUsernameExists(tdb.Ctx, "lou")
+	exists, err := tdb.Queries.CheckUsernameExists(tdb.Ctx, f.User1.Username)
 	require.NoError(t, err, "Failed to check username exists")
 	assert.True(t, exists)
 
 	// check non-existent username
-	exists, err = tdb.Queries.CheckUsernameExists(tdb.Ctx, "ricky")
+	exists, err = tdb.Queries.CheckUsernameExists(tdb.Ctx, "nonexistent.user")
 	require.NoError(t, err, "Failed to check non-existent username")
 	assert.False(t, exists)
 }
@@ -278,49 +226,30 @@ func TestListUsersByRole(t *testing.T) {
 	tdb := SetupTestDB(t)
 
 	// create users with different roles
-	adminUsers := []string{"raymond.hessel", "richard.chesler"}
-	memberUsers := []string{"bob.flanagan", "steph"}
+	admin1 := CreateTestUser(t, tdb, "admin1", RoleAdmin)
+	admin2 := CreateTestUser(t, tdb, "admin2", RoleAdmin)
+	user1 := CreateTestUser(t, tdb, "user1", RoleUser)
+	user2 := CreateTestUser(t, tdb, "user2", RoleUser)
 
-	for _, username := range adminUsers {
-		_, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
-			Username:       username,
-			HashedPassword: pgtype.Text{String: username + "-hash123", Valid: true},
-			Role:           1, // admin role
-		})
-		require.NoError(t, err, "Failed to create admin user")
-	}
-
-	for _, username := range memberUsers {
-		_, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
-			Username:       username,
-			HashedPassword: pgtype.Text{String: username + "-hash123", Valid: true},
-			Role:           2, // member role
-		})
-		require.NoError(t, err, "Failed to create member user")
-	}
-
-	slices.Sort(adminUsers)
-	slices.Sort(memberUsers)
-
-	// list admin users (role 1)
+	// list admin users
 	admins, err := tdb.Queries.ListUsersByRole(tdb.Ctx, db.ListUsersByRoleParams{
-		Role:   1,
+		Role:   RoleAdmin,
 		Limit:  10,
 		Offset: 0,
 	})
 	require.NoError(t, err, "Failed to list admin users")
-	assert.Equal(t, 2, len(admins))
-	assert.Equal(t, adminUsers[0], admins[0].Username)
-	assert.Equal(t, adminUsers[1], admins[1].Username)
+	assert.Len(t, admins, 2)
+	assert.Equal(t, admin1.Username, admins[0].Username)
+	assert.Equal(t, admin2.Username, admins[1].Username)
 
-	// list member users (role 2)
+	// list member users
 	members, err := tdb.Queries.ListUsersByRole(tdb.Ctx, db.ListUsersByRoleParams{
-		Role:   2,
+		Role:   RoleUser,
 		Limit:  10,
 		Offset: 0,
 	})
 	require.NoError(t, err, "Failed to list member users")
-	assert.Equal(t, 2, len(members))
-	assert.Equal(t, memberUsers[0], members[0].Username)
-	assert.Equal(t, memberUsers[1], members[1].Username)
+	assert.Len(t, members, 2)
+	assert.Equal(t, user1.Username, members[0].Username)
+	assert.Equal(t, user2.Username, members[1].Username)
 }
