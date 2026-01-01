@@ -38,59 +38,98 @@ func TestListUsersByGroup(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	group1Members := []db.ShenUser{f.User1, f.User2, f.Admin}
-	addUsersToGroup(t, tdb, group1Members, f.Group1)
-	sortUsersByUsername(group1Members)
+	users := CreateTestUsers(t, tdb, "member", 3)
+	allMembers := []db.ShenUser{f.User1, f.User2, f.Admin, users[0], users[1], users[2]}
+	addUsersToGroup(t, tdb, allMembers, f.Group1)
+	sortUsersByUsername(allMembers)
 
-	group2Members := []db.ShenUser{f.User1, f.User2}
-	addUsersToGroup(t, tdb, group2Members, f.Group2)
-	sortUsersByUsername(group2Members)
+	page1, err := tdb.Queries.ListUsersByGroup(tdb.Ctx, db.ListUsersByGroupParams{
+		GroupID: f.Group1.ID,
+		Limit:   2,
+		Offset:  0,
+	})
+	require.NoError(t, err, "Failed to list group members")
+	assert.Len(t, page1, 2)
+	assert.Equal(t, allMembers[0].Username, page1[0].Username)
+	assert.Equal(t, allMembers[1].Username, page1[1].Username)
 
-	fetchedGroup1Members, err := tdb.Queries.ListUsersByGroup(tdb.Ctx, db.ListUsersByGroupParams{
+	page2, err := tdb.Queries.ListUsersByGroup(tdb.Ctx, db.ListUsersByGroupParams{
+		GroupID: f.Group1.ID,
+		Limit:   2,
+		Offset:  2,
+	})
+	require.NoError(t, err, "Failed to list group members")
+	assert.Len(t, page2, 2)
+	assert.Equal(t, allMembers[2].Username, page2[0].Username)
+	assert.Equal(t, allMembers[3].Username, page2[1].Username)
+
+	page3, err := tdb.Queries.ListUsersByGroup(tdb.Ctx, db.ListUsersByGroupParams{
+		GroupID: f.Group1.ID,
+		Limit:   2,
+		Offset:  4,
+	})
+	require.NoError(t, err, "Failed to list group members")
+	assert.Len(t, page3, 2)
+	assert.Equal(t, allMembers[4].Username, page3[0].Username)
+	assert.Equal(t, allMembers[5].Username, page3[1].Username)
+
+	allFetched, err := tdb.Queries.ListUsersByGroup(tdb.Ctx, db.ListUsersByGroupParams{
 		GroupID: f.Group1.ID,
 		Limit:   10,
 		Offset:  0,
 	})
-	require.NoError(t, err, "Failed to retrieve Group1 members")
-	assert.Equal(t, group1Members, fetchedGroup1Members)
-
-	fetchedGroup2Members, err := tdb.Queries.ListUsersByGroup(tdb.Ctx, db.ListUsersByGroupParams{
-		GroupID: f.Group2.ID,
-		Limit:   10,
-		Offset:  0,
-	})
-	require.NoError(t, err, "Failed to retrieve Group2 members")
-	assert.Equal(t, group2Members, fetchedGroup2Members)
+	require.NoError(t, err, "Failed to retrieve all Group1 members")
+	assert.Equal(t, allMembers, allFetched)
 }
 
 func TestListGroupsByUser(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	user1Groups := []db.ShenGroup{f.Group1, f.Group2}
-	addUsersToGroup(t, tdb, []db.ShenUser{f.User1}, f.Group1)
-	addUsersToGroup(t, tdb, []db.ShenUser{f.User1}, f.Group2)
-	sortGroupsByName(user1Groups)
+	groups := CreateTestGroups(t, tdb, "team", 3)
+	allGroups := []db.ShenGroup{f.Group1, f.Group2, groups[0], groups[1], groups[2]}
 
-	user2Groups := []db.ShenGroup{f.Group1}
-	addUsersToGroup(t, tdb, []db.ShenUser{f.User2}, f.Group1)
-	sortGroupsByName(user2Groups)
+	for _, group := range allGroups {
+		addUsersToGroup(t, tdb, []db.ShenUser{f.User1}, group)
+	}
+	sortGroupsByName(allGroups)
 
-	fetchedUser1Groups, err := tdb.Queries.ListGroupsByUser(tdb.Ctx, db.ListGroupsByUserParams{
+	page1, err := tdb.Queries.ListGroupsByUser(tdb.Ctx, db.ListGroupsByUserParams{
+		UserID: f.User1.ID,
+		Limit:  2,
+		Offset: 0,
+	})
+	require.NoError(t, err, "Failed to list user groups")
+	assert.Len(t, page1, 2)
+	assert.Equal(t, allGroups[0].Name, page1[0].Name)
+	assert.Equal(t, allGroups[1].Name, page1[1].Name)
+
+	page2, err := tdb.Queries.ListGroupsByUser(tdb.Ctx, db.ListGroupsByUserParams{
+		UserID: f.User1.ID,
+		Limit:  2,
+		Offset: 2,
+	})
+	require.NoError(t, err, "Failed to list user groups")
+	assert.Len(t, page2, 2)
+	assert.Equal(t, allGroups[2].Name, page2[0].Name)
+	assert.Equal(t, allGroups[3].Name, page2[1].Name)
+
+	page3, err := tdb.Queries.ListGroupsByUser(tdb.Ctx, db.ListGroupsByUserParams{
+		UserID: f.User1.ID,
+		Limit:  2,
+		Offset: 4,
+	})
+	require.NoError(t, err, "Failed to list user groups")
+	assert.Len(t, page3, 1)
+	assert.Equal(t, allGroups[4].Name, page3[0].Name)
+
+	allFetched, err := tdb.Queries.ListGroupsByUser(tdb.Ctx, db.ListGroupsByUserParams{
 		UserID: f.User1.ID,
 		Limit:  10,
 		Offset: 0,
 	})
-	require.NoError(t, err, "Failed to retrieve User1 groups")
-	assert.Equal(t, user1Groups, fetchedUser1Groups)
-
-	fetchedUser2Groups, err := tdb.Queries.ListGroupsByUser(tdb.Ctx, db.ListGroupsByUserParams{
-		UserID: f.User2.ID,
-		Limit:  10,
-		Offset: 0,
-	})
-	require.NoError(t, err, "Failed to retrieve User2 groups")
-	assert.Equal(t, user2Groups, fetchedUser2Groups)
+	require.NoError(t, err, "Failed to retrieve all User1 groups")
+	assert.Equal(t, allGroups, allFetched)
 }
 
 func TestIsUserInGroup(t *testing.T) {
@@ -113,6 +152,59 @@ func TestIsUserInGroup(t *testing.T) {
 	})
 	require.NoError(t, err, "Failed to check if User1 is in Group2")
 	assert.False(t, isUser1InGroup2, "User1 should not be in Group2")
+}
+
+func TestCountUsersByGroup(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	users := CreateTestUsers(t, tdb, "member", 3)
+	allMembers := []db.ShenUser{f.User1, f.User2, f.Admin, users[0], users[1], users[2]}
+	addUsersToGroup(t, tdb, allMembers, f.Group1)
+
+	count, err := tdb.Queries.CountUsersByGroup(tdb.Ctx, f.Group1.ID)
+	require.NoError(t, err, "Failed to count users by group")
+	assert.Equal(t, int64(6), count)
+
+	addUsersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
+
+	count, err = tdb.Queries.CountUsersByGroup(tdb.Ctx, f.Group2.ID)
+	require.NoError(t, err, "Failed to count users in Group2")
+	assert.Equal(t, int64(2), count)
+}
+
+func TestCountGroupsByUser(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	groups := CreateTestGroups(t, tdb, "team", 3)
+	allGroups := []db.ShenGroup{f.Group1, f.Group2, groups[0], groups[1], groups[2]}
+
+	for _, group := range allGroups {
+		addUsersToGroup(t, tdb, []db.ShenUser{f.User1}, group)
+	}
+
+	count, err := tdb.Queries.CountGroupsByUser(tdb.Ctx, f.User1.ID)
+	require.NoError(t, err, "Failed to count groups by user")
+	assert.Equal(t, int64(5), count)
+
+	addUsersToGroup(t, tdb, []db.ShenUser{f.User2}, f.Group1)
+
+	count, err = tdb.Queries.CountGroupsByUser(tdb.Ctx, f.User2.ID)
+	require.NoError(t, err, "Failed to count groups for User2")
+	assert.Equal(t, int64(1), count)
+}
+
+func TestCountAllGroupMembers(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	addUsersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2, f.Admin}, f.Group1)
+	addUsersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
+
+	count, err := tdb.Queries.CountAllGroupMembers(tdb.Ctx)
+	require.NoError(t, err, "Failed to count all group members")
+	assert.Equal(t, int64(5), count)
 }
 
 func TestListAllGroupMembers(t *testing.T) {
