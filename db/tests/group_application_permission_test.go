@@ -136,3 +136,96 @@ func TestGetUserApplicationPermission(t *testing.T) {
 
 	assert.Equal(t, expected, actual)
 }
+
+func TestGetUserApplicationPermissionEdgeCases(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	t.Run("user not in any groups", func(t *testing.T) {
+		_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+			GroupID:       f.Group1.ID,
+			ApplicationID: f.App1.ID,
+			PermissionID:  PermissionViewer,
+		})
+		require.NoError(t, err, "Failed to set group application permission")
+
+		_, err = tdb.Queries.GetUserApplicationPermission(tdb.Ctx, db.GetUserApplicationPermissionParams{
+			UserID:        f.User1.ID,
+			ApplicationID: f.App1.ID,
+		})
+		require.Error(t, err, "Should get error when user is not in any groups with permission")
+	})
+
+	t.Run("user in group but no permission for application", func(t *testing.T) {
+		_, err := tdb.Queries.AddUserToGroup(tdb.Ctx, db.AddUserToGroupParams{
+			UserID:  f.User1.ID,
+			GroupID: f.Group1.ID,
+		})
+		require.NoError(t, err, "Failed to add user to group")
+
+		_, err = tdb.Queries.GetUserApplicationPermission(tdb.Ctx, db.GetUserApplicationPermissionParams{
+			UserID:        f.User1.ID,
+			ApplicationID: f.App2.ID,
+		})
+		require.Error(t, err, "Should get error when user's groups have no permission for application")
+	})
+
+	t.Run("user in single group with permission", func(t *testing.T) {
+		_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+			GroupID:       f.Group1.ID,
+			ApplicationID: f.App2.ID,
+			PermissionID:  PermissionOperator,
+		})
+		require.NoError(t, err, "Failed to set group application permission")
+
+		expected, err := tdb.Queries.GetPermissionByID(tdb.Ctx, PermissionOperator)
+		require.NoError(t, err, "Failed to get expected permission")
+
+		actual, err := tdb.Queries.GetUserApplicationPermission(tdb.Ctx, db.GetUserApplicationPermissionParams{
+			UserID:        f.User1.ID,
+			ApplicationID: f.App2.ID,
+		})
+		require.NoError(t, err, "Failed to get user application permission")
+
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("user in multiple groups with same permission level", func(t *testing.T) {
+		_, err := tdb.Queries.AddUserToGroup(tdb.Ctx, db.AddUserToGroupParams{
+			UserID:  f.User2.ID,
+			GroupID: f.Group1.ID,
+		})
+		require.NoError(t, err, "Failed to add User2 to Group1")
+
+		_, err = tdb.Queries.AddUserToGroup(tdb.Ctx, db.AddUserToGroupParams{
+			UserID:  f.User2.ID,
+			GroupID: f.Group2.ID,
+		})
+		require.NoError(t, err, "Failed to add User2 to Group2")
+
+		_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+			GroupID:       f.Group1.ID,
+			ApplicationID: f.App1.ID,
+			PermissionID:  PermissionAuditor,
+		})
+		require.NoError(t, err, "Failed to set Group1 application permission")
+
+		_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+			GroupID:       f.Group2.ID,
+			ApplicationID: f.App1.ID,
+			PermissionID:  PermissionAuditor,
+		})
+		require.NoError(t, err, "Failed to set Group2 application permission")
+
+		expected, err := tdb.Queries.GetPermissionByID(tdb.Ctx, PermissionAuditor)
+		require.NoError(t, err, "Failed to get expected permission")
+
+		actual, err := tdb.Queries.GetUserApplicationPermission(tdb.Ctx, db.GetUserApplicationPermissionParams{
+			UserID:        f.User2.ID,
+			ApplicationID: f.App1.ID,
+		})
+		require.NoError(t, err, "Failed to get user application permission")
+
+		assert.Equal(t, expected, actual)
+	})
+}
