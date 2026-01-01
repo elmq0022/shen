@@ -94,3 +94,45 @@ func TestDeleteGroupApplicationPermission(t *testing.T) {
 	_, err = tdb.Queries.GetGroupApplicationPermissionByID(tdb.Ctx, created.ID)
 	require.Error(t, err, "Should get error when fetching deleted permission")
 }
+
+func TestGetUserApplicationPermission(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group1.ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionViewer,
+	})
+	require.NoError(t, err, "Failed to set Group1 application permission")
+
+	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group2.ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionAdmin,
+	})
+	require.NoError(t, err, "Failed to set Group2 application permission")
+
+	_, err = tdb.Queries.AddUserToGroup(tdb.Ctx, db.AddUserToGroupParams{
+		UserID:  f.User1.ID,
+		GroupID: f.Group1.ID,
+	})
+	require.NoError(t, err, "Failed to add User1 to Group1")
+
+	_, err = tdb.Queries.AddUserToGroup(tdb.Ctx, db.AddUserToGroupParams{
+		UserID:  f.User1.ID,
+		GroupID: f.Group2.ID,
+	})
+	require.NoError(t, err, "Failed to add User1 to Group2")
+
+	expected, err := tdb.Queries.GetPermissionByID(tdb.Ctx, PermissionAdmin)
+	require.NoError(t, err, "Failed to get expected permission")
+
+	actual, err := tdb.Queries.GetUserApplicationPermission(tdb.Ctx, db.GetUserApplicationPermissionParams{
+		UserID:        f.User1.ID,
+		ApplicationID: f.App1.ID,
+	})
+	require.NoError(t, err, "Failed to get user application permission")
+
+	assert.Equal(t, expected, actual)
+}

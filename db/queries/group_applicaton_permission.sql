@@ -138,6 +138,6 @@ WHERE
     ugm.user_id = $1
     AND gap.application_id = $2
 ORDER BY
-    p.priority ASC
+    p.priority DESC
 LIMIT 1;
 
