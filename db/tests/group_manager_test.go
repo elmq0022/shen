@@ -146,3 +146,56 @@ func TestListAllGroupManagers(t *testing.T) {
 		assert.Equal(t, exp.Username, allManagers[i].Username)
 	}
 }
+
+func TestCountManagersByGroup(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	users := CreateTestUsers(t, tdb, "manager", 3)
+	allManagers := []db.ShenUser{f.User1, f.User2, f.Admin, users[0], users[1], users[2]}
+	addManagersToGroup(t, tdb, allManagers, f.Group1)
+
+	count, err := tdb.Queries.CountManagersByGroup(tdb.Ctx, f.Group1.ID)
+	require.NoError(t, err, "Failed to count managers by group")
+	assert.Equal(t, int64(6), count)
+
+	addManagersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
+
+	count, err = tdb.Queries.CountManagersByGroup(tdb.Ctx, f.Group2.ID)
+	require.NoError(t, err, "Failed to count managers in Group2")
+	assert.Equal(t, int64(2), count)
+}
+
+func TestCountGroupsManagedByUser(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	groups := CreateTestGroups(t, tdb, "team", 3)
+	allGroups := []db.ShenGroup{f.Group1, f.Group2, groups[0], groups[1], groups[2]}
+
+	for _, group := range allGroups {
+		addManagersToGroup(t, tdb, []db.ShenUser{f.User1}, group)
+	}
+
+	count, err := tdb.Queries.CountGroupsManagedByUser(tdb.Ctx, f.User1.ID)
+	require.NoError(t, err, "Failed to count groups managed by user")
+	assert.Equal(t, int64(5), count)
+
+	addManagersToGroup(t, tdb, []db.ShenUser{f.User2}, f.Group1)
+
+	count, err = tdb.Queries.CountGroupsManagedByUser(tdb.Ctx, f.User2.ID)
+	require.NoError(t, err, "Failed to count groups managed by User2")
+	assert.Equal(t, int64(1), count)
+}
+
+func TestCountAllGroupManagers(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	addManagersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2, f.Admin}, f.Group1)
+	addManagersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
+
+	count, err := tdb.Queries.CountAllGroupManagers(tdb.Ctx)
+	require.NoError(t, err, "Failed to count all group managers")
+	assert.Equal(t, int64(5), count)
+}
