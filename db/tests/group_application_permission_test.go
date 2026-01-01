@@ -229,3 +229,252 @@ func TestGetUserApplicationPermissionEdgeCases(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	})
 }
+
+func TestListGroupApplicationPermissionsByGroup(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	apps := CreateTestApplications(t, tdb, "zapp", 2)
+
+	setGroupApplicationPermissions(t, tdb, []struct {
+		GroupID       int32
+		ApplicationID int32
+		PermissionID  int32
+	}{
+		{f.Group1.ID, f.App1.ID, PermissionViewer},
+		{f.Group1.ID, f.App2.ID, PermissionAdmin},
+		{f.Group1.ID, apps[0].ID, PermissionOperator},
+		{f.Group1.ID, apps[1].ID, PermissionAuditor},
+	})
+
+	page1, err := tdb.Queries.ListGroupApplicationPermissionsByGroup(tdb.Ctx, db.ListGroupApplicationPermissionsByGroupParams{
+		GroupID: f.Group1.ID,
+		Limit:   2,
+		Offset:  0,
+	})
+	require.NoError(t, err, "Failed to list first page of permissions")
+	assert.Len(t, page1, 2)
+
+	page2, err := tdb.Queries.ListGroupApplicationPermissionsByGroup(tdb.Ctx, db.ListGroupApplicationPermissionsByGroupParams{
+		GroupID: f.Group1.ID,
+		Limit:   2,
+		Offset:  2,
+	})
+	require.NoError(t, err, "Failed to list second page of permissions")
+	assert.Len(t, page2, 2)
+
+	all, err := tdb.Queries.ListGroupApplicationPermissionsByGroup(tdb.Ctx, db.ListGroupApplicationPermissionsByGroupParams{
+		GroupID: f.Group1.ID,
+		Limit:   10,
+		Offset:  0,
+	})
+	require.NoError(t, err, "Failed to list all permissions for group")
+	assert.Len(t, all, 4)
+	assert.Equal(t, f.App1.Name, all[0].ApplicationName)
+	assert.Equal(t, "viewer", all[0].PermissionName)
+}
+
+func TestListGroupApplicationPermissionsByApplication(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	groups := CreateTestGroups(t, tdb, "team", 2)
+
+	setGroupApplicationPermissions(t, tdb, []struct {
+		GroupID       int32
+		ApplicationID int32
+		PermissionID  int32
+	}{
+		{f.Group1.ID, f.App1.ID, PermissionViewer},
+		{f.Group2.ID, f.App1.ID, PermissionAdmin},
+		{groups[0].ID, f.App1.ID, PermissionOperator},
+		{groups[1].ID, f.App1.ID, PermissionAuditor},
+	})
+
+	page1, err := tdb.Queries.ListGroupApplicationPermissionsByApplication(tdb.Ctx, db.ListGroupApplicationPermissionsByApplicationParams{
+		ApplicationID: f.App1.ID,
+		Limit:         2,
+		Offset:        0,
+	})
+	require.NoError(t, err, "Failed to list first page of permissions")
+	assert.Len(t, page1, 2)
+
+	page2, err := tdb.Queries.ListGroupApplicationPermissionsByApplication(tdb.Ctx, db.ListGroupApplicationPermissionsByApplicationParams{
+		ApplicationID: f.App1.ID,
+		Limit:         2,
+		Offset:        2,
+	})
+	require.NoError(t, err, "Failed to list second page of permissions")
+	assert.Len(t, page2, 2)
+
+	all, err := tdb.Queries.ListGroupApplicationPermissionsByApplication(tdb.Ctx, db.ListGroupApplicationPermissionsByApplicationParams{
+		ApplicationID: f.App1.ID,
+		Limit:         10,
+		Offset:        0,
+	})
+	require.NoError(t, err, "Failed to list all permissions for application")
+	assert.Len(t, all, 4)
+}
+
+func TestListAllGroupApplicationPermissions(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group1.ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionViewer,
+	})
+	require.NoError(t, err, "Failed to set Group1-App1 permission")
+
+	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group1.ID,
+		ApplicationID: f.App2.ID,
+		PermissionID:  PermissionAdmin,
+	})
+	require.NoError(t, err, "Failed to set Group1-App2 permission")
+
+	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group2.ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionOperator,
+	})
+	require.NoError(t, err, "Failed to set Group2-App1 permission")
+
+	page1, err := tdb.Queries.ListAllGroupApplicationPermissions(tdb.Ctx, db.ListAllGroupApplicationPermissionsParams{
+		Limit:  2,
+		Offset: 0,
+	})
+	require.NoError(t, err, "Failed to list first page of all permissions")
+	assert.Len(t, page1, 2)
+
+	page2, err := tdb.Queries.ListAllGroupApplicationPermissions(tdb.Ctx, db.ListAllGroupApplicationPermissionsParams{
+		Limit:  2,
+		Offset: 2,
+	})
+	require.NoError(t, err, "Failed to list second page of all permissions")
+	assert.Len(t, page2, 1)
+
+	all, err := tdb.Queries.ListAllGroupApplicationPermissions(tdb.Ctx, db.ListAllGroupApplicationPermissionsParams{
+		Limit:  10,
+		Offset: 0,
+	})
+	require.NoError(t, err, "Failed to list all permissions")
+	assert.Len(t, all, 3)
+}
+
+func TestCountGroupApplicationPermissionsByGroup(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	apps := CreateTestApplications(t, tdb, "app", 3)
+
+	_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group1.ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionViewer,
+	})
+	require.NoError(t, err, "Failed to set Group1-App1 permission")
+
+	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group1.ID,
+		ApplicationID: apps[0].ID,
+		PermissionID:  PermissionAdmin,
+	})
+	require.NoError(t, err, "Failed to set Group1-App2 permission")
+
+	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group1.ID,
+		ApplicationID: apps[1].ID,
+		PermissionID:  PermissionOperator,
+	})
+	require.NoError(t, err, "Failed to set Group1-App3 permission")
+
+	count, err := tdb.Queries.CountGroupApplicationPermissionsByGroup(tdb.Ctx, f.Group1.ID)
+	require.NoError(t, err, "Failed to count permissions for Group1")
+	assert.Equal(t, int64(3), count)
+
+	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group2.ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionAuditor,
+	})
+	require.NoError(t, err, "Failed to set Group2-App1 permission")
+
+	count, err = tdb.Queries.CountGroupApplicationPermissionsByGroup(tdb.Ctx, f.Group2.ID)
+	require.NoError(t, err, "Failed to count permissions for Group2")
+	assert.Equal(t, int64(1), count)
+}
+
+func TestCountGroupApplicationPermissionsByApplication(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	groups := CreateTestGroups(t, tdb, "team", 3)
+
+	_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group1.ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionViewer,
+	})
+	require.NoError(t, err, "Failed to set Group1-App1 permission")
+
+	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       groups[0].ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionAdmin,
+	})
+	require.NoError(t, err, "Failed to set Group2-App1 permission")
+
+	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       groups[1].ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionOperator,
+	})
+	require.NoError(t, err, "Failed to set Group3-App1 permission")
+
+	count, err := tdb.Queries.CountGroupApplicationPermissionsByApplication(tdb.Ctx, f.App1.ID)
+	require.NoError(t, err, "Failed to count permissions for App1")
+	assert.Equal(t, int64(3), count)
+
+	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group1.ID,
+		ApplicationID: f.App2.ID,
+		PermissionID:  PermissionAuditor,
+	})
+	require.NoError(t, err, "Failed to set Group1-App2 permission")
+
+	count, err = tdb.Queries.CountGroupApplicationPermissionsByApplication(tdb.Ctx, f.App2.ID)
+	require.NoError(t, err, "Failed to count permissions for App2")
+	assert.Equal(t, int64(1), count)
+}
+
+func TestCountAllGroupApplicationPermissions(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group1.ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionViewer,
+	})
+	require.NoError(t, err, "Failed to set Group1-App1 permission")
+
+	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group1.ID,
+		ApplicationID: f.App2.ID,
+		PermissionID:  PermissionAdmin,
+	})
+	require.NoError(t, err, "Failed to set Group1-App2 permission")
+
+	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+		GroupID:       f.Group2.ID,
+		ApplicationID: f.App1.ID,
+		PermissionID:  PermissionOperator,
+	})
+	require.NoError(t, err, "Failed to set Group2-App1 permission")
+
+	count, err := tdb.Queries.CountAllGroupApplicationPermissions(tdb.Ctx)
+	require.NoError(t, err, "Failed to count all permissions")
+	assert.Equal(t, int64(3), count)
+}

@@ -64,3 +64,21 @@ func sortGroupsByName(groups []db.ShenGroup) {
 		return 1
 	})
 }
+
+// setGroupApplicationPermissions sets permissions for multiple group-application pairs.
+// Takes a slice of structs containing GroupID, ApplicationID, and PermissionID.
+func setGroupApplicationPermissions(t *testing.T, tdb *TestDB, permissions []struct {
+	GroupID       int32
+	ApplicationID int32
+	PermissionID  int32
+}) {
+	t.Helper()
+	for _, perm := range permissions {
+		_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+			GroupID:       perm.GroupID,
+			ApplicationID: perm.ApplicationID,
+			PermissionID:  perm.PermissionID,
+		})
+		require.NoError(t, err, "Failed to set group application permission")
+	}
+}
