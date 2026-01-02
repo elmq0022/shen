@@ -327,39 +327,15 @@ func TestListActiveSessions(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
-		Time:  time.Now().Add(24 * time.Hour),
-		Valid: true,
-	}
+	expiresAt := GetActiveExpiresAt()
 
-	for i := 1; i <= 5; i++ {
-		_, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-			HashedToken: "active-session-" + string(rune('a'+i)),
-			UserID:      f.User1.ID,
-			ExpiresAt:   expiresAt,
-		})
-		require.NoError(t, err, "Failed to create session")
-	}
+	CreateTestSessions(t, tdb, "active-session", 5, f.User1.ID, expiresAt)
 
-	revokedSession, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-		HashedToken: "revoked-list",
-		UserID:      f.User1.ID,
-		ExpiresAt:   expiresAt,
-	})
-	require.NoError(t, err, "Failed to create session")
-	err = tdb.Queries.RevokeSession(tdb.Ctx, revokedSession.ID)
+	revokedSession := CreateTestSession(t, tdb, "revoked-list", f.User1.ID, expiresAt)
+	err := tdb.Queries.RevokeSession(tdb.Ctx, revokedSession.ID)
 	require.NoError(t, err, "Failed to revoke session")
 
-	expiredTime := pgtype.Timestamp{
-		Time:  time.Now().Add(-1 * time.Hour),
-		Valid: true,
-	}
-	_, err = tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-		HashedToken: "expired-list",
-		UserID:      f.User1.ID,
-		ExpiresAt:   expiredTime,
-	})
-	require.NoError(t, err, "Failed to create expired session")
+	CreateTestSession(t, tdb, "expired-list", f.User1.ID, GetExpiredExpiresAt())
 
 	page1, err := tdb.Queries.ListActiveSessions(tdb.Ctx, db.ListActiveSessionsParams{
 		Limit:  2,
@@ -387,28 +363,10 @@ func TestListActiveSessionsByUser(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
-		Time:  time.Now().Add(24 * time.Hour),
-		Valid: true,
-	}
+	expiresAt := GetActiveExpiresAt()
 
-	for i := 1; i <= 3; i++ {
-		_, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-			HashedToken: "user1-session-" + string(rune('a'+i)),
-			UserID:      f.User1.ID,
-			ExpiresAt:   expiresAt,
-		})
-		require.NoError(t, err, "Failed to create User1 session")
-	}
-
-	for i := 1; i <= 2; i++ {
-		_, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-			HashedToken: "user2-session-" + string(rune('a'+i)),
-			UserID:      f.User2.ID,
-			ExpiresAt:   expiresAt,
-		})
-		require.NoError(t, err, "Failed to create User2 session")
-	}
+	CreateTestSessions(t, tdb, "user1-session", 3, f.User1.ID, expiresAt)
+	CreateTestSessions(t, tdb, "user2-session", 2, f.User2.ID, expiresAt)
 
 	user1Sessions, err := tdb.Queries.ListActiveSessionsByUser(tdb.Ctx, db.ListActiveSessionsByUserParams{
 		UserID: f.User1.ID,
@@ -431,37 +389,13 @@ func TestListSessionsByUser(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
-		Time:  time.Now().Add(24 * time.Hour),
-		Valid: true,
-	}
+	CreateTestSession(t, tdb, "user1-active", f.User1.ID, GetActiveExpiresAt())
 
-	_, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-		HashedToken: "user1-active",
-		UserID:      f.User1.ID,
-		ExpiresAt:   expiresAt,
-	})
-	require.NoError(t, err, "Failed to create active session")
-
-	revokedSession, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-		HashedToken: "user1-revoked",
-		UserID:      f.User1.ID,
-		ExpiresAt:   expiresAt,
-	})
-	require.NoError(t, err, "Failed to create session")
-	err = tdb.Queries.RevokeSession(tdb.Ctx, revokedSession.ID)
+	revokedSession := CreateTestSession(t, tdb, "user1-revoked", f.User1.ID, GetActiveExpiresAt())
+	err := tdb.Queries.RevokeSession(tdb.Ctx, revokedSession.ID)
 	require.NoError(t, err, "Failed to revoke session")
 
-	expiredTime := pgtype.Timestamp{
-		Time:  time.Now().Add(-1 * time.Hour),
-		Valid: true,
-	}
-	_, err = tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-		HashedToken: "user1-expired",
-		UserID:      f.User1.ID,
-		ExpiresAt:   expiredTime,
-	})
-	require.NoError(t, err, "Failed to create expired session")
+	CreateTestSession(t, tdb, "user1-expired", f.User1.ID, GetExpiredExpiresAt())
 
 	allSessions, err := tdb.Queries.ListSessionsByUser(tdb.Ctx, db.ListSessionsByUserParams{
 		UserID: f.User1.ID,
@@ -476,27 +410,12 @@ func TestCountActiveSessionsByUser(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
-		Time:  time.Now().Add(24 * time.Hour),
-		Valid: true,
-	}
+	expiresAt := GetActiveExpiresAt()
 
-	for i := 1; i <= 3; i++ {
-		_, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-			HashedToken: "count-user1-" + string(rune('a'+i)),
-			UserID:      f.User1.ID,
-			ExpiresAt:   expiresAt,
-		})
-		require.NoError(t, err, "Failed to create session")
-	}
+	CreateTestSessions(t, tdb, "count-user1", 3, f.User1.ID, expiresAt)
 
-	revokedSession, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-		HashedToken: "count-user1-revoked",
-		UserID:      f.User1.ID,
-		ExpiresAt:   expiresAt,
-	})
-	require.NoError(t, err, "Failed to create session")
-	err = tdb.Queries.RevokeSession(tdb.Ctx, revokedSession.ID)
+	revokedSession := CreateTestSession(t, tdb, "count-user1-revoked", f.User1.ID, expiresAt)
+	err := tdb.Queries.RevokeSession(tdb.Ctx, revokedSession.ID)
 	require.NoError(t, err, "Failed to revoke session")
 
 	count, err := tdb.Queries.CountActiveSessionsByUser(tdb.Ctx, f.User1.ID)
@@ -508,39 +427,13 @@ func TestCountSessionsByUser(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
-		Time:  time.Now().Add(24 * time.Hour),
-		Valid: true,
-	}
+	CreateTestSessions(t, tdb, "count-all-user1", 2, f.User1.ID, GetActiveExpiresAt())
 
-	for i := 1; i <= 2; i++ {
-		_, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-			HashedToken: "count-all-user1-" + string(rune('a'+i)),
-			UserID:      f.User1.ID,
-			ExpiresAt:   expiresAt,
-		})
-		require.NoError(t, err, "Failed to create session")
-	}
-
-	revokedSession, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-		HashedToken: "count-all-revoked",
-		UserID:      f.User1.ID,
-		ExpiresAt:   expiresAt,
-	})
-	require.NoError(t, err, "Failed to create session")
-	err = tdb.Queries.RevokeSession(tdb.Ctx, revokedSession.ID)
+	revokedSession := CreateTestSession(t, tdb, "count-all-revoked", f.User1.ID, GetActiveExpiresAt())
+	err := tdb.Queries.RevokeSession(tdb.Ctx, revokedSession.ID)
 	require.NoError(t, err, "Failed to revoke session")
 
-	expiredTime := pgtype.Timestamp{
-		Time:  time.Now().Add(-1 * time.Hour),
-		Valid: true,
-	}
-	_, err = tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-		HashedToken: "count-all-expired",
-		UserID:      f.User1.ID,
-		ExpiresAt:   expiredTime,
-	})
-	require.NoError(t, err, "Failed to create expired session")
+	CreateTestSession(t, tdb, "count-all-expired", f.User1.ID, GetExpiredExpiresAt())
 
 	count, err := tdb.Queries.CountSessionsByUser(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to count all sessions")
@@ -551,39 +444,13 @@ func TestCountActiveSessions(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
-		Time:  time.Now().Add(24 * time.Hour),
-		Valid: true,
-	}
+	CreateTestSessions(t, tdb, "global-active", 3, f.User1.ID, GetActiveExpiresAt())
 
-	for i := 1; i <= 3; i++ {
-		_, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-			HashedToken: "global-active-" + string(rune('a'+i)),
-			UserID:      f.User1.ID,
-			ExpiresAt:   expiresAt,
-		})
-		require.NoError(t, err, "Failed to create session")
-	}
-
-	revokedSession, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-		HashedToken: "global-revoked",
-		UserID:      f.User1.ID,
-		ExpiresAt:   expiresAt,
-	})
-	require.NoError(t, err, "Failed to create session")
-	err = tdb.Queries.RevokeSession(tdb.Ctx, revokedSession.ID)
+	revokedSession := CreateTestSession(t, tdb, "global-revoked", f.User1.ID, GetActiveExpiresAt())
+	err := tdb.Queries.RevokeSession(tdb.Ctx, revokedSession.ID)
 	require.NoError(t, err, "Failed to revoke session")
 
-	expiredTime := pgtype.Timestamp{
-		Time:  time.Now().Add(-1 * time.Hour),
-		Valid: true,
-	}
-	_, err = tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
-		HashedToken: "global-expired",
-		UserID:      f.User1.ID,
-		ExpiresAt:   expiredTime,
-	})
-	require.NoError(t, err, "Failed to create expired session")
+	CreateTestSession(t, tdb, "global-expired", f.User1.ID, GetExpiredExpiresAt())
 
 	count, err := tdb.Queries.CountActiveSessions(tdb.Ctx)
 	require.NoError(t, err, "Failed to count active sessions")
