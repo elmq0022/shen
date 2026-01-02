@@ -99,21 +99,12 @@ func TestGetUserApplicationPermission(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       f.Group1.ID,
-		ApplicationID: f.App1.ID,
-		PermissionID:  PermissionViewer,
+	setGroupApplicationPermissions(t, tdb, []db.SetGroupApplicationPermissionParams{
+		{GroupID: f.Group1.ID, ApplicationID: f.App1.ID, PermissionID: PermissionViewer},
+		{GroupID: f.Group2.ID, ApplicationID: f.App1.ID, PermissionID: PermissionAdmin},
 	})
-	require.NoError(t, err, "Failed to set Group1 application permission")
 
-	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       f.Group2.ID,
-		ApplicationID: f.App1.ID,
-		PermissionID:  PermissionAdmin,
-	})
-	require.NoError(t, err, "Failed to set Group2 application permission")
-
-	_, err = tdb.Queries.AddUserToGroup(tdb.Ctx, db.AddUserToGroupParams{
+	_, err := tdb.Queries.AddUserToGroup(tdb.Ctx, db.AddUserToGroupParams{
 		UserID:  f.User1.ID,
 		GroupID: f.Group1.ID,
 	})
@@ -203,19 +194,10 @@ func TestGetUserApplicationPermissionEdgeCases(t *testing.T) {
 		})
 		require.NoError(t, err, "Failed to add User2 to Group2")
 
-		_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-			GroupID:       f.Group1.ID,
-			ApplicationID: f.App1.ID,
-			PermissionID:  PermissionAuditor,
+		setGroupApplicationPermissions(t, tdb, []db.SetGroupApplicationPermissionParams{
+			{GroupID: f.Group1.ID, ApplicationID: f.App1.ID, PermissionID: PermissionAuditor},
+			{GroupID: f.Group2.ID, ApplicationID: f.App1.ID, PermissionID: PermissionAuditor},
 		})
-		require.NoError(t, err, "Failed to set Group1 application permission")
-
-		_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-			GroupID:       f.Group2.ID,
-			ApplicationID: f.App1.ID,
-			PermissionID:  PermissionAuditor,
-		})
-		require.NoError(t, err, "Failed to set Group2 application permission")
 
 		expected, err := tdb.Queries.GetPermissionByID(tdb.Ctx, PermissionAuditor)
 		require.NoError(t, err, "Failed to get expected permission")
@@ -236,15 +218,11 @@ func TestListGroupApplicationPermissionsByGroup(t *testing.T) {
 
 	apps := CreateTestApplications(t, tdb, "zapp", 2)
 
-	setGroupApplicationPermissions(t, tdb, []struct {
-		GroupID       int32
-		ApplicationID int32
-		PermissionID  int32
-	}{
-		{f.Group1.ID, f.App1.ID, PermissionViewer},
-		{f.Group1.ID, f.App2.ID, PermissionAdmin},
-		{f.Group1.ID, apps[0].ID, PermissionOperator},
-		{f.Group1.ID, apps[1].ID, PermissionAuditor},
+	setGroupApplicationPermissions(t, tdb, []db.SetGroupApplicationPermissionParams{
+		{GroupID: f.Group1.ID, ApplicationID: f.App1.ID, PermissionID: PermissionViewer},
+		{GroupID: f.Group1.ID, ApplicationID: f.App2.ID, PermissionID: PermissionAdmin},
+		{GroupID: f.Group1.ID, ApplicationID: apps[0].ID, PermissionID: PermissionOperator},
+		{GroupID: f.Group1.ID, ApplicationID: apps[1].ID, PermissionID: PermissionAuditor},
 	})
 
 	page1, err := tdb.Queries.ListGroupApplicationPermissionsByGroup(tdb.Ctx, db.ListGroupApplicationPermissionsByGroupParams{
@@ -280,15 +258,11 @@ func TestListGroupApplicationPermissionsByApplication(t *testing.T) {
 
 	groups := CreateTestGroups(t, tdb, "team", 2)
 
-	setGroupApplicationPermissions(t, tdb, []struct {
-		GroupID       int32
-		ApplicationID int32
-		PermissionID  int32
-	}{
-		{f.Group1.ID, f.App1.ID, PermissionViewer},
-		{f.Group2.ID, f.App1.ID, PermissionAdmin},
-		{groups[0].ID, f.App1.ID, PermissionOperator},
-		{groups[1].ID, f.App1.ID, PermissionAuditor},
+	setGroupApplicationPermissions(t, tdb, []db.SetGroupApplicationPermissionParams{
+		{GroupID: f.Group1.ID, ApplicationID: f.App1.ID, PermissionID: PermissionViewer},
+		{GroupID: f.Group2.ID, ApplicationID: f.App1.ID, PermissionID: PermissionAdmin},
+		{GroupID: groups[0].ID, ApplicationID: f.App1.ID, PermissionID: PermissionOperator},
+		{GroupID: groups[1].ID, ApplicationID: f.App1.ID, PermissionID: PermissionAuditor},
 	})
 
 	page1, err := tdb.Queries.ListGroupApplicationPermissionsByApplication(tdb.Ctx, db.ListGroupApplicationPermissionsByApplicationParams{
@@ -320,26 +294,11 @@ func TestListAllGroupApplicationPermissions(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       f.Group1.ID,
-		ApplicationID: f.App1.ID,
-		PermissionID:  PermissionViewer,
+	setGroupApplicationPermissions(t, tdb, []db.SetGroupApplicationPermissionParams{
+		{GroupID: f.Group1.ID, ApplicationID: f.App1.ID, PermissionID: PermissionViewer},
+		{GroupID: f.Group1.ID, ApplicationID: f.App2.ID, PermissionID: PermissionAdmin},
+		{GroupID: f.Group2.ID, ApplicationID: f.App1.ID, PermissionID: PermissionOperator},
 	})
-	require.NoError(t, err, "Failed to set Group1-App1 permission")
-
-	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       f.Group1.ID,
-		ApplicationID: f.App2.ID,
-		PermissionID:  PermissionAdmin,
-	})
-	require.NoError(t, err, "Failed to set Group1-App2 permission")
-
-	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       f.Group2.ID,
-		ApplicationID: f.App1.ID,
-		PermissionID:  PermissionOperator,
-	})
-	require.NoError(t, err, "Failed to set Group2-App1 permission")
 
 	page1, err := tdb.Queries.ListAllGroupApplicationPermissions(tdb.Ctx, db.ListAllGroupApplicationPermissionsParams{
 		Limit:  2,
@@ -369,26 +328,11 @@ func TestCountGroupApplicationPermissionsByGroup(t *testing.T) {
 
 	apps := CreateTestApplications(t, tdb, "app", 3)
 
-	_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       f.Group1.ID,
-		ApplicationID: f.App1.ID,
-		PermissionID:  PermissionViewer,
+	setGroupApplicationPermissions(t, tdb, []db.SetGroupApplicationPermissionParams{
+		{GroupID: f.Group1.ID, ApplicationID: f.App1.ID, PermissionID: PermissionViewer},
+		{GroupID: f.Group1.ID, ApplicationID: apps[0].ID, PermissionID: PermissionAdmin},
+		{GroupID: f.Group1.ID, ApplicationID: apps[1].ID, PermissionID: PermissionOperator},
 	})
-	require.NoError(t, err, "Failed to set Group1-App1 permission")
-
-	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       f.Group1.ID,
-		ApplicationID: apps[0].ID,
-		PermissionID:  PermissionAdmin,
-	})
-	require.NoError(t, err, "Failed to set Group1-App2 permission")
-
-	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       f.Group1.ID,
-		ApplicationID: apps[1].ID,
-		PermissionID:  PermissionOperator,
-	})
-	require.NoError(t, err, "Failed to set Group1-App3 permission")
 
 	count, err := tdb.Queries.CountGroupApplicationPermissionsByGroup(tdb.Ctx, f.Group1.ID)
 	require.NoError(t, err, "Failed to count permissions for Group1")
@@ -412,26 +356,11 @@ func TestCountGroupApplicationPermissionsByApplication(t *testing.T) {
 
 	groups := CreateTestGroups(t, tdb, "team", 3)
 
-	_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       f.Group1.ID,
-		ApplicationID: f.App1.ID,
-		PermissionID:  PermissionViewer,
+	setGroupApplicationPermissions(t, tdb, []db.SetGroupApplicationPermissionParams{
+		{GroupID: f.Group1.ID, ApplicationID: f.App1.ID, PermissionID: PermissionViewer},
+		{GroupID: groups[0].ID, ApplicationID: f.App1.ID, PermissionID: PermissionAdmin},
+		{GroupID: groups[1].ID, ApplicationID: f.App1.ID, PermissionID: PermissionOperator},
 	})
-	require.NoError(t, err, "Failed to set Group1-App1 permission")
-
-	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       groups[0].ID,
-		ApplicationID: f.App1.ID,
-		PermissionID:  PermissionAdmin,
-	})
-	require.NoError(t, err, "Failed to set Group2-App1 permission")
-
-	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       groups[1].ID,
-		ApplicationID: f.App1.ID,
-		PermissionID:  PermissionOperator,
-	})
-	require.NoError(t, err, "Failed to set Group3-App1 permission")
 
 	count, err := tdb.Queries.CountGroupApplicationPermissionsByApplication(tdb.Ctx, f.App1.ID)
 	require.NoError(t, err, "Failed to count permissions for App1")
@@ -453,26 +382,11 @@ func TestCountAllGroupApplicationPermissions(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       f.Group1.ID,
-		ApplicationID: f.App1.ID,
-		PermissionID:  PermissionViewer,
+	setGroupApplicationPermissions(t, tdb, []db.SetGroupApplicationPermissionParams{
+		{GroupID: f.Group1.ID, ApplicationID: f.App1.ID, PermissionID: PermissionViewer},
+		{GroupID: f.Group1.ID, ApplicationID: f.App2.ID, PermissionID: PermissionAdmin},
+		{GroupID: f.Group2.ID, ApplicationID: f.App1.ID, PermissionID: PermissionOperator},
 	})
-	require.NoError(t, err, "Failed to set Group1-App1 permission")
-
-	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       f.Group1.ID,
-		ApplicationID: f.App2.ID,
-		PermissionID:  PermissionAdmin,
-	})
-	require.NoError(t, err, "Failed to set Group1-App2 permission")
-
-	_, err = tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
-		GroupID:       f.Group2.ID,
-		ApplicationID: f.App1.ID,
-		PermissionID:  PermissionOperator,
-	})
-	require.NoError(t, err, "Failed to set Group2-App1 permission")
 
 	count, err := tdb.Queries.CountAllGroupApplicationPermissions(tdb.Ctx)
 	require.NoError(t, err, "Failed to count all permissions")
