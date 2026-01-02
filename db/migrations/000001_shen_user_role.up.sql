@@ -25,8 +25,8 @@ CREATE TRIGGER update_shen_user_role_updated_at
 
 -- Insert default user roles
 INSERT INTO shen_user_role (name) VALUES
+    ('admin'),
     ('service'),
-    ('user'),
-    ('admin');
+    ('user');
 
 COMMIT;
