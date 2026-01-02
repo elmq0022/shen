@@ -32,9 +32,9 @@ func TestGetUser(t *testing.T) {
 	f := CreateStandardFixtures(t, tdb)
 
 	// Get user by ID
-	fetched, err := tdb.Queries.GetUserByID(tdb.Ctx, f.User1.ID)
+	fetchedByID, err := tdb.Queries.GetUserByID(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to get user by ID")
-	assert.Equal(t, f.User1, fetched)
+	assert.Equal(t, f.User1, fetchedByID)
 
 	// Get user by username
 	fetchedByUsername, err := tdb.Queries.GetUserByUsername(tdb.Ctx, "test.user1")

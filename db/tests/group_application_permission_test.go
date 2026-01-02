@@ -35,21 +35,21 @@ func TestSetGroupApplicationPermission(t *testing.T) {
 	assert.Equal(t, created, fetched)
 	assert.Equal(t, PermissionViewer, fetched.PermissionID)
 
-	updated, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
+	updatedRecord, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, db.SetGroupApplicationPermissionParams{
 		GroupID:       f.Group1.ID,
 		ApplicationID: f.App1.ID,
 		PermissionID:  PermissionAdmin,
 	})
 	require.NoError(t, err, "Failed to update group application permission")
 
-	fetchedAfterUpdate, err := tdb.Queries.GetGroupApplicationPermission(tdb.Ctx, db.GetGroupApplicationPermissionParams{
+	updated, err := tdb.Queries.GetGroupApplicationPermission(tdb.Ctx, db.GetGroupApplicationPermissionParams{
 		GroupID:       f.Group1.ID,
 		ApplicationID: f.App1.ID,
 	})
 	require.NoError(t, err, "Failed to get updated group application permission")
-	assert.Equal(t, updated, fetchedAfterUpdate)
-	assert.Equal(t, created.ID, updated.ID, "ID should not change on upsert")
-	assert.Equal(t, PermissionAdmin, fetchedAfterUpdate.PermissionID)
+	assert.Equal(t, updatedRecord, updated)
+	assert.Equal(t, created.ID, updatedRecord.ID, "ID should not change on upsert")
+	assert.Equal(t, PermissionAdmin, updated.PermissionID)
 }
 
 func TestGetGroupApplicationPermissionByID(t *testing.T) {
