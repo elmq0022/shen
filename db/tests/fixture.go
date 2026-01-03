@@ -16,11 +16,11 @@ const (
 	RoleUser    int32 = 2
 	RoleAdmin   int32 = 3
 
-	PermissionAuthenticated int32 = 1
-	PermissionViewer        int32 = 2
-	PermissionAuditor       int32 = 3
-	PermissionOperator      int32 = 4
-	PermissionAdmin         int32 = 5
+	ApplicationRoleAuthenticated int32 = 1
+	ApplicationRoleViewer        int32 = 2
+	ApplicationRoleAuditor       int32 = 3
+	ApplicationRoleOperator      int32 = 4
+	ApplicationRoleAdmin         int32 = 5
 )
 
 func CreateTestUser(t *testing.T, tdb *TestDB, username string, role int32) db.ShenUser {

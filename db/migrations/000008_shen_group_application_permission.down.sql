@@ -1,5 +1,5 @@
 BEGIN;
 
-DROP TABLE IF EXISTS shen_group_application_permission;
+DROP TABLE IF EXISTS shen_group_application_role;
 
 COMMIT;

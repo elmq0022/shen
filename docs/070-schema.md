@@ -89,35 +89,45 @@ This table defines which users are managers of which groups. Group managers can 
 | created_at | timestamp | N      | N     | Application creation timestamp                |
 | updated_at | timestamp | N      | N     | Application last update timestamp             |
 
-### `shen_permission`
+### `shen_application_role`
 
 | Field      | Type      | Unique | Index | Description                                 |
 |:-----------|:----------|:-------|:------|:--------------------------------------------|
 | id         | PK        | Y      | -     | Primary key                                 |
-| priority   | integer   | Y      | Y     | Permission priority                         |
-| name       | string    | Y      | N     | Permission name (enforced lowercase)        |
-| created_at | timestamp | N      | N     | Permission creation timestamp               |
-| updated_at | timestamp | N      | N     | Permission last update timestamp            |
+| priority   | integer   | Y      | Y     | Role priority (for display/sorting)         |
+| name       | string    | Y      | N     | Role name (enforced lowercase)              |
+| created_at | timestamp | N      | N     | Role creation timestamp                     |
+| updated_at | timestamp | N      | N     | Role last update timestamp                  |
 
-**Available permissions:** `authenticated`, `viewer`, `auditor`, `operator`, `admin`
+**Available application roles:** `authenticated`, `viewer`, `auditor`, `operator`, `admin`
 
-### `shen_group_application_permission`
+This table defines the standard set of roles that can be assigned to users for applications. These are separate from `shen_user_role` which controls access to Shen itself.
+
+### `shen_group_application_role`
 
 | Field         | Type      | Unique | Index | Description                           |
 |:--------------|:----------|:-------|:------|:--------------------------------------|
 | id            | PK        | Y      | -     | Primary key                           |
 | group_id      | FK        | N      | Y     | Foreign key to `shen_group`           |
 | application_id| FK        | N      | Y     | Foreign key to `shen_application`     |
-| permission_id | FK        | N      | Y     | Foreign key to `shen_permission`      |
+| role_id       | FK        | N      | Y     | Foreign key to `shen_application_role`|
 | created_at    | timestamp | N      | N     | Assignment creation timestamp         |
 | updated_at    | timestamp | N      | N     | Assignment last update timestamp      |
 
-**Composite unique constraint:** `(group_id, application_id)` - A group can only have one specific permission per application
+**Composite unique constraint:** `(group_id, application_id, role_id)` - A group can have each role only once per application, but can have multiple different roles for the same application
 
 **Foreign key constraints:**
 - `group_id` REFERENCES `shen_group(id)` ON DELETE CASCADE
 - `application_id` REFERENCES `shen_application(id)` ON DELETE CASCADE
-- `permission_id` REFERENCES `shen_permission(id)` ON DELETE RESTRICT
+- `role_id` REFERENCES `shen_application_role(id)` ON DELETE RESTRICT
+
+This table implements many-to-many mapping between groups, applications, and roles. A group can have multiple roles for an application (e.g., both `viewer` and `auditor`).
+
+When generating a JWT for a user:
+- Shen collects all groups the user belongs to
+- For each group, Shen looks up which roles that group grants for the target application
+- The JWT includes the deduplicated union of all roles
+- The JWT also includes the group names themselves - applications interpret what permissions each group has
 
 ### `shen_token`
 

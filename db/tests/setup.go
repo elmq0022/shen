@@ -50,13 +50,13 @@ func SetupTestDB(t *testing.T) *TestDB {
 		tables := []string{
 			"shen_token",
 			"shen_session",
-			"shen_group_application_permission",
+			"shen_group_application_role",
 			"shen_user_group_manager",
 			"shen_user_group_member",
 			"shen_user",
 			"shen_group",
 			"shen_application",
-			// skip shen_permission, shen_user_role as they have data seeded in the migrations
+			// skip shen_application_role, shen_user_role as they have data seeded in the migrations
 		}
 
 		for _, table := range tables {

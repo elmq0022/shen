@@ -16,6 +16,14 @@ type ShenApplication struct {
 	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }
 
+type ShenApplicationRole struct {
+	ID        int32            `json:"id"`
+	Priority  int32            `json:"priority"`
+	Name      string           `json:"name"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+}
+
 type ShenGroup struct {
 	ID        int32            `json:"id"`
 	Name      string           `json:"name"`
@@ -24,21 +32,13 @@ type ShenGroup struct {
 	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }
 
-type ShenGroupApplicationPermission struct {
+type ShenGroupApplicationRole struct {
 	ID            int32            `json:"id"`
 	GroupID       int32            `json:"group_id"`
 	ApplicationID int32            `json:"application_id"`
-	PermissionID  int32            `json:"permission_id"`
+	RoleID        int32            `json:"role_id"`
 	CreatedAt     pgtype.Timestamp `json:"created_at"`
 	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
-}
-
-type ShenPermission struct {
-	ID        int32            `json:"id"`
-	Priority  int32            `json:"priority"`
-	Name      string           `json:"name"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }
 
 type ShenSession struct {

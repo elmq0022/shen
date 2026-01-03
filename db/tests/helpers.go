@@ -67,13 +67,13 @@ func sortGroupsByName(groups []db.ShenGroup) {
 	})
 }
 
-// setGroupApplicationPermissions sets permissions for multiple group-application pairs.
-// Takes a slice of SetGroupApplicationPermissionParams.
-func setGroupApplicationPermissions(t *testing.T, tdb *TestDB, permissions []db.SetGroupApplicationPermissionParams) {
+// addGroupApplicationRoles adds multiple roles for group-application pairs.
+// Takes a slice of AddGroupApplicationRoleParams.
+func addGroupApplicationRoles(t *testing.T, tdb *TestDB, roles []db.AddGroupApplicationRoleParams) {
 	t.Helper()
-	for _, perm := range permissions {
-		_, err := tdb.Queries.SetGroupApplicationPermission(tdb.Ctx, perm)
-		require.NoError(t, err, "Failed to set group application permission")
+	for _, role := range roles {
+		_, err := tdb.Queries.AddGroupApplicationRole(tdb.Ctx, role)
+		require.NoError(t, err, "Failed to add group application role")
 	}
 }
 

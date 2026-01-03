@@ -1,4 +1,4 @@
--- name: GetPermissionByID :one
+-- name: GetApplicationRoleByID :one
 SELECT
     id,
     priority,
@@ -6,12 +6,12 @@ SELECT
     created_at,
     updated_at
 FROM
-    shen_permission
+    shen_application_role
 WHERE
     id = $1
 LIMIT 1;
 
--- name: GetPermissionByName :one
+-- name: GetApplicationRoleByName :one
 SELECT
     id,
     priority,
@@ -19,12 +19,12 @@ SELECT
     created_at,
     updated_at
 FROM
-    shen_permission
+    shen_application_role
 WHERE
     name = $1
 LIMIT 1;
 
--- name: ListPermissions :many
+-- name: ListApplicationRoles :many
 SELECT
     id,
     priority,
@@ -32,7 +32,6 @@ SELECT
     created_at,
     updated_at
 FROM
-    shen_permission
+    shen_application_role
 ORDER BY
     priority;
-
