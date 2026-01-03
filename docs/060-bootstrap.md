@@ -55,7 +55,7 @@ migrate -database $DATABASE_URL -path ./db/migrations up
 - `user`
 - `admin`
 
-**Permissions** (`shen_permission`) - seeded via migration:
+**Application Roles** (`shen_application_role`) - seeded via migration:
 - `authenticated` (priority: 100) - Authentication only, no Shen-managed authorization
 - `viewer` (priority: 200)
 - `auditor` (priority: 300)
