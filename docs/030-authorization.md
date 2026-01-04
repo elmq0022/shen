@@ -188,3 +188,80 @@ if contains(jwt.Groups, "engineering") {
 **Token Expiration:**
 
 If the JWT has expired, the user or client must resubmit the PAT to `/api/v1/authorize` to obtain a new short-lived JWT. Since the PAT is already long-lived, there's no need for a refresh token.
+
+---
+
+## Design Rationale
+
+### Short-lived JWT Expiration (7 minutes default)
+
+**Chosen approach:** JWTs expire after 7 minutes (420 seconds), configurable via `SHEN_JWT_SECONDS_TO_EXPIRY`.
+
+**Why short-lived:**
+1. **Limits exposure window** - If a JWT is compromised, it's only valid for a maximum of 7 minutes
+2. **Forces permission refresh** - Group membership and role assignment changes take effect within 7 minutes
+3. **Balances security vs performance** - Short enough for security, long enough to avoid excessive token exchange requests
+4. **Revocation propagation** - When a PAT is revoked, outstanding JWTs expire within 7 minutes (stateless JWTs can't be instantly revoked)
+
+**Why JWT as the token format:**
+1. **Industry standard** - Well-supported libraries in all major programming languages
+2. **Stateless verification** - Applications verify tokens locally without calling Shen for every request
+3. **Performance** - Applications cache Shen's public key, verification is fast and doesn't require network calls
+4. **Easy integration** - Standard format makes it simple for applications to integrate Shen into their auth flow
+
+**Security tradeoff:**
+- Shorter expiration = more secure (smaller compromise window)
+- Shorter expiration = more PAT exchanges (more traffic to Shen)
+- 7 minutes strikes a pragmatic balance
+
+### No Refresh Tokens
+
+**Chosen approach:** Use PAT as the refresh mechanism - no separate refresh token.
+
+**Why PAT serves as the refresh token:**
+1. **Avoids duplication** - PATs are already long-lived (30 days default), creating a separate refresh token would be redundant
+2. **Simpler flow** - Just exchange PAT for JWT when needed (vs traditional OAuth: refresh token → new access token + new refresh token)
+3. **Revocation works** - Revoking a PAT immediately prevents new JWT generation
+4. **No rotation complexity** - Don't need to handle refresh token rotation or family tracking
+
+**Comparison to traditional OAuth 2.0:**
+- **Traditional OAuth:** Short-lived access token + long-lived refresh token
+- **Shen:** Short-lived JWT + long-lived PAT (conceptually similar, operationally simpler)
+
+**When JWTs expire:**
+- Client simply exchanges the PAT again via `POST /api/v1/authorize`
+- No separate refresh endpoint needed
+
+### Password Hashing: Argon2id
+
+**Chosen approach:** Hash PATs and passwords using Argon2id.
+
+**Why Argon2id:**
+1. **Modern best practice** - OWASP recommended algorithm (current standard since 2015)
+2. **Memory-hard algorithm** - Resists GPU and ASIC-based cracking attacks by requiring significant RAM
+3. **Hybrid approach** - Combines Argon2i (side-channel attack resistant) with Argon2d (GPU/ASIC resistant)
+4. **Tunable parameters** - Can adjust memory cost, time cost, and parallelism to balance security vs performance
+5. **Future-proof** - More resilient against advances in hardware-accelerated password cracking
+
+**Alternatives considered:**
+
+1. **bcrypt**
+   - **Pros:** Still secure, widely used, battle-tested
+   - **Cons:** Older algorithm (1999), less resistant to GPU-based attacks than Argon2id, fixed work factor limit
+
+2. **scrypt**
+   - **Pros:** Memory-hard, better than bcrypt
+   - **Cons:** Argon2id was specifically designed to address scrypt's weaknesses and won the Password Hashing Competition
+
+3. **PBKDF2**
+   - **Pros:** NIST approved, simple
+   - **Cons:** Not memory-hard, vulnerable to GPU/ASIC attacks, only recommended when FIPS compliance required
+
+**Why Argon2id over Argon2i or Argon2d:**
+- **Argon2i** - Optimized for side-channel resistance (password hashing)
+- **Argon2d** - Optimized for GPU resistance (cryptocurrency mining)
+- **Argon2id** - Hybrid that provides both benefits (best choice for general password/token hashing)
+
+**Configuration:**
+- Parameters (memory cost, iterations, parallelism) should be documented and tunable
+- Must balance security (higher = better) vs performance (higher = slower verification)

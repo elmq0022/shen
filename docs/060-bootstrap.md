@@ -42,6 +42,36 @@ shenctl keys rotate
 
 This generates a new key pair and updates the JWKS endpoint. Applications will automatically fetch the new public key on their next verification.
 
+## Design Rationale
+
+### Key Storage Format: PEM vs JWK
+
+**Chosen approach:** Store keys as PEM files on disk, convert to JWK format at runtime for the JWKS endpoint.
+
+**Alternatives considered:**
+
+1. **PEM files (chosen)**
+   - **Pros:**
+     - Industry standard for storing cryptographic keys on filesystem
+     - Easy to inspect and debug with standard tools (`openssl rsa -text -in jwt-private.pem`)
+     - Portable across different JWT libraries and tools
+     - Clear separation between storage format and wire format (JWKS)
+     - Simpler key rotation workflow (swap files, conversion happens at runtime)
+   - **Cons:**
+     - Requires runtime conversion from PEM → JWK for the `/.well-known/jwks.json` endpoint
+
+2. **JWK files**
+   - **Pros:**
+     - No conversion needed for JWKS endpoint
+     - More "modern" web-focused approach
+   - **Cons:**
+     - Less standard for file storage
+     - Fewer operational tools for inspection and debugging
+     - May still need PEM format for certain signing libraries
+     - Couples storage format to HTTP API format
+
+**Why PEM:** The operational benefits of using the industry-standard PEM format outweigh the minor cost of runtime conversion to JWK. The separation of concerns (storage vs serving) is cleaner, and PEM provides better tooling support for key management tasks like inspection, backup, and rotation.
+
 ## Database Migrations
 
 Shen uses database migrations to set up the schema and seed reference data. Run migrations before first startup:
