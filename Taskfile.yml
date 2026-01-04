@@ -56,15 +56,13 @@ tasks:
 
   test:integration:
     desc: |
-      Start database, reset schema, and run integration tests
+      Start database, reset schema, and run integration tests in db/tests
       Examples:
         task test:integration                                    # run all integration tests
         task test:integration -- -run TestCreateAdmin            # run specific test by name
-        task test:integration -- ./internal/bootstrap/...        # run all tests in package
-        task test:integration -- -run TestCreateAdmin ./internal/bootstrap/...  # run specific test in package
     cmds:
       - task: db:reset
-      - go test -v -count=1 -tags=integration ./... {{.CLI_ARGS}}
+      - go test -v -count=1 -tags=integration ./db/tests {{.CLI_ARGS}}
 
   test:unit:
     desc: |

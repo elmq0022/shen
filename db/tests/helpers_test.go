@@ -78,7 +78,7 @@ func addGroupApplicationRoles(t *testing.T, tdb *TestDB, roles []db.AddGroupAppl
 }
 
 // CreateTestToken creates a single token with the given parameters.
-func CreateTestToken(t *testing.T, tdb *TestDB, name, hashedToken string, userID, appID int32, expiresAt pgtype.Timestamp) db.ShenToken {
+func CreateTestToken(t *testing.T, tdb *TestDB, name, hashedToken string, userID, appID int32, expiresAt pgtype.Timestamptz) db.ShenToken {
 	t.Helper()
 	created, err := tdb.Queries.CreateToken(tdb.Ctx, db.CreateTokenParams{
 		Name:          name,
@@ -93,7 +93,7 @@ func CreateTestToken(t *testing.T, tdb *TestDB, name, hashedToken string, userID
 
 // CreateTestTokens creates multiple tokens with standardized naming.
 // Creates tokens named "<prefix>-1", "<prefix>-2", etc.
-func CreateTestTokens(t *testing.T, tdb *TestDB, prefix string, count int, userID, appID int32, expiresAt pgtype.Timestamp) []db.ShenToken {
+func CreateTestTokens(t *testing.T, tdb *TestDB, prefix string, count int, userID, appID int32, expiresAt pgtype.Timestamptz) []db.ShenToken {
 	t.Helper()
 	tokens := make([]db.ShenToken, count)
 	for i := 0; i < count; i++ {
@@ -104,24 +104,24 @@ func CreateTestTokens(t *testing.T, tdb *TestDB, prefix string, count int, userI
 	return tokens
 }
 
-// GetActiveExpiresAt returns a pgtype.Timestamp set 24 hours in the future.
-func GetActiveExpiresAt() pgtype.Timestamp {
-	return pgtype.Timestamp{
+// GetActiveExpiresAt returns a pgtype.Timestamptz set 24 hours in the future.
+func GetActiveExpiresAt() pgtype.Timestamptz {
+	return pgtype.Timestamptz{
 		Time:  time.Now().Add(24 * time.Hour),
 		Valid: true,
 	}
 }
 
-// GetExpiredExpiresAt returns a pgtype.Timestamp set 1 hour in the past.
-func GetExpiredExpiresAt() pgtype.Timestamp {
-	return pgtype.Timestamp{
+// GetExpiredExpiresAt returns a pgtype.Timestamptz set 1 hour in the past.
+func GetExpiredExpiresAt() pgtype.Timestamptz {
+	return pgtype.Timestamptz{
 		Time:  time.Now().Add(-1 * time.Hour),
 		Valid: true,
 	}
 }
 
 // CreateTestSession creates a single session with the given parameters.
-func CreateTestSession(t *testing.T, tdb *TestDB, hashedToken string, userID int32, expiresAt pgtype.Timestamp) db.ShenSession {
+func CreateTestSession(t *testing.T, tdb *TestDB, hashedToken string, userID int32, expiresAt pgtype.Timestamptz) db.ShenSession {
 	t.Helper()
 	created, err := tdb.Queries.CreateSession(tdb.Ctx, db.CreateSessionParams{
 		HashedToken: hashedToken,
@@ -134,7 +134,7 @@ func CreateTestSession(t *testing.T, tdb *TestDB, hashedToken string, userID int
 
 // CreateTestSessions creates multiple sessions with standardized naming.
 // Creates sessions with hashed tokens named "<prefix>-1", "<prefix>-2", etc.
-func CreateTestSessions(t *testing.T, tdb *TestDB, prefix string, count int, userID int32, expiresAt pgtype.Timestamp) []db.ShenSession {
+func CreateTestSessions(t *testing.T, tdb *TestDB, prefix string, count int, userID int32, expiresAt pgtype.Timestamptz) []db.ShenSession {
 	t.Helper()
 	sessions := make([]db.ShenSession, count)
 	for i := 0; i < count; i++ {

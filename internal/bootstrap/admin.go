@@ -55,6 +55,10 @@ func CreateAdmin(ctx context.Context, queries *db.Queries, hashPassword auth.Has
 		panic(err)
 	}
 
+	// TODO: consider making this safe for deploying
+	// replicas of shen in k8s cluster or similar.
+	// catch the duplicate error and proceed
+	// ignore on conflict via SQL ON CONFLICT (username) DO NOTHING
 	_, err = queries.CreateUser(ctx, db.CreateUserParams{
 		Username: user,
 		HashedPassword: pgtype.Text{

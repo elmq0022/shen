@@ -1,13 +1,11 @@
 //go:build integration
 
-package bootstrap_test
+package db_tests
 
 import (
-	"os"
 	"testing"
 
 	"github.com/elmq0022/shen/internal/bootstrap"
-	db_tests "github.com/elmq0022/shen/db/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +16,7 @@ func TestCreateAdmin(t *testing.T) {
 	}
 
 	t.Run("creates admin user when no users exist", func(t *testing.T) {
-		tdb := db_tests.SetupTestDB(t)
+		tdb := SetupTestDB(t)
 
 		bootstrap.CreateAdmin(tdb.Ctx, tdb.Queries, mockHash)
 
@@ -39,11 +37,9 @@ func TestCreateAdmin(t *testing.T) {
 	})
 
 	t.Run("creates admin with custom username from env var", func(t *testing.T) {
-		tdb := db_tests.SetupTestDB(t)
-
 		customUser := "superadmin"
-		os.Setenv(bootstrap.AdminUserEnv, customUser)
-		t.Cleanup(func() { os.Unsetenv(bootstrap.AdminUserEnv) })
+		t.Setenv(bootstrap.AdminUserEnv, customUser)
+		tdb := SetupTestDB(t)
 
 		bootstrap.CreateAdmin(tdb.Ctx, tdb.Queries, mockHash)
 
@@ -53,11 +49,9 @@ func TestCreateAdmin(t *testing.T) {
 	})
 
 	t.Run("creates admin with custom password from env var", func(t *testing.T) {
-		tdb := db_tests.SetupTestDB(t)
-
 		customPassword := "super_secret_password"
-		os.Setenv(bootstrap.AdminPasswordEnv, customPassword)
-		t.Cleanup(func() { os.Unsetenv(bootstrap.AdminPasswordEnv) })
+		t.Setenv(bootstrap.AdminPasswordEnv, customPassword)
+		tdb := SetupTestDB(t)
 
 		bootstrap.CreateAdmin(tdb.Ctx, tdb.Queries, mockHash)
 
@@ -67,9 +61,9 @@ func TestCreateAdmin(t *testing.T) {
 	})
 
 	t.Run("does not create admin when users already exist", func(t *testing.T) {
-		tdb := db_tests.SetupTestDB(t)
+		tdb := SetupTestDB(t)
 
-		existingUser := db_tests.CreateTestUser(t, tdb, "existing_user", db_tests.RoleUser)
+		existingUser := CreateTestUser(t, tdb, "existing_user", RoleUser)
 
 		bootstrap.CreateAdmin(tdb.Ctx, tdb.Queries, mockHash)
 
@@ -86,7 +80,7 @@ func TestCreateAdmin(t *testing.T) {
 	})
 
 	t.Run("does not create admin when admin already exists", func(t *testing.T) {
-		tdb := db_tests.SetupTestDB(t)
+		tdb := SetupTestDB(t)
 
 		bootstrap.CreateAdmin(tdb.Ctx, tdb.Queries, mockHash)
 
