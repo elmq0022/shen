@@ -156,11 +156,11 @@ type ListAllGroupManagersParams struct {
 }
 
 type ListAllGroupManagersRow struct {
-	ID        int32            `json:"id"`
-	GroupName string           `json:"group_name"`
-	Username  string           `json:"username"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ID        int32              `json:"id"`
+	GroupName string             `json:"group_name"`
+	Username  string             `json:"username"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) ListAllGroupManagers(ctx context.Context, arg ListAllGroupManagersParams) ([]ListAllGroupManagersRow, error) {

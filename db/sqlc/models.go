@@ -9,89 +9,89 @@ import (
 )
 
 type ShenApplication struct {
-	ID        int32            `json:"id"`
-	Name      string           `json:"name"`
-	Active    bool             `json:"active"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ID        int32              `json:"id"`
+	Name      string             `json:"name"`
+	Active    bool               `json:"active"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type ShenApplicationRole struct {
-	ID        int32            `json:"id"`
-	Priority  int32            `json:"priority"`
-	Name      string           `json:"name"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ID        int32              `json:"id"`
+	Priority  int32              `json:"priority"`
+	Name      string             `json:"name"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type ShenGroup struct {
-	ID        int32            `json:"id"`
-	Name      string           `json:"name"`
-	Active    bool             `json:"active"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ID        int32              `json:"id"`
+	Name      string             `json:"name"`
+	Active    bool               `json:"active"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type ShenGroupApplicationRole struct {
-	ID            int32            `json:"id"`
-	GroupID       int32            `json:"group_id"`
-	ApplicationID int32            `json:"application_id"`
-	RoleID        int32            `json:"role_id"`
-	CreatedAt     pgtype.Timestamp `json:"created_at"`
-	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+	ID            int32              `json:"id"`
+	GroupID       int32              `json:"group_id"`
+	ApplicationID int32              `json:"application_id"`
+	RoleID        int32              `json:"role_id"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
 type ShenSession struct {
-	ID          int32            `json:"id"`
-	HashedToken string           `json:"hashed_token"`
-	UserID      int32            `json:"user_id"`
-	CreatedAt   pgtype.Timestamp `json:"created_at"`
-	ExpiresAt   pgtype.Timestamp `json:"expires_at"`
-	Revoked     bool             `json:"revoked"`
-	RevokedAt   pgtype.Timestamp `json:"revoked_at"`
+	ID          int32              `json:"id"`
+	HashedToken string             `json:"hashed_token"`
+	UserID      int32              `json:"user_id"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
+	Revoked     bool               `json:"revoked"`
+	RevokedAt   pgtype.Timestamptz `json:"revoked_at"`
 }
 
 type ShenToken struct {
-	ID            int32            `json:"id"`
-	Name          string           `json:"name"`
-	HashedToken   string           `json:"hashed_token"`
-	UserID        int32            `json:"user_id"`
-	ApplicationID int32            `json:"application_id"`
-	CreatedAt     pgtype.Timestamp `json:"created_at"`
-	ExpiresAt     pgtype.Timestamp `json:"expires_at"`
-	Revoked       bool             `json:"revoked"`
-	RevokedAt     pgtype.Timestamp `json:"revoked_at"`
+	ID            int32              `json:"id"`
+	Name          string             `json:"name"`
+	HashedToken   string             `json:"hashed_token"`
+	UserID        int32              `json:"user_id"`
+	ApplicationID int32              `json:"application_id"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	ExpiresAt     pgtype.Timestamptz `json:"expires_at"`
+	Revoked       bool               `json:"revoked"`
+	RevokedAt     pgtype.Timestamptz `json:"revoked_at"`
 }
 
 type ShenUser struct {
-	ID             int32            `json:"id"`
-	Username       string           `json:"username"`
-	HashedPassword pgtype.Text      `json:"hashed_password"`
-	Active         bool             `json:"active"`
-	Role           int32            `json:"role"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
-	UpdatedAt      pgtype.Timestamp `json:"updated_at"`
+	ID             int32              `json:"id"`
+	Username       string             `json:"username"`
+	HashedPassword pgtype.Text        `json:"hashed_password"`
+	Active         bool               `json:"active"`
+	Role           int32              `json:"role"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
 type ShenUserGroupManager struct {
-	ID        int32            `json:"id"`
-	UserID    int32            `json:"user_id"`
-	GroupID   int32            `json:"group_id"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ID        int32              `json:"id"`
+	UserID    int32              `json:"user_id"`
+	GroupID   int32              `json:"group_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type ShenUserGroupMember struct {
-	ID        int32            `json:"id"`
-	UserID    int32            `json:"user_id"`
-	GroupID   int32            `json:"group_id"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ID        int32              `json:"id"`
+	UserID    int32              `json:"user_id"`
+	GroupID   int32              `json:"group_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type ShenUserRole struct {
-	ID        int32            `json:"id"`
-	Name      string           `json:"name"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ID        int32              `json:"id"`
+	Name      string             `json:"name"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }

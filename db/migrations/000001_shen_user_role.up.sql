@@ -12,8 +12,8 @@ $$ language 'plpgsql';
 CREATE TABLE IF NOT EXISTS shen_user_role (
     id serial PRIMARY KEY,
     name VARCHAR(64) UNIQUE NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_user_role_name_lowercase CHECK (name = LOWER(name))
 );
 

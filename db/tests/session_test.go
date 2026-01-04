@@ -16,7 +16,7 @@ func TestCreateSession(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
+	expiresAt := pgtype.Timestamptz{
 		Time:  time.Now().Add(24 * time.Hour),
 		Valid: true,
 	}
@@ -41,7 +41,7 @@ func TestGetSession(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
+	expiresAt := pgtype.Timestamptz{
 		Time:  time.Now().Add(24 * time.Hour),
 		Valid: true,
 	}
@@ -69,7 +69,7 @@ func TestRevokeSession(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
+	expiresAt := pgtype.Timestamptz{
 		Time:  time.Now().Add(24 * time.Hour),
 		Valid: true,
 	}
@@ -94,7 +94,7 @@ func TestRevokeSessionByHashedToken(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
+	expiresAt := pgtype.Timestamptz{
 		Time:  time.Now().Add(24 * time.Hour),
 		Valid: true,
 	}
@@ -118,7 +118,7 @@ func TestRevokeAllUserSessions(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
+	expiresAt := pgtype.Timestamptz{
 		Time:  time.Now().Add(24 * time.Hour),
 		Valid: true,
 	}
@@ -164,7 +164,7 @@ func TestDeleteSession(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
+	expiresAt := pgtype.Timestamptz{
 		Time:  time.Now().Add(24 * time.Hour),
 		Valid: true,
 	}
@@ -187,7 +187,7 @@ func TestDeleteExpiredSessions(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiredTime := pgtype.Timestamp{
+	expiredTime := pgtype.Timestamptz{
 		Time:  time.Now().Add(-1 * time.Hour),
 		Valid: true,
 	}
@@ -198,7 +198,7 @@ func TestDeleteExpiredSessions(t *testing.T) {
 	})
 	require.NoError(t, err, "Failed to create expired session")
 
-	activeTime := pgtype.Timestamp{
+	activeTime := pgtype.Timestamptz{
 		Time:  time.Now().Add(24 * time.Hour),
 		Valid: true,
 	}
@@ -223,7 +223,7 @@ func TestDeleteRevokedSessions(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	expiresAt := pgtype.Timestamp{
+	expiresAt := pgtype.Timestamptz{
 		Time:  time.Now().Add(24 * time.Hour),
 		Valid: true,
 	}
@@ -260,7 +260,7 @@ func TestIsSessionValid(t *testing.T) {
 	f := CreateStandardFixtures(t, tdb)
 
 	t.Run("valid active session", func(t *testing.T) {
-		expiresAt := pgtype.Timestamp{
+		expiresAt := pgtype.Timestamptz{
 			Time:  time.Now().Add(24 * time.Hour),
 			Valid: true,
 		}
@@ -278,7 +278,7 @@ func TestIsSessionValid(t *testing.T) {
 	})
 
 	t.Run("revoked session", func(t *testing.T) {
-		expiresAt := pgtype.Timestamp{
+		expiresAt := pgtype.Timestamptz{
 			Time:  time.Now().Add(24 * time.Hour),
 			Valid: true,
 		}
@@ -299,7 +299,7 @@ func TestIsSessionValid(t *testing.T) {
 	})
 
 	t.Run("expired session", func(t *testing.T) {
-		expiredTime := pgtype.Timestamp{
+		expiredTime := pgtype.Timestamptz{
 			Time:  time.Now().Add(-1 * time.Hour),
 			Valid: true,
 		}

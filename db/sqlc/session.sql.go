@@ -70,9 +70,9 @@ RETURNING
 `
 
 type CreateSessionParams struct {
-	HashedToken string           `json:"hashed_token"`
-	UserID      int32            `json:"user_id"`
-	ExpiresAt   pgtype.Timestamp `json:"expires_at"`
+	HashedToken string             `json:"hashed_token"`
+	UserID      int32              `json:"user_id"`
+	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (ShenSession, error) {

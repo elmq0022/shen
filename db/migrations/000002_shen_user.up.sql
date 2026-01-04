@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS shen_user(
     hashed_password VARCHAR (255) NULL,
     active BOOLEAN NOT NULL DEFAULT true,
     role INTEGER NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_user_role_id FOREIGN KEY (role) REFERENCES shen_user_role(id) ON DELETE RESTRICT,
     CONSTRAINT chk_user_username_lowercase CHECK (username = LOWER(username))
 );

@@ -91,11 +91,11 @@ RETURNING
 `
 
 type CreateTokenParams struct {
-	Name          string           `json:"name"`
-	HashedToken   string           `json:"hashed_token"`
-	UserID        int32            `json:"user_id"`
-	ApplicationID int32            `json:"application_id"`
-	ExpiresAt     pgtype.Timestamp `json:"expires_at"`
+	Name          string             `json:"name"`
+	HashedToken   string             `json:"hashed_token"`
+	UserID        int32              `json:"user_id"`
+	ApplicationID int32              `json:"application_id"`
+	ExpiresAt     pgtype.Timestamptz `json:"expires_at"`
 }
 
 func (q *Queries) CreateToken(ctx context.Context, arg CreateTokenParams) (ShenToken, error) {

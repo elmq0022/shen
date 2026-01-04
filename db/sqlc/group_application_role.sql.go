@@ -307,12 +307,12 @@ type ListAllGroupApplicationRolesParams struct {
 }
 
 type ListAllGroupApplicationRolesRow struct {
-	ID              int32            `json:"id"`
-	GroupName       string           `json:"group_name"`
-	ApplicationName string           `json:"application_name"`
-	RoleName        string           `json:"role_name"`
-	CreatedAt       pgtype.Timestamp `json:"created_at"`
-	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
+	ID              int32              `json:"id"`
+	GroupName       string             `json:"group_name"`
+	ApplicationName string             `json:"application_name"`
+	RoleName        string             `json:"role_name"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) ListAllGroupApplicationRoles(ctx context.Context, arg ListAllGroupApplicationRolesParams) ([]ListAllGroupApplicationRolesRow, error) {
@@ -368,11 +368,11 @@ type ListGroupApplicationRolesByApplicationParams struct {
 }
 
 type ListGroupApplicationRolesByApplicationRow struct {
-	ID        int32            `json:"id"`
-	GroupName string           `json:"group_name"`
-	RoleName  string           `json:"role_name"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ID        int32              `json:"id"`
+	GroupName string             `json:"group_name"`
+	RoleName  string             `json:"role_name"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) ListGroupApplicationRolesByApplication(ctx context.Context, arg ListGroupApplicationRolesByApplicationParams) ([]ListGroupApplicationRolesByApplicationRow, error) {
@@ -427,11 +427,11 @@ type ListGroupApplicationRolesByGroupParams struct {
 }
 
 type ListGroupApplicationRolesByGroupRow struct {
-	ID              int32            `json:"id"`
-	ApplicationName string           `json:"application_name"`
-	RoleName        string           `json:"role_name"`
-	CreatedAt       pgtype.Timestamp `json:"created_at"`
-	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
+	ID              int32              `json:"id"`
+	ApplicationName string             `json:"application_name"`
+	RoleName        string             `json:"role_name"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) ListGroupApplicationRolesByGroup(ctx context.Context, arg ListGroupApplicationRolesByGroupParams) ([]ListGroupApplicationRolesByGroupRow, error) {
