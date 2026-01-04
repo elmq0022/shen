@@ -18,6 +18,9 @@ const (
 	saltLen       = 16
 )
 
+type HashFunc func(password string) (string, error)
+type CheckFunc func(password, hashedPassword string) (bool, error)
+
 func HashedPassword(password string) (string, error) {
 	if password == "" {
 		return "", fmt.Errorf("password cannot be empty")
