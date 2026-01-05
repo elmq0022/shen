@@ -41,6 +41,16 @@ type ShenGroupApplicationRole struct {
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
+type ShenJwtKey struct {
+	ID                    int32              `json:"id"`
+	Kid                   string             `json:"kid"`
+	EncryptedPrivateKey   []byte             `json:"encrypted_private_key"`
+	PublicKey             string             `json:"public_key"`
+	CreatedAt             pgtype.Timestamptz `json:"created_at"`
+	ActiveForSigning      bool               `json:"active_for_signing"`
+	ActiveForVerification bool               `json:"active_for_verification"`
+}
+
 type ShenSession struct {
 	ID          int32              `json:"id"`
 	HashedToken string             `json:"hashed_token"`
