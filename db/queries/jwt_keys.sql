@@ -55,7 +55,8 @@ SELECT
 FROM
     shen_jwt_keys
 ORDER BY
-    created_at DESC
+    created_at DESC,
+    id DESC
 LIMIT $1 OFFSET $2;
 
 -- name: ListActiveVerificationKeys :many
@@ -72,7 +73,8 @@ FROM
 WHERE
     active_for_verification = TRUE
 ORDER BY
-    created_at DESC;
+    created_at DESC,
+    id DESC;
 
 -- name: CreateJWTKey :one
 INSERT INTO shen_jwt_keys(kid, encrypted_private_key, public_key, active_for_signing, active_for_verification)

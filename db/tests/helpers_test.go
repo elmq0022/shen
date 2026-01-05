@@ -143,3 +143,29 @@ func CreateTestSessions(t *testing.T, tdb *TestDB, prefix string, count int, use
 	}
 	return sessions
 }
+
+// CreateTestJWTKey creates a single JWT key with the given parameters.
+func CreateTestJWTKey(t *testing.T, tdb *TestDB, kid string, encryptedPrivateKey []byte, publicKey string, activeForSigning, activeForVerification bool) db.ShenJwtKey {
+	t.Helper()
+	created, err := tdb.Queries.CreateJWTKey(tdb.Ctx, db.CreateJWTKeyParams{
+		Kid:                   kid,
+		EncryptedPrivateKey:   encryptedPrivateKey,
+		PublicKey:             publicKey,
+		ActiveForSigning:      activeForSigning,
+		ActiveForVerification: activeForVerification,
+	})
+	require.NoError(t, err, fmt.Sprintf("Failed to create JWT key: %s", kid))
+	return created
+}
+
+// CreateTestJWTKeys creates multiple JWT keys with standardized naming.
+// Creates keys with kid named "<prefix>-1", "<prefix>-2", etc.
+func CreateTestJWTKeys(t *testing.T, tdb *TestDB, prefix string, count int, encryptedPrivateKey []byte, publicKey string, activeForSigning, activeForVerification bool) []db.ShenJwtKey {
+	t.Helper()
+	keys := make([]db.ShenJwtKey, count)
+	for i := 0; i < count; i++ {
+		kid := fmt.Sprintf("%s-%d", prefix, i+1)
+		keys[i] = CreateTestJWTKey(t, tdb, kid, encryptedPrivateKey, publicKey, activeForSigning, activeForVerification)
+	}
+	return keys
+}

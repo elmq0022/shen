@@ -218,7 +218,8 @@ FROM
 WHERE
     active_for_verification = TRUE
 ORDER BY
-    created_at DESC
+    created_at DESC,
+    id DESC
 `
 
 func (q *Queries) ListActiveVerificationKeys(ctx context.Context) ([]ShenJwtKey, error) {
@@ -261,7 +262,8 @@ SELECT
 FROM
     shen_jwt_keys
 ORDER BY
-    created_at DESC
+    created_at DESC,
+    id DESC
 LIMIT $1 OFFSET $2
 `
 
