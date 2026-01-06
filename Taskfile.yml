@@ -80,3 +80,9 @@ tasks:
     cmds:
       - task: test:unit
       - task: test:integration
+
+  dev:
+    desc: Start development server (resets DB, runs migrations, starts server)
+    cmds:
+      - task: db:reset
+      - go run ./cmd/shen
