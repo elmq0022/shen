@@ -1,9 +1,12 @@
-# Database Selection and Tooling
+# Technology Stack
+
+## Overview
 
 - **PostgreSQL** - Primary database
 - **Docker / Docker Compose** - Local development environment
 - **golang-migrate** - Versioned database migrations
 - **sqlc** - Auto-generating Go code from SQL queries
+- **Echo** - HTTP web framework
 
 ## Design Rationale
 
@@ -182,3 +185,45 @@
 **Why sqlc:** Combines the clarity and performance of raw SQL with compile-time type safety. Complex join queries (like permission resolution) are more readable in SQL than in ORM abstractions. Since database portability is not a requirement (committed to PostgreSQL), the main selling point of ORMs doesn't apply. For a security-critical auth system, explicit queries are better than implicit ORM magic.
 
 **Key principle:** "Explicit is better than implicit" - knowing exactly what queries run and when they run is critical for security and performance.
+
+## Web Framework: Echo
+
+**Chosen approach:** Echo (`github.com/labstack/echo/v4`)
+
+**Why Echo:**
+
+1. **Battle-tested and production-ready**
+   - Used in production by major companies
+   - Active maintenance and security updates
+   - Stable API (v4 is mature)
+
+2. **Rich middleware ecosystem**
+   - Built-in: CORS, rate limiting, JWT auth, logging, recovery, secure headers
+   - Critical for authentication services
+   - Easy to write custom middleware
+
+3. **Clean interface**
+   - Doesn't obscure HTTP layer
+   - Standard `http.Handler` compatible
+   - No magic - explicit routing
+
+4. **Security-focused**
+   - Automatic input escaping
+   - Built-in CSRF protection
+   - Secure headers middleware
+   - Critical for an auth service
+
+5. **Performance**
+   - One of the fastest Go frameworks
+   - Efficient routing (radix tree)
+   - Suitable for high-throughput auth systems
+
+**Alternatives considered:**
+
+- **Chi** - More lightweight, but Echo's middleware ecosystem saves development time
+- **Gin** - Fast but less idiomatic (custom context type)
+- **Fiber** - Not `net/http` compatible, standard library compatibility preferred
+- **Standard library only** - Too much boilerplate, time better spent on auth logic
+
+**Why use a framework:**
+Focus on Shen's authentication logic rather than building middleware infrastructure. Echo provides security features (CORS, rate limiting, headers) that are essential for production auth services without obscuring the implementation.

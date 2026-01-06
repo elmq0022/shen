@@ -14,8 +14,9 @@ Shen provides:
 
 ## Documentation Structure
 
-1. **[Database Selection and Tooling](./docs/010-database.md)**
-   - PostgreSQL, Docker, golang-migrate, sqlc
+1. **[Technology Stack](./docs/010-technology-stack.md)**
+   - Database: PostgreSQL, Docker, golang-migrate, sqlc
+   - Web Framework: Echo
 
 2. **[Authentication Flow](./docs/020-authentication.md)**
    - User login with username/password

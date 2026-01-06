@@ -11,7 +11,7 @@ Shen is a centralized authentication and authorization service that issues short
 ## Key Documentation
 
 ### Core Architecture
-- [docs/010-database.md](docs/010-database.md) - Database design (PostgreSQL, sqlc, golang-migrate)
+- [docs/010-technology-stack.md](docs/010-technology-stack.md) - Technology stack (PostgreSQL, sqlc, golang-migrate, Echo)
 - [docs/020-authentication.md](docs/020-authentication.md) - Auth flows and session tokens
 - [docs/030-authorization.md](docs/030-authorization.md) - PATs, JWTs, and token exchange
 - [docs/060-bootstrap.md](docs/060-bootstrap.md) - Bootstrap process, key generation, KEK encryption
@@ -36,7 +36,12 @@ Shen is a centralized authentication and authorization service that issues short
 - **Docker/Docker Compose** - Local development
 
 ### Web Framework
-- **github.com/elmq0022/kami** - HTTP router/framework for API server
+- **Echo** (`github.com/labstack/echo/v4`) - HTTP framework for API server
+  - Battle-tested and production-ready
+  - Rich middleware ecosystem (CORS, rate limiting, logging, recovery)
+  - Clean interface that doesn't obscure implementation
+  - Security-focused features (automatic escaping, secure headers)
+  - Excellent for authentication services requiring robust middleware
 
 ### Security
 - **Argon2id** - Password and PAT hashing (OWASP recommended)
@@ -47,7 +52,7 @@ Shen is a centralized authentication and authorization service that issues short
 
 ### 1. "Just Write SQL" Philosophy
 - Use sqlc to generate type-safe Go code from SQL
-- NO ORMs (GORM, Ent, Bun) - See [docs/010-database.md](docs/010-database.md#L128-L184)
+- NO ORMs (GORM, Ent, Bun) - See [docs/010-technology-stack.md](docs/010-technology-stack.md#L128-L184)
 - NO query builders (squirrel, goqu)
 - Complex queries (permission resolution) are clearer in SQL than ORM abstractions
 - Explicit queries prevent N+1 problems and hidden performance issues
