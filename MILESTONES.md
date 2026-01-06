@@ -9,11 +9,11 @@ This document tracks the implementation milestones for the Shen authentication a
 **Goal:** Set up the foundation - database, bootstrap process, and admin login via CLI.
 
 ### Server/Backend
-- [ ] Database schema migrations (users, sessions, applications, groups, tokens, JWT keys)
-- [ ] Bootstrap process - create default admin account on first startup
-- [ ] Bootstrap process - generate RSA key pair for JWT signing
-- [ ] Store JWT keys in database (PEM format, encrypted with KEK)
-- [ ] Password hashing with Argon2id
+- [x] Database schema migrations (users, sessions, applications, groups, tokens, JWT keys)
+- [x] Bootstrap process - create default admin account on first startup
+- [x] Bootstrap process - generate RSA key pair for JWT signing
+- [x] Store JWT keys in database (PEM format, encrypted with KEK)
+- [x] Password hashing with Argon2id
 - [ ] `POST /api/v1/auth/login` endpoint - username/password authentication
 - [ ] Session token generation (SHA-256 hashed, database-backed)
 - [ ] Session token validation middleware
