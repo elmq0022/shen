@@ -35,6 +35,9 @@ Shen is a centralized authentication and authorization service that issues short
 - **golang-migrate** - Versioned database migrations
 - **Docker/Docker Compose** - Local development
 
+### Web Framework
+- **github.com/elmq0022/kami** - HTTP router/framework for API server
+
 ### Security
 - **Argon2id** - Password and PAT hashing (OWASP recommended)
 - **RS256** - JWT signing algorithm
