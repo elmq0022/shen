@@ -26,6 +26,9 @@ Shen is a centralized authentication and authorization service that issues short
 
 ## Technology Stack (DO NOT CHANGE)
 
+### Go Module
+- **Module path**: `github.com/elmq0022/shen` - ALWAYS use this import path for internal packages
+
 ### Database & Tooling
 - **PostgreSQL** - Primary database (ACID compliance mandatory for auth system)
 - **sqlc** - SQL-to-Go code generator (NO ORMs - write actual SQL)
