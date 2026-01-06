@@ -138,6 +138,14 @@ CREATE INDEX idx_audit_log_created ON shen_audit_log(created_at);
   4. After grace period (e.g., 24 hours), remove old public key from JWKS
   5. Archive old private key securely
 
+**Future Consideration - Encrypted Key Format Versioning:**
+- Currently encrypted private keys are stored as raw AES-256-GCM output: `[nonce][ciphertext][auth_tag]`
+- Consider adding a version byte prefix to support future encryption algorithm changes
+- Format could be: `[version_byte][nonce][ciphertext][auth_tag]` or a more robust header
+- Pros: Forward compatibility, easier migration between encryption schemes
+- Cons: Adds complexity for a feature we might not need (GCM already provides authentication)
+- Decision: Deferred - implement if/when we need to change encryption algorithms
+
 **Schema:**
 ```sql
 CREATE TABLE shen_jwt_keys (

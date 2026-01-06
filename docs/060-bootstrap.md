@@ -25,7 +25,7 @@ On first startup, if no JWT signing keys exist, Shen will automatically generate
 Keys are stored in the PostgreSQL database in the `shen_jwt_keys` table:
 - Private key: PEM format (RSA PKCS#8), encrypted at rest using a Key Encryption Key (KEK)
 - Public key: PEM format, stored in plaintext (public by design)
-- Key ID (`kid`): Unique identifier for JWKS endpoint (format: YYYY-MM-DD timestamp)
+- Key ID (`kid`): Unique identifier for JWKS endpoint (format: ULID - lexicographically sortable, opaque, e.g., `01JH8K9F2QVXYZ9N3W6E8KQMR7`)
 
 **Database Schema:**
 ```sql
