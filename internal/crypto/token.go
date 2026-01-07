@@ -22,7 +22,6 @@ func GenerateSessionToken() (string, error) {
 }
 
 // HashToken hashes a session token using SHA-256.
-// This hash should be stored in the database, not the original token.
 func HashToken(token string) string {
 	hash := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(hash[:])

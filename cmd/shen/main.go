@@ -101,6 +101,9 @@ func initServer(queries *db.Queries) *echo.Echo {
 		})
 	})
 
+	// JWKS endpoint (RFC 7517)
+	e.GET("/.well-known/jwks.json", authHandler.GetJWKS)
+
 	// Auth routes
 	e.POST("/api/v1/auth/login", authHandler.Login)
 
