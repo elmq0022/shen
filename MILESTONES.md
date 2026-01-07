@@ -17,7 +17,7 @@ This document tracks the implementation milestones for the Shen authentication a
 - [x] `POST /api/v1/auth/login` endpoint - username/password authentication
 - [x] Session token generation (SHA-256 hashed, database-backed)
 - [ ] Session token validation middleware
-- [ ] `POST /api/v1/auth/logout` endpoint - revoke current session token
+- [x] `POST /api/v1/auth/logout` endpoint - revoke current session token
 - [x] `GET /.well-known/jwks.json` endpoint - expose public keys in JWK format
 
 ### CLI (shenctl)
