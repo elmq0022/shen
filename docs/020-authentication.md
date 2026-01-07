@@ -41,3 +41,46 @@ Status: 200 OK
 **Error Responses:**
 - `401 Unauthorized` - Invalid username or password
 - `403 Forbidden` - User account is inactive
+
+---
+
+## User Logout
+
+User logs out by revoking their current session token. The token is extracted from the Authorization header, hashed, and the corresponding session is revoked.
+
+**Endpoint:**
+```
+POST /api/v1/auth/logout
+```
+
+**Headers:**
+```
+Authorization: Bearer <session-token>
+```
+
+**Process:**
+
+1. Extract session token from Authorization header
+2. Hash the token using SHA-256
+3. Lookup session in `shen_session` table by token hash
+4. Update session record:
+   - Set `revoked = true`
+   - Set `revoked_at = NOW()` (UTC timestamp)
+
+**Response:**
+
+```
+Status: 204 No Content
+```
+
+No response body on successful logout.
+
+**Error Responses:**
+- `401 Unauthorized` - Invalid or expired session token
+
+**Example:**
+
+```bash
+curl -X POST https://shen.example.com/api/v1/auth/logout \
+  -H "Authorization: Bearer shen_session_abc123..."
+```
