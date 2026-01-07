@@ -9,6 +9,14 @@ type LoginResponse struct {
 	SessionToken string `json:"session_token"`
 }
 
+type LogoutRequest struct {
+	SessionToken string `json:"session_token" validate:"required"`
+}
+
+type LogoutResponse struct {
+	Message string `json:"message"`
+}
+
 // JWK represents a JSON Web Key (RFC 7517)
 type JWK struct {
 	Kty string `json:"kty"` // Key Type (e.g., "RSA")

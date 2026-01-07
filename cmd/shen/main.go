@@ -106,6 +106,7 @@ func initServer(queries *db.Queries) *echo.Echo {
 
 	// Auth routes
 	e.POST("/api/v1/auth/login", authHandler.Login)
+	e.POST("/api/v1/auth/logout", authHandler.Logout)
 
 	return e
 }
