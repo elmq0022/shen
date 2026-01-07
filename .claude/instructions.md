@@ -43,6 +43,14 @@ Shen is a centralized authentication and authorization service that issues short
   - Security-focused features (automatic escaping, secure headers)
   - Excellent for authentication services requiring robust middleware
 
+#### Error Response Standard
+- **ALWAYS** use `handlers.NewErrorResponse(message)` for JSON error responses
+- Located in `internal/handlers/errors.go`
+- Provides consistent error format: `{"error": "message"}`
+- Example: `return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("Invalid input"))`
+- **NEVER** use inline maps like `map[string]string{"error": "..."}`
+- If the standard `ErrorResponse` type doesn't fit the use case, **STOP and ask** before creating a different error format
+
 ### Security
 - **Argon2id** - Password and PAT hashing (OWASP recommended)
 - **RS256** - JWT signing algorithm

@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"net/http"
 
+	"github.com/elmq0022/shen/internal/handlers"
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,7 +23,7 @@ func (h *Handler) GetJWKS(c echo.Context) error {
 
 	keys, err := h.queries.ListActiveVerificationKeys(c.Request().Context())
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve keys"})
+		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("Failed to retrieve keys"))
 	}
 
 	jwks := JWKS{
