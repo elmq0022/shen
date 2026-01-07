@@ -1,9 +1,9 @@
-package auth_test
+package crypto_test
 
 import (
 	"testing"
 
-	"github.com/elmq0022/shen/internal/auth"
+	"github.com/elmq0022/shen/internal/crypto"
 )
 
 func TestPasswordRoundTrip(t *testing.T) {
@@ -42,7 +42,7 @@ func TestPasswordRoundTrip(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Hash the password
-			hashed, err := auth.HashedPassword(tt.password)
+			hashed, err := crypto.HashedPassword(tt.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("HashedPassword() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -53,7 +53,7 @@ func TestPasswordRoundTrip(t *testing.T) {
 			}
 
 			// Verify the password matches
-			match, err := auth.CheckPassword(tt.password, hashed)
+			match, err := crypto.CheckPassword(tt.password, hashed)
 			if err != nil {
 				t.Errorf("CheckPassword() unexpected error = %v", err)
 				return
@@ -64,7 +64,7 @@ func TestPasswordRoundTrip(t *testing.T) {
 			}
 
 			// Verify wrong password doesn't match
-			wrongMatch, err := auth.CheckPassword("wrongPassword", hashed)
+			wrongMatch, err := crypto.CheckPassword("wrongPassword", hashed)
 			if err != nil {
 				t.Errorf("CheckPassword() with wrong password unexpected error = %v", err)
 				return
@@ -106,7 +106,7 @@ func TestCheckPasswordInvalidFormat(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := auth.CheckPassword(tt.password, tt.hashedFormat)
+			_, err := crypto.CheckPassword(tt.password, tt.hashedFormat)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CheckPassword() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -117,12 +117,12 @@ func TestCheckPasswordInvalidFormat(t *testing.T) {
 func TestPasswordHashUniqueness(t *testing.T) {
 	password := "samePassword"
 
-	hash1, err := auth.HashedPassword(password)
+	hash1, err := crypto.HashedPassword(password)
 	if err != nil {
 		t.Fatalf("HashedPassword() error = %v", err)
 	}
 
-	hash2, err := auth.HashedPassword(password)
+	hash2, err := crypto.HashedPassword(password)
 	if err != nil {
 		t.Fatalf("HashedPassword() error = %v", err)
 	}
@@ -132,12 +132,12 @@ func TestPasswordHashUniqueness(t *testing.T) {
 	}
 
 	// Both hashes should still verify the same password
-	match1, err := auth.CheckPassword(password, hash1)
+	match1, err := crypto.CheckPassword(password, hash1)
 	if err != nil || !match1 {
 		t.Errorf("First hash failed to verify: match=%v, err=%v", match1, err)
 	}
 
-	match2, err := auth.CheckPassword(password, hash2)
+	match2, err := crypto.CheckPassword(password, hash2)
 	if err != nil || !match2 {
 		t.Errorf("Second hash failed to verify: match=%v, err=%v", match2, err)
 	}
