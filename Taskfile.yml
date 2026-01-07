@@ -86,3 +86,26 @@ tasks:
     cmds:
       - task: db:reset
       - go run ./cmd/shen
+
+  build:shen:
+    desc: Build shen binary
+    cmds:
+      - mkdir -p bin
+      - go build -o bin/shen ./cmd/shen
+
+  build:shenctl:
+    desc: Build shenctl binary
+    cmds:
+      - mkdir -p bin
+      - go build -o bin/shenctl ./cmd/shenctl
+
+  build:
+    desc: Build all binaries
+    cmds:
+      - task: build:shen
+      - task: build:shenctl
+
+  clean:
+    desc: Clean bin directory
+    cmds:
+      - rm -rf bin/

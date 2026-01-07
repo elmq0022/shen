@@ -11,6 +11,9 @@
 *.out
 go.work
 
+# Build artifacts
+bin/
+
 # OS
 .DS_Store
 Thumbs.db
