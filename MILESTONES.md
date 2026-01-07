@@ -14,10 +14,10 @@ This document tracks the implementation milestones for the Shen authentication a
 - [x] Bootstrap process - generate RSA key pair for JWT signing
 - [x] Store JWT keys in database (PEM format, encrypted with KEK)
 - [x] Password hashing with Argon2id
-- [ ] `POST /api/v1/auth/login` endpoint - username/password authentication
-- [ ] Session token generation (SHA-256 hashed, database-backed)
+- [x] `POST /api/v1/auth/login` endpoint - username/password authentication
+- [x] Session token generation (SHA-256 hashed, database-backed)
 - [ ] Session token validation middleware
-- [ ] `GET /.well-known/jwks.json` endpoint - expose public keys in JWK format
+- [x] `GET /.well-known/jwks.json` endpoint - expose public keys in JWK format
 
 ### CLI (shenctl)
 - [ ] `shenctl auth login` - authenticate with username/password
