@@ -7,8 +7,10 @@ import (
 	"os"
 
 	db "github.com/elmq0022/shen/db/sqlc"
-	"github.com/elmq0022/shen/internal/auth"
 	"github.com/elmq0022/shen/internal/bootstrap"
+	"github.com/elmq0022/shen/internal/crypto"
+	"github.com/elmq0022/shen/internal/handlers/auth"
+	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -27,7 +29,7 @@ func main() {
 	log.Println("Shen bootstrap completed successfully")
 
 	// Initialize Echo server
-	e := initServer()
+	e := initServer(queries)
 
 	// Start server
 	port := getEnv("SHEN_PORT", "8080")
@@ -64,16 +66,33 @@ func runBootstrap(ctx context.Context, queries *db.Queries) {
 	log.Println("Bootstrap: JWT keys initialized")
 
 	log.Println("Running bootstrap: creating admin user...")
-	bootstrap.CreateAdmin(ctx, queries, auth.HashedPassword)
+	bootstrap.CreateAdmin(ctx, queries, crypto.HashedPassword)
 	log.Println("Bootstrap: admin user initialized")
 }
 
-func initServer() *echo.Echo {
+type CustomValidator struct {
+	validator *validator.Validate
+}
+
+func (cv *CustomValidator) Validate(i interface{}) error {
+	if err := cv.validator.Struct(i); err != nil {
+		return err
+	}
+	return nil
+}
+
+func initServer(queries *db.Queries) *echo.Echo {
 	e := echo.New()
+
+	// Register validator
+	e.Validator = &CustomValidator{validator: validator.New()}
 
 	// Middleware
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
+
+	// Initialize handlers
+	authHandler := auth.NewHandler(queries)
 
 	// Health check endpoint
 	e.GET("/api/v1/healthz", func(c echo.Context) error {
@@ -81,6 +100,9 @@ func initServer() *echo.Echo {
 			"status": "healthy",
 		})
 	})
+
+	// Auth routes
+	e.POST("/api/v1/auth/login", authHandler.Login)
 
 	return e
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/elmq0022/shen/internal/auth"
+	"github.com/elmq0022/shen/internal/crypto"
 
 	db "github.com/elmq0022/shen/db/sqlc"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -34,7 +34,7 @@ func GetAdminPassword() string {
 	return DefaultAdminPassword
 }
 
-func CreateAdmin(ctx context.Context, queries *db.Queries, hashPassword auth.HashFunc) {
+func CreateAdmin(ctx context.Context, queries *db.Queries, hashPassword crypto.HashFunc) {
 	numUser, err := queries.CountUsers(ctx)
 	if err != nil {
 		panic(err)
