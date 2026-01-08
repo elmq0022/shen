@@ -117,8 +117,8 @@ sequenceDiagram
 
     Note over User,Shen: 3. Exchange PAT for JWT
     User->>Shen: POST /api/v1/authorize (PAT)
-    Shen->>Shen: Resolve role via groups
-    Shen-->>User: Short-lived JWT (7 min, signed)
+    Shen->>Shen: Get user's groups and roles
+    Shen-->>User: Short-lived JWT (7 min, signed, contains roles & groups)
 
     Note over User,App: 4. Access Application
     User->>App: GET /api/resource (JWT)
