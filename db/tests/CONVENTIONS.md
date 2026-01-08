@@ -44,7 +44,7 @@ To maintain consistency across all tests, follow these naming patterns:
 | Verification after update          | `updated`            | `updated, err := GetByID(...)` (after update)       |
 | Verification after state change    | `<state>`            | `deactivated`, `activated`                          |
 | Return from update operation       | `updatedRecord`      | When you need both update return and verification   |
-| Paginated results                  | `page1`, `page2`     | Standard pagination pattern                         |
+| Paginated results                  | `page1`, `page2`     | Cursor-based pagination pattern                     |
 | Complete result sets               | `all<Plural>`        | `allGroups`, `allMembers`, `allApps`                |
 | Contextual descriptive names       | `<context><Entity>`  | `group1Managers`, `user1Groups`                     |
 
@@ -68,12 +68,12 @@ updated, err := tdb.Queries.GetUserByID(tdb.Ctx, userID)
 err := tdb.Queries.DeactivateUser(tdb.Ctx, userID)
 deactivated, err := tdb.Queries.GetUserByID(tdb.Ctx, userID)
 
-// Pagination
-page1, err := tdb.Queries.ListUsers(tdb.Ctx, db.ListUsersParams{Limit: 2, Offset: 0})
-page2, err := tdb.Queries.ListUsers(tdb.Ctx, db.ListUsersParams{Limit: 2, Offset: 2})
+// Pagination (cursor-based)
+page1, err := tdb.Queries.ListUsers(tdb.Ctx, db.ListUsersParams{Limit: 2, Cursor: ""})
+page2, err := tdb.Queries.ListUsers(tdb.Ctx, db.ListUsersParams{Limit: 2, Cursor: page1.NextCursor})
 
 // Complete results
-allUsers, err := tdb.Queries.ListUsers(tdb.Ctx, db.ListUsersParams{Limit: 100, Offset: 0})
+allUsers, err := tdb.Queries.ListUsers(tdb.Ctx, db.ListUsersParams{Limit: 100, Cursor: ""})
 
 // Contextual naming
 group1Managers := []db.ShenUser{f.User1, f.User2}
