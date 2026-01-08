@@ -39,9 +39,11 @@ SELECT
   updated_at
 FROM
   shen_user
+WHERE
+  ($1::text = '' OR username > $1)
 ORDER BY
   username
-LIMIT $1 OFFSET $2;
+LIMIT $2;
 
 -- name: ListActiveUsers :many
 SELECT
@@ -56,9 +58,10 @@ FROM
   shen_user
 WHERE
   active = TRUE
+  AND ($1::text = '' OR username > $1)
 ORDER BY
   username
-LIMIT $1 OFFSET $2;
+LIMIT $2;
 
 -- name: CreateUser :one
 INSERT INTO shen_user(username, hashed_password, role)
@@ -129,9 +132,10 @@ FROM
   shen_user
 WHERE
   ROLE = $1
+  AND ($2::text = '' OR username > $2)
 ORDER BY
   username
-LIMIT $2 OFFSET $3;
+LIMIT $3;
 
 -- name: CheckUsernameExists :one
 SELECT

@@ -200,18 +200,19 @@ FROM
   shen_user
 WHERE
   active = TRUE
+  AND ($1::text = '' OR username > $1)
 ORDER BY
   username
-LIMIT $1 OFFSET $2
+LIMIT $2
 `
 
 type ListActiveUsersParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Column1 string `json:"column_1"`
+	Limit   int32  `json:"limit"`
 }
 
 func (q *Queries) ListActiveUsers(ctx context.Context, arg ListActiveUsersParams) ([]ShenUser, error) {
-	rows, err := q.db.Query(ctx, listActiveUsers, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listActiveUsers, arg.Column1, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -249,18 +250,20 @@ SELECT
   updated_at
 FROM
   shen_user
+WHERE
+  ($1::text = '' OR username > $1)
 ORDER BY
   username
-LIMIT $1 OFFSET $2
+LIMIT $2
 `
 
 type ListUsersParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Column1 string `json:"column_1"`
+	Limit   int32  `json:"limit"`
 }
 
 func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ShenUser, error) {
-	rows, err := q.db.Query(ctx, listUsers, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listUsers, arg.Column1, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -300,19 +303,20 @@ FROM
   shen_user
 WHERE
   ROLE = $1
+  AND ($2::text = '' OR username > $2)
 ORDER BY
   username
-LIMIT $2 OFFSET $3
+LIMIT $3
 `
 
 type ListUsersByRoleParams struct {
-	Role   int32 `json:"role"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Role    int32  `json:"role"`
+	Column2 string `json:"column_2"`
+	Limit   int32  `json:"limit"`
 }
 
 func (q *Queries) ListUsersByRole(ctx context.Context, arg ListUsersByRoleParams) ([]ShenUser, error) {
-	rows, err := q.db.Query(ctx, listUsersByRole, arg.Role, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listUsersByRole, arg.Role, arg.Column2, arg.Limit)
 	if err != nil {
 		return nil, err
 	}

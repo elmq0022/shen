@@ -140,20 +140,20 @@ func TestListActiveUsers(t *testing.T) {
 	require.NoError(t, err, "Failed to count users")
 	assert.Equal(t, int64(len(users)), numberActiveUsers)
 
-	// first page of users
+	// first page of users (cursor-based)
 	page1, err := tdb.Queries.ListActiveUsers(tdb.Ctx, db.ListActiveUsersParams{
-		Limit:  2,
-		Offset: 0,
+		Column1: "",
+		Limit:   2,
 	})
 	require.NoError(t, err, "Failed to list users")
 	assert.Len(t, page1, 2)
 	assert.Equal(t, usernames[0], page1[0].Username)
 	assert.Equal(t, usernames[1], page1[1].Username)
 
-	// second page of users
+	// second page of users (cursor-based)
 	page2, err := tdb.Queries.ListActiveUsers(tdb.Ctx, db.ListActiveUsersParams{
-		Limit:  2,
-		Offset: 2,
+		Column1: page1[len(page1)-1].Username,
+		Limit:   2,
 	})
 	require.NoError(t, err, "Failed to list users")
 	assert.Len(t, page2, 1)
@@ -168,8 +168,8 @@ func TestListActiveUsers(t *testing.T) {
 	assert.Equal(t, int64(2), numberActiveUsers)
 
 	activeUsers, err := tdb.Queries.ListActiveUsers(tdb.Ctx, db.ListActiveUsersParams{
-		Limit:  10,
-		Offset: 0,
+		Column1: "",
+		Limit:   10,
 	})
 	require.NoError(t, err, "Failed to list active users after deactivation")
 	assert.Len(t, activeUsers, 2)
@@ -190,10 +190,10 @@ func TestListUsers(t *testing.T) {
 	usernames := []string{"user-1", "user-2", "user-3"}
 	slices.Sort(usernames)
 
-	// ListUsers should return all users including deactivated
+	// ListUsers should return all users including deactivated (cursor-based)
 	allUsers, err := tdb.Queries.ListUsers(tdb.Ctx, db.ListUsersParams{
-		Limit:  10,
-		Offset: 0,
+		Column1: "",
+		Limit:   10,
 	})
 	require.NoError(t, err, "Failed to list all users")
 	assert.Len(t, allUsers, 3)
@@ -231,22 +231,22 @@ func TestListUsersByRole(t *testing.T) {
 	user1 := CreateTestUser(t, tdb, "user1", RoleUser)
 	user2 := CreateTestUser(t, tdb, "user2", RoleUser)
 
-	// list admin users
+	// list admin users (cursor-based)
 	admins, err := tdb.Queries.ListUsersByRole(tdb.Ctx, db.ListUsersByRoleParams{
-		Role:   RoleAdmin,
-		Limit:  10,
-		Offset: 0,
+		Role:    RoleAdmin,
+		Column2: "",
+		Limit:   10,
 	})
 	require.NoError(t, err, "Failed to list admin users")
 	assert.Len(t, admins, 2)
 	assert.Equal(t, admin1.Username, admins[0].Username)
 	assert.Equal(t, admin2.Username, admins[1].Username)
 
-	// list member users
+	// list member users (cursor-based)
 	members, err := tdb.Queries.ListUsersByRole(tdb.Ctx, db.ListUsersByRoleParams{
-		Role:   RoleUser,
-		Limit:  10,
-		Offset: 0,
+		Role:    RoleUser,
+		Column2: "",
+		Limit:   10,
 	})
 	require.NoError(t, err, "Failed to list member users")
 	assert.Len(t, members, 2)
