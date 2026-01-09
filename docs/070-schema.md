@@ -169,3 +169,86 @@ This table stores session tokens used for authenticating users to the Shen manag
 
 **Foreign key constraints:**
 - `user_id` REFERENCES `shen_user(id)` ON DELETE CASCADE
+
+## Pagination Design
+
+### Cursor-Based vs Offset-Based Pagination
+
+Shen uses **cursor-based pagination** for all list endpoints. This design choice has significant performance and stability advantages over traditional offset-based pagination.
+
+#### Design Trade-offs
+
+**Cursor-Based Pagination (Used in Shen)**
+
+Advantages:
+- **No performance degradation on deep pages** - Queries use indexed columns with simple comparison operators (`WHERE id > cursor_id`), maintaining O(1) seek time regardless of page depth
+- **Stable results** - Cursor references specific records, preventing items from being skipped or duplicated when data changes between requests
+- **Index-friendly** - Leverages B-tree indexes efficiently with range scans instead of offset skips
+- **Scalability** - Performance remains constant even with millions of records
+
+Disadvantages:
+- Cannot jump to arbitrary page numbers (no "go to page 5" functionality)
+- Slightly more complex client implementation (must track cursor values)
+
+**Offset-Based Pagination (NOT used)**
+
+Advantages:
+- Simple implementation (`LIMIT x OFFSET y`)
+- Can jump to arbitrary page numbers
+- Familiar API pattern
+
+Disadvantages:
+- **Performance degrades linearly with page depth** - Database must scan and discard `OFFSET` rows before returning results, making deep pages extremely slow
+- **Unstable results** - Insertions/deletions between requests cause items to shift, leading to duplicates or missing records
+- **Index inefficiency** - Even with indexes, the database must walk through offset rows
+- **Poor scalability** - Large offsets can cause timeouts and high database load
+
+#### Implementation Pattern
+
+Shen's cursor-based pagination uses indexed columns for stable, efficient iteration:
+
+```sql
+-- Example: Paginating users by username (unique, indexed)
+SELECT id, username, created_at
+FROM shen_user
+WHERE ($1::text = '' OR username > $1)  -- $1 is cursor
+ORDER BY username
+LIMIT $2;
+
+-- Example: Paginating sessions by auto-incrementing ID
+SELECT id, hashed_token, user_id, created_at
+FROM shen_session
+WHERE user_id = $1
+  AND ($2 = 0 OR id > $2)  -- $2 is cursor_id
+ORDER BY id ASC
+LIMIT $3;
+```
+
+**Key characteristics:**
+- Cursor always references an indexed column (unique text field, auto-incrementing ID, or ULID)
+- First page uses empty cursor (`''` for text, `0` for IDs)
+- Each response returns cursor for next page
+- Queries remain fast regardless of dataset size
+
+**Note on Auto-Incrementing IDs:**
+Shen currently uses auto-incrementing `SERIAL` IDs for pagination sorting, which is sufficient for this learning exercise. However, production systems should consider **ULID** (Universally Unique Lexicographically Sortable Identifier) or **UUID7** instead because:
+
+- **Distributed system compatibility** - Auto-incrementing IDs require centralized sequence generation, creating a single point of contention and preventing true horizontal scaling across multiple database instances
+- **No coordination overhead** - ULIDs/UUID7s can be generated independently by any application instance without database round-trips or lock contention
+- **Information leakage prevention** - Sequential IDs expose business metrics (creation rate, total records) and make enumeration attacks trivial
+- **Merge/replication safety** - ULIDs eliminate ID collision risks when merging databases or replicating across regions
+- **Sortable by creation time** - Unlike UUID4, ULID and UUID7 maintain lexicographic sorting that correlates with creation time, making them ideal cursor values
+- **Future-proof architecture** - Switching from auto-increment to distributed IDs later requires complex migration; starting with ULIDs avoids this technical debt
+
+For a centralized authentication service that may eventually need multi-region deployment or high-availability failover, ULIDs provide better architectural runway without sacrificing pagination performance.
+
+#### Performance Comparison
+
+For a table with 1 million records, fetching page 1000 (records 100,000-100,100):
+
+| Method           | Query Pattern                   | Approximate Time | Index Usage                |
+|:-----------------|:--------------------------------|:-----------------|:---------------------------|
+| Cursor-based     | `WHERE id > 99999 LIMIT 100`    | ~1-2ms           | Efficient seek to position |
+| Offset-based     | `LIMIT 100 OFFSET 99900`        | ~500-1000ms      | Must scan 99,900 rows      |
+
+The performance gap widens as the offset increases - cursor-based pagination maintains constant time while offset-based approaches become unusable for deep pages.
