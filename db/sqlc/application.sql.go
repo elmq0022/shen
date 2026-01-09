@@ -118,18 +118,19 @@ FROM
   shen_application
 WHERE
   active = TRUE
+  AND ($1::text = '' OR name > $1)
 ORDER BY
   name
-LIMIT $1 OFFSET $2
+LIMIT $2
 `
 
 type ListActiveApplicationsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Column1 string `json:"column_1"`
+	Limit   int32  `json:"limit"`
 }
 
 func (q *Queries) ListActiveApplications(ctx context.Context, arg ListActiveApplicationsParams) ([]ShenApplication, error) {
-	rows, err := q.db.Query(ctx, listActiveApplications, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listActiveApplications, arg.Column1, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -163,18 +164,20 @@ SELECT
   updated_at
 FROM
   shen_application
+WHERE
+  ($1::text = '' OR name > $1)
 ORDER BY
   name
-LIMIT $1 OFFSET $2
+LIMIT $2
 `
 
 type ListApplicationsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Column1 string `json:"column_1"`
+	Limit   int32  `json:"limit"`
 }
 
 func (q *Queries) ListApplications(ctx context.Context, arg ListApplicationsParams) ([]ShenApplication, error) {
-	rows, err := q.db.Query(ctx, listApplications, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listApplications, arg.Column1, arg.Limit)
 	if err != nil {
 		return nil, err
 	}

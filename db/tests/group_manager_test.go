@@ -49,7 +49,7 @@ func TestListManagersByGroup(t *testing.T) {
 	fetchedGroup1Managers, err := tdb.Queries.ListManagersByGroup(tdb.Ctx, db.ListManagersByGroupParams{
 		GroupID: f.Group1.ID,
 		Limit:   10,
-		Offset:  0,
+		Column2: "",
 	})
 	require.NoError(t, err, "Failed to retrieve Group1 managers")
 	assert.Equal(t, group1Managers, fetchedGroup1Managers)
@@ -57,7 +57,7 @@ func TestListManagersByGroup(t *testing.T) {
 	fetchedGroup2Managers, err := tdb.Queries.ListManagersByGroup(tdb.Ctx, db.ListManagersByGroupParams{
 		GroupID: f.Group2.ID,
 		Limit:   10,
-		Offset:  0,
+		Column2: "",
 	})
 	require.NoError(t, err, "Failed to retrieve Group2 managers")
 	assert.Equal(t, group2Managers, fetchedGroup2Managers)
@@ -77,17 +77,17 @@ func TestListGroupsManagedByUser(t *testing.T) {
 	sortGroupsByName(user2Groups)
 
 	fetchedUser1Groups, err := tdb.Queries.ListGroupsManagedByUser(tdb.Ctx, db.ListGroupsManagedByUserParams{
-		UserID: f.User1.ID,
-		Limit:  10,
-		Offset: 0,
+		UserID:  f.User1.ID,
+		Limit:   10,
+		Column2: "",
 	})
 	require.NoError(t, err, "Failed to retrieve User1 managed groups")
 	assert.Equal(t, user1Groups, fetchedUser1Groups)
 
 	fetchedUser2Groups, err := tdb.Queries.ListGroupsManagedByUser(tdb.Ctx, db.ListGroupsManagedByUserParams{
-		UserID: f.User2.ID,
-		Limit:  10,
-		Offset: 0,
+		UserID:  f.User2.ID,
+		Limit:   10,
+		Column2: "",
 	})
 	require.NoError(t, err, "Failed to retrieve User2 managed groups")
 	assert.Equal(t, user2Groups, fetchedUser2Groups)
@@ -123,8 +123,9 @@ func TestListAllGroupManagers(t *testing.T) {
 	addManagersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
 
 	allManagers, err := tdb.Queries.ListAllGroupManagers(tdb.Ctx, db.ListAllGroupManagersParams{
-		Limit:  10,
-		Offset: 0,
+		Limit:    10,
+		Column1:  "",
+		Username: "",
 	})
 	require.NoError(t, err, "Failed to retrieve all group managers")
 

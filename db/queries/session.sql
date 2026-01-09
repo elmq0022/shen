@@ -40,10 +40,11 @@ SELECT
 FROM
     shen_session
 WHERE
-    user_id = $1
+    user_id = sqlc.arg(user_id)
+    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
 ORDER BY
-    created_at DESC
-LIMIT $2 OFFSET $3;
+    id ASC
+LIMIT $1;
 
 -- name: ListActiveSessions :many
 SELECT
@@ -54,14 +55,14 @@ SELECT
     expires_at,
     revoked,
     revoked_at
-FROM
-    shen_session
+FROM shen_session
 WHERE
     revoked = FALSE
     AND expires_at > NOW()
-ORDER BY
-    created_at DESC
-LIMIT $1 OFFSET $2;
+    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
+ORDER BY id ASC
+LIMIT $1;
+
 
 -- name: ListActiveSessionsByUser :many
 SELECT
@@ -75,12 +76,13 @@ SELECT
 FROM
     shen_session
 WHERE
-    user_id = $1
+    user_id = sqlc.arg(user_id)
     AND revoked = FALSE
     AND expires_at > NOW()
+    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
 ORDER BY
-    created_at DESC
-LIMIT $2 OFFSET $3;
+    id ASC
+LIMIT $1;
 
 -- name: CountSessionsByUser :one
 SELECT

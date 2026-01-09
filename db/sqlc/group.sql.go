@@ -118,18 +118,19 @@ FROM
   shen_group
 WHERE
   active = TRUE
+  AND ($1::text = '' OR name > $1)
 ORDER BY
   name
-LIMIT $1 OFFSET $2
+LIMIT $2
 `
 
 type ListActiveGroupsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Column1 string `json:"column_1"`
+	Limit   int32  `json:"limit"`
 }
 
 func (q *Queries) ListActiveGroups(ctx context.Context, arg ListActiveGroupsParams) ([]ShenGroup, error) {
-	rows, err := q.db.Query(ctx, listActiveGroups, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listActiveGroups, arg.Column1, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -163,18 +164,20 @@ SELECT
   updated_at
 FROM
   shen_group
+WHERE
+  ($1::text = '' OR name > $1)
 ORDER BY
   name
-LIMIT $1 OFFSET $2
+LIMIT $2
 `
 
 type ListGroupsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Column1 string `json:"column_1"`
+	Limit   int32  `json:"limit"`
 }
 
 func (q *Queries) ListGroups(ctx context.Context, arg ListGroupsParams) ([]ShenGroup, error) {
-	rows, err := q.db.Query(ctx, listGroups, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listGroups, arg.Column1, arg.Limit)
 	if err != nil {
 		return nil, err
 	}

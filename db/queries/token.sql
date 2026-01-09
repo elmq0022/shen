@@ -65,10 +65,11 @@ SELECT
 FROM
     shen_token
 WHERE
-    user_id = $1
+    user_id = sqlc.arg(user_id)
+    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
 ORDER BY
-    created_at DESC
-LIMIT $2 OFFSET $3;
+    id ASC
+LIMIT $1;
 
 -- name: ListTokensByApplication :many
 SELECT
@@ -84,10 +85,11 @@ SELECT
 FROM
     shen_token
 WHERE
-    application_id = $1
+    application_id = sqlc.arg(application_id)
+    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
 ORDER BY
-    created_at DESC
-LIMIT $2 OFFSET $3;
+    id ASC
+LIMIT $1;
 
 -- name: ListTokensByUserApplication :many
 SELECT
@@ -103,11 +105,12 @@ SELECT
 FROM
     shen_token
 WHERE
-    user_id = $1
-    AND application_id = $2
+    user_id = sqlc.arg(user_id)
+    AND application_id = sqlc.arg(application_id)
+    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
 ORDER BY
-    created_at DESC
-LIMIT $3 OFFSET $4;
+    id ASC
+LIMIT $1;
 
 -- name: ListActiveTokensByUser :many
 SELECT
@@ -123,12 +126,13 @@ SELECT
 FROM
     shen_token
 WHERE
-    user_id = $1
+    user_id = sqlc.arg(user_id)
     AND revoked = FALSE
     AND expires_at > NOW()
+    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
 ORDER BY
-    created_at DESC
-LIMIT $2 OFFSET $3;
+    id ASC
+LIMIT $1;
 
 -- name: ListActiveTokensByUserApplication :many
 SELECT
@@ -144,13 +148,14 @@ SELECT
 FROM
     shen_token
 WHERE
-    user_id = $1
-    AND application_id = $2
+    user_id = sqlc.arg(user_id)
+    AND application_id = sqlc.arg(application_id)
     AND revoked = FALSE
     AND expires_at > NOW()
+    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
 ORDER BY
-    created_at DESC
-LIMIT $3 OFFSET $4;
+    id ASC
+LIMIT $1;
 
 -- name: CountTokensByUser :one
 SELECT

@@ -33,9 +33,11 @@ SELECT
   updated_at
 FROM
   shen_application
+WHERE
+  ($1::text = '' OR name > $1)
 ORDER BY
   name
-LIMIT $1 OFFSET $2;
+LIMIT $2;
 
 -- name: ListActiveApplications :many
 SELECT
@@ -48,9 +50,10 @@ FROM
   shen_application
 WHERE
   active = TRUE
+  AND ($1::text = '' OR name > $1)
 ORDER BY
   name
-LIMIT $1 OFFSET $2;
+LIMIT $2;
 
 -- name: CreateApplication :one
 INSERT INTO shen_application(name)

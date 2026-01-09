@@ -329,31 +329,50 @@ func TestListActiveSessions(t *testing.T) {
 
 	expiresAt := GetActiveExpiresAt()
 
+	// 5 active sessions
 	CreateTestSessions(t, tdb, "active-session", 5, f.User1.ID, expiresAt)
 
+	// revoked session (should not appear)
 	revokedSession := CreateTestSession(t, tdb, "revoked-list", f.User1.ID, expiresAt)
 	err := tdb.Queries.RevokeSession(tdb.Ctx, revokedSession.ID)
 	require.NoError(t, err, "Failed to revoke session")
 
+	// expired session (should not appear)
 	CreateTestSession(t, tdb, "expired-list", f.User1.ID, GetExpiredExpiresAt())
 
+	// ---- page 1 ----
 	page1, err := tdb.Queries.ListActiveSessions(tdb.Ctx, db.ListActiveSessionsParams{
-		Limit:  2,
-		Offset: 0,
+		Limit:    2,
+		CursorID: 0,
 	})
 	require.NoError(t, err, "Failed to list first page of active sessions")
-	assert.Len(t, page1, 2)
+	require.Len(t, page1, 2)
+
+	// ---- page 2 ----
+	last := page1[len(page1)-1]
 
 	page2, err := tdb.Queries.ListActiveSessions(tdb.Ctx, db.ListActiveSessionsParams{
-		Limit:  2,
-		Offset: 2,
+		Limit:    2,
+		CursorID: last.ID,
 	})
 	require.NoError(t, err, "Failed to list second page of active sessions")
-	assert.Len(t, page2, 2)
+	require.Len(t, page2, 2)
 
+	// ---- sanity: no overlap between pages ----
+	page1IDs := map[int32]struct{}{}
+	for _, s := range page1 {
+		page1IDs[s.ID] = struct{}{}
+	}
+
+	for _, s := range page2 {
+		_, exists := page1IDs[s.ID]
+		assert.False(t, exists, "session appeared in both page1 and page2")
+	}
+
+	// ---- all active sessions ----
 	allActiveSessions, err := tdb.Queries.ListActiveSessions(tdb.Ctx, db.ListActiveSessionsParams{
-		Limit:  10,
-		Offset: 0,
+		Limit:    10,
+		CursorID: 0,
 	})
 	require.NoError(t, err, "Failed to list all active sessions")
 	assert.Len(t, allActiveSessions, 5, "Should only have 5 active sessions")
@@ -369,17 +388,17 @@ func TestListActiveSessionsByUser(t *testing.T) {
 	CreateTestSessions(t, tdb, "user2-session", 2, f.User2.ID, expiresAt)
 
 	user1Sessions, err := tdb.Queries.ListActiveSessionsByUser(tdb.Ctx, db.ListActiveSessionsByUserParams{
-		UserID: f.User1.ID,
-		Limit:  10,
-		Offset: 0,
+		UserID:   f.User1.ID,
+		Limit:    10,
+		CursorID: 0,
 	})
 	require.NoError(t, err, "Failed to list User1 sessions")
 	assert.Len(t, user1Sessions, 3)
 
 	user2Sessions, err := tdb.Queries.ListActiveSessionsByUser(tdb.Ctx, db.ListActiveSessionsByUserParams{
-		UserID: f.User2.ID,
-		Limit:  10,
-		Offset: 0,
+		UserID:   f.User2.ID,
+		Limit:    10,
+		CursorID: 0,
 	})
 	require.NoError(t, err, "Failed to list User2 sessions")
 	assert.Len(t, user2Sessions, 2)
@@ -398,9 +417,9 @@ func TestListSessionsByUser(t *testing.T) {
 	CreateTestSession(t, tdb, "user1-expired", f.User1.ID, GetExpiredExpiresAt())
 
 	allSessions, err := tdb.Queries.ListSessionsByUser(tdb.Ctx, db.ListSessionsByUserParams{
-		UserID: f.User1.ID,
-		Limit:  10,
-		Offset: 0,
+		UserID:   f.User1.ID,
+		Limit:    10,
+		CursorID: 0,
 	})
 	require.NoError(t, err, "Failed to list all User1 sessions")
 	assert.Len(t, allSessions, 3, "Should return all sessions including revoked and expired")

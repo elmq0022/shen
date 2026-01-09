@@ -82,23 +82,26 @@ func TestListJWTKeys(t *testing.T) {
 
 	CreateTestJWTKeys(t, tdb, "key", 5, []byte("encrypted"), "public", true, true)
 
+	// First page - no cursor
 	page1, err := tdb.Queries.ListJWTKeys(tdb.Ctx, db.ListJWTKeysParams{
-		Limit:  2,
-		Offset: 0,
+		CursorKid: "",
+		Limit:     2,
 	})
 	require.NoError(t, err, "Failed to list first page of JWT keys")
 	assert.Len(t, page1, 2)
 
+	// Second page - use cursor from last item of page1
 	page2, err := tdb.Queries.ListJWTKeys(tdb.Ctx, db.ListJWTKeysParams{
-		Limit:  2,
-		Offset: 2,
+		CursorKid: page1[1].Kid,
+		Limit:     2,
 	})
 	require.NoError(t, err, "Failed to list second page of JWT keys")
 	assert.Len(t, page2, 2)
 
+	// Get all keys - no cursor, high limit
 	allKeys, err := tdb.Queries.ListJWTKeys(tdb.Ctx, db.ListJWTKeysParams{
-		Limit:  10,
-		Offset: 0,
+		CursorKid: "",
+		Limit:     10,
 	})
 	require.NoError(t, err, "Failed to list all JWT keys")
 	assert.Len(t, allKeys, 5)
@@ -112,11 +115,12 @@ func TestListJWTKeysOrdering(t *testing.T) {
 	key3 := CreateTestJWTKey(t, tdb, "2025-01-03", []byte("key3"), "public3", true, true)
 
 	allKeys, err := tdb.Queries.ListJWTKeys(tdb.Ctx, db.ListJWTKeysParams{
-		Limit:  10,
-		Offset: 0,
+		CursorKid: "",
+		Limit:     10,
 	})
 	require.NoError(t, err)
 
+	// Ordered by kid DESC (newest first since ULID is time-sortable)
 	assert.Equal(t, key3.ID, allKeys[0].ID, "Newest key should be first")
 	assert.Equal(t, key2.ID, allKeys[1].ID, "Second newest key should be second")
 	assert.Equal(t, key1.ID, allKeys[2].ID, "Oldest key should be last")

@@ -211,23 +211,22 @@ SELECT
     expires_at,
     revoked,
     revoked_at
-FROM
-    shen_session
+FROM shen_session
 WHERE
     revoked = FALSE
     AND expires_at > NOW()
-ORDER BY
-    created_at DESC
-LIMIT $1 OFFSET $2
+    AND ($2 = 0 OR id > $2)
+ORDER BY id ASC
+LIMIT $1
 `
 
 type ListActiveSessionsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Limit    int32       `json:"limit"`
+	CursorID interface{} `json:"cursor_id"`
 }
 
 func (q *Queries) ListActiveSessions(ctx context.Context, arg ListActiveSessionsParams) ([]ShenSession, error) {
-	rows, err := q.db.Query(ctx, listActiveSessions, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listActiveSessions, arg.Limit, arg.CursorID)
 	if err != nil {
 		return nil, err
 	}
@@ -266,22 +265,23 @@ SELECT
 FROM
     shen_session
 WHERE
-    user_id = $1
+    user_id = $2
     AND revoked = FALSE
     AND expires_at > NOW()
+    AND ($3 = 0 OR id > $3)
 ORDER BY
-    created_at DESC
-LIMIT $2 OFFSET $3
+    id ASC
+LIMIT $1
 `
 
 type ListActiveSessionsByUserParams struct {
-	UserID int32 `json:"user_id"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Limit    int32       `json:"limit"`
+	UserID   int32       `json:"user_id"`
+	CursorID interface{} `json:"cursor_id"`
 }
 
 func (q *Queries) ListActiveSessionsByUser(ctx context.Context, arg ListActiveSessionsByUserParams) ([]ShenSession, error) {
-	rows, err := q.db.Query(ctx, listActiveSessionsByUser, arg.UserID, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listActiveSessionsByUser, arg.Limit, arg.UserID, arg.CursorID)
 	if err != nil {
 		return nil, err
 	}
@@ -320,20 +320,21 @@ SELECT
 FROM
     shen_session
 WHERE
-    user_id = $1
+    user_id = $2
+    AND ($3 = 0 OR id > $3)
 ORDER BY
-    created_at DESC
-LIMIT $2 OFFSET $3
+    id ASC
+LIMIT $1
 `
 
 type ListSessionsByUserParams struct {
-	UserID int32 `json:"user_id"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Limit    int32       `json:"limit"`
+	UserID   int32       `json:"user_id"`
+	CursorID interface{} `json:"cursor_id"`
 }
 
 func (q *Queries) ListSessionsByUser(ctx context.Context, arg ListSessionsByUserParams) ([]ShenSession, error) {
-	rows, err := q.db.Query(ctx, listSessionsByUser, arg.UserID, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listSessionsByUser, arg.Limit, arg.UserID, arg.CursorID)
 	if err != nil {
 		return nil, err
 	}

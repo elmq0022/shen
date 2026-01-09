@@ -226,17 +226,17 @@ func TestListActiveTokensByUser(t *testing.T) {
 	CreateTestTokens(t, tdb, "user2-token", 2, f.User2.ID, f.App1.ID, expiresAt)
 
 	user1Tokens, err := tdb.Queries.ListActiveTokensByUser(tdb.Ctx, db.ListActiveTokensByUserParams{
-		UserID: f.User1.ID,
-		Limit:  10,
-		Offset: 0,
+		UserID:   f.User1.ID,
+		Limit:    10,
+		CursorID: 0,
 	})
 	require.NoError(t, err, "Failed to list User1 tokens")
 	assert.Len(t, user1Tokens, 3)
 
 	user2Tokens, err := tdb.Queries.ListActiveTokensByUser(tdb.Ctx, db.ListActiveTokensByUserParams{
-		UserID: f.User2.ID,
-		Limit:  10,
-		Offset: 0,
+		UserID:   f.User2.ID,
+		Limit:    10,
+		CursorID: 0,
 	})
 	require.NoError(t, err, "Failed to list User2 tokens")
 	assert.Len(t, user2Tokens, 2)
@@ -255,7 +255,7 @@ func TestListActiveTokensByUserApplication(t *testing.T) {
 		UserID:        f.User1.ID,
 		ApplicationID: f.App1.ID,
 		Limit:         10,
-		Offset:        0,
+		CursorID:      0,
 	})
 	require.NoError(t, err, "Failed to list User1 App1 tokens")
 	assert.Len(t, user1App1Tokens, 3)
@@ -264,7 +264,7 @@ func TestListActiveTokensByUserApplication(t *testing.T) {
 		UserID:        f.User1.ID,
 		ApplicationID: f.App2.ID,
 		Limit:         10,
-		Offset:        0,
+		CursorID:      0,
 	})
 	require.NoError(t, err, "Failed to list User1 App2 tokens")
 	assert.Len(t, user1App2Tokens, 2)
@@ -283,9 +283,9 @@ func TestListTokensByUser(t *testing.T) {
 	CreateTestToken(t, tdb, "user1-expired", "u1-expired-hash", f.User1.ID, f.App1.ID, GetExpiredExpiresAt())
 
 	allTokens, err := tdb.Queries.ListTokensByUser(tdb.Ctx, db.ListTokensByUserParams{
-		UserID: f.User1.ID,
-		Limit:  10,
-		Offset: 0,
+		UserID:   f.User1.ID,
+		Limit:    10,
+		CursorID: 0,
 	})
 	require.NoError(t, err, "Failed to list all User1 tokens")
 	assert.Len(t, allTokens, 3, "Should return all tokens including revoked and expired")
@@ -304,7 +304,7 @@ func TestListTokensByUserApplication(t *testing.T) {
 		UserID:        f.User1.ID,
 		ApplicationID: f.App1.ID,
 		Limit:         10,
-		Offset:        0,
+		CursorID:      0,
 	})
 	require.NoError(t, err, "Failed to list User1 App1 tokens")
 	assert.Len(t, user1App1Tokens, 3)
@@ -313,7 +313,7 @@ func TestListTokensByUserApplication(t *testing.T) {
 		UserID:        f.User1.ID,
 		ApplicationID: f.App2.ID,
 		Limit:         10,
-		Offset:        0,
+		CursorID:      0,
 	})
 	require.NoError(t, err, "Failed to list User1 App2 tokens")
 	assert.Len(t, user1App2Tokens, 2)
@@ -331,7 +331,7 @@ func TestListTokensByApplication(t *testing.T) {
 	app1Tokens, err := tdb.Queries.ListTokensByApplication(tdb.Ctx, db.ListTokensByApplicationParams{
 		ApplicationID: f.App1.ID,
 		Limit:         10,
-		Offset:        0,
+		CursorID:      0,
 	})
 	require.NoError(t, err, "Failed to list App1 tokens")
 	assert.Len(t, app1Tokens, 3)
@@ -339,7 +339,7 @@ func TestListTokensByApplication(t *testing.T) {
 	app2Tokens, err := tdb.Queries.ListTokensByApplication(tdb.Ctx, db.ListTokensByApplicationParams{
 		ApplicationID: f.App2.ID,
 		Limit:         10,
-		Offset:        0,
+		CursorID:      0,
 	})
 	require.NoError(t, err, "Failed to list App2 tokens")
 	assert.Len(t, app2Tokens, 2)

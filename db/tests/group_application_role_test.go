@@ -226,26 +226,32 @@ func TestListGroupApplicationRolesByGroup(t *testing.T) {
 		{GroupID: f.Group1.ID, ApplicationID: apps[1].ID, RoleID: ApplicationRoleAuditor},
 	})
 
+	// First page - no cursor
 	page1, err := tdb.Queries.ListGroupApplicationRolesByGroup(tdb.Ctx, db.ListGroupApplicationRolesByGroupParams{
-		GroupID: f.Group1.ID,
-		Limit:   2,
-		Offset:  0,
+		GroupID:               f.Group1.ID,
+		CursorApplicationName: "",
+		CursorRoleName:        "",
+		Limit:                 2,
 	})
 	require.NoError(t, err, "Failed to list first page of roles")
 	assert.Len(t, page1, 2)
 
+	// Second page - use cursor from last item of page1
 	page2, err := tdb.Queries.ListGroupApplicationRolesByGroup(tdb.Ctx, db.ListGroupApplicationRolesByGroupParams{
-		GroupID: f.Group1.ID,
-		Limit:   3,
-		Offset:  2,
+		GroupID:               f.Group1.ID,
+		CursorApplicationName: page1[1].ApplicationName,
+		CursorRoleName:        page1[1].RoleName,
+		Limit:                 3,
 	})
 	require.NoError(t, err, "Failed to list second page of roles")
 	assert.Len(t, page2, 3)
 
+	// Get all roles - no cursor, high limit
 	all, err := tdb.Queries.ListGroupApplicationRolesByGroup(tdb.Ctx, db.ListGroupApplicationRolesByGroupParams{
-		GroupID: f.Group1.ID,
-		Limit:   10,
-		Offset:  0,
+		GroupID:               f.Group1.ID,
+		CursorApplicationName: "",
+		CursorRoleName:        "",
+		Limit:                 10,
 	})
 	require.NoError(t, err, "Failed to list all roles for group")
 	assert.Len(t, all, 5)
@@ -265,10 +271,32 @@ func TestListGroupApplicationRolesByApplication(t *testing.T) {
 		{GroupID: groups[1].ID, ApplicationID: f.App1.ID, RoleID: ApplicationRoleAuditor},
 	})
 
+	// First page - no cursor
+	page1, err := tdb.Queries.ListGroupApplicationRolesByApplication(tdb.Ctx, db.ListGroupApplicationRolesByApplicationParams{
+		ApplicationID:   f.App1.ID,
+		CursorGroupName: "",
+		CursorRoleName:  "",
+		Limit:           2,
+	})
+	require.NoError(t, err, "Failed to list first page of roles")
+	assert.Len(t, page1, 2)
+
+	// Second page - use cursor from last item of page1
+	page2, err := tdb.Queries.ListGroupApplicationRolesByApplication(tdb.Ctx, db.ListGroupApplicationRolesByApplicationParams{
+		ApplicationID:   f.App1.ID,
+		CursorGroupName: page1[1].GroupName,
+		CursorRoleName:  page1[1].RoleName,
+		Limit:           2,
+	})
+	require.NoError(t, err, "Failed to list second page of roles")
+	assert.Len(t, page2, 2)
+
+	// Get all roles - no cursor, high limit
 	all, err := tdb.Queries.ListGroupApplicationRolesByApplication(tdb.Ctx, db.ListGroupApplicationRolesByApplicationParams{
-		ApplicationID: f.App1.ID,
-		Limit:         10,
-		Offset:        0,
+		ApplicationID:   f.App1.ID,
+		CursorGroupName: "",
+		CursorRoleName:  "",
+		Limit:           10,
 	})
 	require.NoError(t, err, "Failed to list all roles for application")
 	assert.Len(t, all, 5)

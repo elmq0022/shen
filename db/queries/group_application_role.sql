@@ -11,11 +11,16 @@ FROM
     JOIN shen_application a ON gar.application_id = a.id
     JOIN shen_group g ON gar.group_id = g.id
     JOIN shen_application_role r ON gar.role_id = r.id
+WHERE
+    (sqlc.arg(cursor_group_name)::text IS NULL OR
+     g.name > sqlc.arg(cursor_group_name) OR
+     (g.name = sqlc.arg(cursor_group_name) AND a.name > sqlc.arg(cursor_application_name)) OR
+     (g.name = sqlc.arg(cursor_group_name) AND a.name = sqlc.arg(cursor_application_name) AND r.name > sqlc.arg(cursor_role_name)))
 ORDER BY
     g.name,
     a.name,
     r.name
-LIMIT $1 OFFSET $2;
+LIMIT $1;
 
 -- name: ListGroupApplicationRolesByGroup :many
 SELECT
@@ -29,11 +34,14 @@ FROM
     JOIN shen_application a ON gar.application_id = a.id
     JOIN shen_application_role r ON gar.role_id = r.id
 WHERE
-    gar.group_id = $1
+    gar.group_id = sqlc.arg(group_id)
+    AND (sqlc.arg(cursor_application_name)::text IS NULL OR
+         a.name > sqlc.arg(cursor_application_name) OR
+         (a.name = sqlc.arg(cursor_application_name) AND r.name > sqlc.arg(cursor_role_name)))
 ORDER BY
     a.name,
     r.name
-LIMIT $2 OFFSET $3;
+LIMIT $1;
 
 -- name: ListGroupApplicationRolesByApplication :many
 SELECT
@@ -47,11 +55,14 @@ FROM
     JOIN shen_group g ON gar.group_id = g.id
     JOIN shen_application_role r ON gar.role_id = r.id
 WHERE
-    gar.application_id = $1
+    gar.application_id = sqlc.arg(application_id)
+    AND (sqlc.arg(cursor_group_name)::text IS NULL OR
+         g.name > sqlc.arg(cursor_group_name) OR
+         (g.name = sqlc.arg(cursor_group_name) AND r.name > sqlc.arg(cursor_role_name)))
 ORDER BY
     g.name,
     r.name
-LIMIT $2 OFFSET $3;
+LIMIT $1;
 
 -- name: CountGroupApplicationRolesByGroup :one
 SELECT

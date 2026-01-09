@@ -46,7 +46,7 @@ func TestListUsersByGroup(t *testing.T) {
 	page1, err := tdb.Queries.ListUsersByGroup(tdb.Ctx, db.ListUsersByGroupParams{
 		GroupID: f.Group1.ID,
 		Limit:   2,
-		Offset:  0,
+		Column2: "",
 	})
 	require.NoError(t, err, "Failed to list group members")
 	assert.Len(t, page1, 2)
@@ -56,7 +56,7 @@ func TestListUsersByGroup(t *testing.T) {
 	page2, err := tdb.Queries.ListUsersByGroup(tdb.Ctx, db.ListUsersByGroupParams{
 		GroupID: f.Group1.ID,
 		Limit:   2,
-		Offset:  2,
+		Column2: page1[len(page1)-1].Username,
 	})
 	require.NoError(t, err, "Failed to list group members")
 	assert.Len(t, page2, 2)
@@ -66,7 +66,7 @@ func TestListUsersByGroup(t *testing.T) {
 	page3, err := tdb.Queries.ListUsersByGroup(tdb.Ctx, db.ListUsersByGroupParams{
 		GroupID: f.Group1.ID,
 		Limit:   2,
-		Offset:  4,
+		Column2: page2[len(page2)-1].Username,
 	})
 	require.NoError(t, err, "Failed to list group members")
 	assert.Len(t, page3, 2)
@@ -76,7 +76,7 @@ func TestListUsersByGroup(t *testing.T) {
 	allFetched, err := tdb.Queries.ListUsersByGroup(tdb.Ctx, db.ListUsersByGroupParams{
 		GroupID: f.Group1.ID,
 		Limit:   10,
-		Offset:  0,
+		Column2: "",
 	})
 	require.NoError(t, err, "Failed to retrieve all Group1 members")
 	assert.Equal(t, allMembers, allFetched)
@@ -95,9 +95,9 @@ func TestListGroupsByUser(t *testing.T) {
 	sortGroupsByName(allGroups)
 
 	page1, err := tdb.Queries.ListGroupsByUser(tdb.Ctx, db.ListGroupsByUserParams{
-		UserID: f.User1.ID,
-		Limit:  2,
-		Offset: 0,
+		UserID:  f.User1.ID,
+		Limit:   2,
+		Column2: "",
 	})
 	require.NoError(t, err, "Failed to list user groups")
 	assert.Len(t, page1, 2)
@@ -105,9 +105,9 @@ func TestListGroupsByUser(t *testing.T) {
 	assert.Equal(t, allGroups[1].Name, page1[1].Name)
 
 	page2, err := tdb.Queries.ListGroupsByUser(tdb.Ctx, db.ListGroupsByUserParams{
-		UserID: f.User1.ID,
-		Limit:  2,
-		Offset: 2,
+		UserID:  f.User1.ID,
+		Limit:   2,
+		Column2: page1[len(page1)-1].Name,
 	})
 	require.NoError(t, err, "Failed to list user groups")
 	assert.Len(t, page2, 2)
@@ -115,18 +115,18 @@ func TestListGroupsByUser(t *testing.T) {
 	assert.Equal(t, allGroups[3].Name, page2[1].Name)
 
 	page3, err := tdb.Queries.ListGroupsByUser(tdb.Ctx, db.ListGroupsByUserParams{
-		UserID: f.User1.ID,
-		Limit:  2,
-		Offset: 4,
+		UserID:  f.User1.ID,
+		Limit:   2,
+		Column2: page2[len(page2)-1].Name,
 	})
 	require.NoError(t, err, "Failed to list user groups")
 	assert.Len(t, page3, 1)
 	assert.Equal(t, allGroups[4].Name, page3[0].Name)
 
 	allFetched, err := tdb.Queries.ListGroupsByUser(tdb.Ctx, db.ListGroupsByUserParams{
-		UserID: f.User1.ID,
-		Limit:  10,
-		Offset: 0,
+		UserID:  f.User1.ID,
+		Limit:   10,
+		Column2: "",
 	})
 	require.NoError(t, err, "Failed to retrieve all User1 groups")
 	assert.Equal(t, allGroups, allFetched)
@@ -215,8 +215,9 @@ func TestListAllGroupMembers(t *testing.T) {
 	addUsersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
 
 	allMembers, err := tdb.Queries.ListAllGroupMembers(tdb.Ctx, db.ListAllGroupMembersParams{
-		Limit:  10,
-		Offset: 0,
+		Limit:    10,
+		Column1:  "",
+		Username: "",
 	})
 	require.NoError(t, err, "Failed to retrieve all group members")
 

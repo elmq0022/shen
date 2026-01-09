@@ -294,16 +294,23 @@ FROM
     JOIN shen_application a ON gar.application_id = a.id
     JOIN shen_group g ON gar.group_id = g.id
     JOIN shen_application_role r ON gar.role_id = r.id
+WHERE
+    ($2::text IS NULL OR
+     g.name > $2 OR
+     (g.name = $2 AND a.name > $3) OR
+     (g.name = $2 AND a.name = $3 AND r.name > $4))
 ORDER BY
     g.name,
     a.name,
     r.name
-LIMIT $1 OFFSET $2
+LIMIT $1
 `
 
 type ListAllGroupApplicationRolesParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Limit                 int32  `json:"limit"`
+	CursorGroupName       string `json:"cursor_group_name"`
+	CursorApplicationName string `json:"cursor_application_name"`
+	CursorRoleName        string `json:"cursor_role_name"`
 }
 
 type ListAllGroupApplicationRolesRow struct {
@@ -316,7 +323,12 @@ type ListAllGroupApplicationRolesRow struct {
 }
 
 func (q *Queries) ListAllGroupApplicationRoles(ctx context.Context, arg ListAllGroupApplicationRolesParams) ([]ListAllGroupApplicationRolesRow, error) {
-	rows, err := q.db.Query(ctx, listAllGroupApplicationRoles, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listAllGroupApplicationRoles,
+		arg.Limit,
+		arg.CursorGroupName,
+		arg.CursorApplicationName,
+		arg.CursorRoleName,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -354,17 +366,21 @@ FROM
     JOIN shen_group g ON gar.group_id = g.id
     JOIN shen_application_role r ON gar.role_id = r.id
 WHERE
-    gar.application_id = $1
+    gar.application_id = $2
+    AND ($3::text IS NULL OR
+         g.name > $3 OR
+         (g.name = $3 AND r.name > $4))
 ORDER BY
     g.name,
     r.name
-LIMIT $2 OFFSET $3
+LIMIT $1
 `
 
 type ListGroupApplicationRolesByApplicationParams struct {
-	ApplicationID int32 `json:"application_id"`
-	Limit         int32 `json:"limit"`
-	Offset        int32 `json:"offset"`
+	Limit           int32  `json:"limit"`
+	ApplicationID   int32  `json:"application_id"`
+	CursorGroupName string `json:"cursor_group_name"`
+	CursorRoleName  string `json:"cursor_role_name"`
 }
 
 type ListGroupApplicationRolesByApplicationRow struct {
@@ -376,7 +392,12 @@ type ListGroupApplicationRolesByApplicationRow struct {
 }
 
 func (q *Queries) ListGroupApplicationRolesByApplication(ctx context.Context, arg ListGroupApplicationRolesByApplicationParams) ([]ListGroupApplicationRolesByApplicationRow, error) {
-	rows, err := q.db.Query(ctx, listGroupApplicationRolesByApplication, arg.ApplicationID, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listGroupApplicationRolesByApplication,
+		arg.Limit,
+		arg.ApplicationID,
+		arg.CursorGroupName,
+		arg.CursorRoleName,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -413,17 +434,21 @@ FROM
     JOIN shen_application a ON gar.application_id = a.id
     JOIN shen_application_role r ON gar.role_id = r.id
 WHERE
-    gar.group_id = $1
+    gar.group_id = $2
+    AND ($3::text IS NULL OR
+         a.name > $3 OR
+         (a.name = $3 AND r.name > $4))
 ORDER BY
     a.name,
     r.name
-LIMIT $2 OFFSET $3
+LIMIT $1
 `
 
 type ListGroupApplicationRolesByGroupParams struct {
-	GroupID int32 `json:"group_id"`
-	Limit   int32 `json:"limit"`
-	Offset  int32 `json:"offset"`
+	Limit                 int32  `json:"limit"`
+	GroupID               int32  `json:"group_id"`
+	CursorApplicationName string `json:"cursor_application_name"`
+	CursorRoleName        string `json:"cursor_role_name"`
 }
 
 type ListGroupApplicationRolesByGroupRow struct {
@@ -435,7 +460,12 @@ type ListGroupApplicationRolesByGroupRow struct {
 }
 
 func (q *Queries) ListGroupApplicationRolesByGroup(ctx context.Context, arg ListGroupApplicationRolesByGroupParams) ([]ListGroupApplicationRolesByGroupRow, error) {
-	rows, err := q.db.Query(ctx, listGroupApplicationRolesByGroup, arg.GroupID, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listGroupApplicationRolesByGroup,
+		arg.Limit,
+		arg.GroupID,
+		arg.CursorApplicationName,
+		arg.CursorRoleName,
+	)
 	if err != nil {
 		return nil, err
 	}

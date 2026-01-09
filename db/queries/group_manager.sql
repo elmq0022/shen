@@ -23,9 +23,10 @@ FROM
     JOIN shen_group g ON m.group_id = g.id
 WHERE
     m.user_id = $1
+    AND ($2::text = '' OR g.name > $2)
 ORDER BY
     g.name
-LIMIT $2 OFFSET $3;
+LIMIT $3;
 
 -- name: ListManagersByGroup :many
 SELECT
@@ -41,9 +42,10 @@ FROM
     JOIN shen_user u ON m.user_id = u.id
 WHERE
     m.group_id = $1
+    AND ($2::text = '' OR u.username > $2)
 ORDER BY
     u.username
-LIMIT $2 OFFSET $3;
+LIMIT $3;
 
 -- name: ListAllGroupManagers :many
 SELECT
@@ -56,10 +58,12 @@ FROM
     shen_user_group_manager m
     JOIN shen_user u ON m.user_id = u.id
     JOIN shen_group g ON m.group_id = g.id
+WHERE
+    ($1::text = '' OR g.name > $1 OR (g.name = $1 AND u.username > $2))
 ORDER BY
     g.name,
     u.username
-LIMIT $1 OFFSET $2;
+LIMIT $3;
 
 -- name: CountGroupsManagedByUser :one
 SELECT

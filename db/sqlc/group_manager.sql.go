@@ -144,15 +144,18 @@ FROM
     shen_user_group_manager m
     JOIN shen_user u ON m.user_id = u.id
     JOIN shen_group g ON m.group_id = g.id
+WHERE
+    ($1::text = '' OR g.name > $1 OR (g.name = $1 AND u.username > $2))
 ORDER BY
     g.name,
     u.username
-LIMIT $1 OFFSET $2
+LIMIT $3
 `
 
 type ListAllGroupManagersParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Column1  string `json:"column_1"`
+	Username string `json:"username"`
+	Limit    int32  `json:"limit"`
 }
 
 type ListAllGroupManagersRow struct {
@@ -164,7 +167,7 @@ type ListAllGroupManagersRow struct {
 }
 
 func (q *Queries) ListAllGroupManagers(ctx context.Context, arg ListAllGroupManagersParams) ([]ListAllGroupManagersRow, error) {
-	rows, err := q.db.Query(ctx, listAllGroupManagers, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listAllGroupManagers, arg.Column1, arg.Username, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -201,19 +204,20 @@ FROM
     JOIN shen_group g ON m.group_id = g.id
 WHERE
     m.user_id = $1
+    AND ($2::text = '' OR g.name > $2)
 ORDER BY
     g.name
-LIMIT $2 OFFSET $3
+LIMIT $3
 `
 
 type ListGroupsManagedByUserParams struct {
-	UserID int32 `json:"user_id"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	UserID  int32  `json:"user_id"`
+	Column2 string `json:"column_2"`
+	Limit   int32  `json:"limit"`
 }
 
 func (q *Queries) ListGroupsManagedByUser(ctx context.Context, arg ListGroupsManagedByUserParams) ([]ShenGroup, error) {
-	rows, err := q.db.Query(ctx, listGroupsManagedByUser, arg.UserID, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listGroupsManagedByUser, arg.UserID, arg.Column2, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -252,19 +256,20 @@ FROM
     JOIN shen_user u ON m.user_id = u.id
 WHERE
     m.group_id = $1
+    AND ($2::text = '' OR u.username > $2)
 ORDER BY
     u.username
-LIMIT $2 OFFSET $3
+LIMIT $3
 `
 
 type ListManagersByGroupParams struct {
-	GroupID int32 `json:"group_id"`
-	Limit   int32 `json:"limit"`
-	Offset  int32 `json:"offset"`
+	GroupID int32  `json:"group_id"`
+	Column2 string `json:"column_2"`
+	Limit   int32  `json:"limit"`
 }
 
 func (q *Queries) ListManagersByGroup(ctx context.Context, arg ListManagersByGroupParams) ([]ShenUser, error) {
-	rows, err := q.db.Query(ctx, listManagersByGroup, arg.GroupID, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listManagersByGroup, arg.GroupID, arg.Column2, arg.Limit)
 	if err != nil {
 		return nil, err
 	}

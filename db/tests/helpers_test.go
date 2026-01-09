@@ -100,6 +100,10 @@ func CreateTestTokens(t *testing.T, tdb *TestDB, prefix string, count int, userI
 		name := fmt.Sprintf("%s-%d", prefix, i+1)
 		hashedToken := fmt.Sprintf("%s-hash-%d", prefix, i+1)
 		tokens[i] = CreateTestToken(t, tdb, name, hashedToken, userID, appID, expiresAt)
+		// Small sleep to ensure different created_at timestamps for cursor pagination
+		if i < count-1 {
+			time.Sleep(2 * time.Millisecond)
+		}
 	}
 	return tokens
 }
@@ -140,6 +144,10 @@ func CreateTestSessions(t *testing.T, tdb *TestDB, prefix string, count int, use
 	for i := 0; i < count; i++ {
 		hashedToken := fmt.Sprintf("%s-%d", prefix, i+1)
 		sessions[i] = CreateTestSession(t, tdb, hashedToken, userID, expiresAt)
+		// Small sleep to ensure different created_at timestamps for cursor pagination
+		if i < count-1 {
+			time.Sleep(2 * time.Millisecond)
+		}
 	}
 	return sessions
 }

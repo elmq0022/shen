@@ -54,10 +54,11 @@ SELECT
     active_for_verification
 FROM
     shen_jwt_keys
+WHERE
+    (sqlc.arg(cursor_kid)::text = '' OR kid < sqlc.arg(cursor_kid))
 ORDER BY
-    created_at DESC,
-    id DESC
-LIMIT $1 OFFSET $2;
+    kid DESC
+LIMIT $1;
 
 -- name: ListActiveVerificationKeys :many
 SELECT

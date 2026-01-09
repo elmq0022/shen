@@ -261,19 +261,20 @@ SELECT
     active_for_verification
 FROM
     shen_jwt_keys
+WHERE
+    ($2::text = '' OR kid < $2)
 ORDER BY
-    created_at DESC,
-    id DESC
-LIMIT $1 OFFSET $2
+    kid DESC
+LIMIT $1
 `
 
 type ListJWTKeysParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Limit     int32  `json:"limit"`
+	CursorKid string `json:"cursor_kid"`
 }
 
 func (q *Queries) ListJWTKeys(ctx context.Context, arg ListJWTKeysParams) ([]ShenJwtKey, error) {
-	rows, err := q.db.Query(ctx, listJWTKeys, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listJWTKeys, arg.Limit, arg.CursorKid)
 	if err != nil {
 		return nil, err
 	}

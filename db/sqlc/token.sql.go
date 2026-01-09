@@ -298,22 +298,23 @@ SELECT
 FROM
     shen_token
 WHERE
-    user_id = $1
+    user_id = $2
     AND revoked = FALSE
     AND expires_at > NOW()
+    AND ($3 = 0 OR id > $3)
 ORDER BY
-    created_at DESC
-LIMIT $2 OFFSET $3
+    id ASC
+LIMIT $1
 `
 
 type ListActiveTokensByUserParams struct {
-	UserID int32 `json:"user_id"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Limit    int32       `json:"limit"`
+	UserID   int32       `json:"user_id"`
+	CursorID interface{} `json:"cursor_id"`
 }
 
 func (q *Queries) ListActiveTokensByUser(ctx context.Context, arg ListActiveTokensByUserParams) ([]ShenToken, error) {
-	rows, err := q.db.Query(ctx, listActiveTokensByUser, arg.UserID, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listActiveTokensByUser, arg.Limit, arg.UserID, arg.CursorID)
 	if err != nil {
 		return nil, err
 	}
@@ -356,28 +357,29 @@ SELECT
 FROM
     shen_token
 WHERE
-    user_id = $1
-    AND application_id = $2
+    user_id = $2
+    AND application_id = $3
     AND revoked = FALSE
     AND expires_at > NOW()
+    AND ($4 = 0 OR id > $4)
 ORDER BY
-    created_at DESC
-LIMIT $3 OFFSET $4
+    id ASC
+LIMIT $1
 `
 
 type ListActiveTokensByUserApplicationParams struct {
-	UserID        int32 `json:"user_id"`
-	ApplicationID int32 `json:"application_id"`
-	Limit         int32 `json:"limit"`
-	Offset        int32 `json:"offset"`
+	Limit         int32       `json:"limit"`
+	UserID        int32       `json:"user_id"`
+	ApplicationID int32       `json:"application_id"`
+	CursorID      interface{} `json:"cursor_id"`
 }
 
 func (q *Queries) ListActiveTokensByUserApplication(ctx context.Context, arg ListActiveTokensByUserApplicationParams) ([]ShenToken, error) {
 	rows, err := q.db.Query(ctx, listActiveTokensByUserApplication,
+		arg.Limit,
 		arg.UserID,
 		arg.ApplicationID,
-		arg.Limit,
-		arg.Offset,
+		arg.CursorID,
 	)
 	if err != nil {
 		return nil, err
@@ -421,20 +423,21 @@ SELECT
 FROM
     shen_token
 WHERE
-    application_id = $1
+    application_id = $2
+    AND ($3 = 0 OR id > $3)
 ORDER BY
-    created_at DESC
-LIMIT $2 OFFSET $3
+    id ASC
+LIMIT $1
 `
 
 type ListTokensByApplicationParams struct {
-	ApplicationID int32 `json:"application_id"`
-	Limit         int32 `json:"limit"`
-	Offset        int32 `json:"offset"`
+	Limit         int32       `json:"limit"`
+	ApplicationID int32       `json:"application_id"`
+	CursorID      interface{} `json:"cursor_id"`
 }
 
 func (q *Queries) ListTokensByApplication(ctx context.Context, arg ListTokensByApplicationParams) ([]ShenToken, error) {
-	rows, err := q.db.Query(ctx, listTokensByApplication, arg.ApplicationID, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listTokensByApplication, arg.Limit, arg.ApplicationID, arg.CursorID)
 	if err != nil {
 		return nil, err
 	}
@@ -477,20 +480,21 @@ SELECT
 FROM
     shen_token
 WHERE
-    user_id = $1
+    user_id = $2
+    AND ($3 = 0 OR id > $3)
 ORDER BY
-    created_at DESC
-LIMIT $2 OFFSET $3
+    id ASC
+LIMIT $1
 `
 
 type ListTokensByUserParams struct {
-	UserID int32 `json:"user_id"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Limit    int32       `json:"limit"`
+	UserID   int32       `json:"user_id"`
+	CursorID interface{} `json:"cursor_id"`
 }
 
 func (q *Queries) ListTokensByUser(ctx context.Context, arg ListTokensByUserParams) ([]ShenToken, error) {
-	rows, err := q.db.Query(ctx, listTokensByUser, arg.UserID, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listTokensByUser, arg.Limit, arg.UserID, arg.CursorID)
 	if err != nil {
 		return nil, err
 	}
@@ -533,26 +537,27 @@ SELECT
 FROM
     shen_token
 WHERE
-    user_id = $1
-    AND application_id = $2
+    user_id = $2
+    AND application_id = $3
+    AND ($4 = 0 OR id > $4)
 ORDER BY
-    created_at DESC
-LIMIT $3 OFFSET $4
+    id ASC
+LIMIT $1
 `
 
 type ListTokensByUserApplicationParams struct {
-	UserID        int32 `json:"user_id"`
-	ApplicationID int32 `json:"application_id"`
-	Limit         int32 `json:"limit"`
-	Offset        int32 `json:"offset"`
+	Limit         int32       `json:"limit"`
+	UserID        int32       `json:"user_id"`
+	ApplicationID int32       `json:"application_id"`
+	CursorID      interface{} `json:"cursor_id"`
 }
 
 func (q *Queries) ListTokensByUserApplication(ctx context.Context, arg ListTokensByUserApplicationParams) ([]ShenToken, error) {
 	rows, err := q.db.Query(ctx, listTokensByUserApplication,
+		arg.Limit,
 		arg.UserID,
 		arg.ApplicationID,
-		arg.Limit,
-		arg.Offset,
+		arg.CursorID,
 	)
 	if err != nil {
 		return nil, err

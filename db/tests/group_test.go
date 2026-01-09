@@ -91,20 +91,20 @@ func TestListActiveGroups(t *testing.T) {
 	groupNames := []string{"group-1", "group-2", "group-3"}
 	slices.Sort(groupNames)
 
-	// first page of groups
+	// first page of groups (cursor-based)
 	page1, err := tdb.Queries.ListActiveGroups(tdb.Ctx, db.ListActiveGroupsParams{
-		Limit:  2,
-		Offset: 0,
+		Column1: "",
+		Limit:   2,
 	})
 	require.NoError(t, err, "Failed to list active groups")
 	assert.Len(t, page1, 2)
 	assert.Equal(t, groupNames[0], page1[0].Name)
 	assert.Equal(t, groupNames[1], page1[1].Name)
 
-	// second page of groups
+	// second page of groups (cursor-based)
 	page2, err := tdb.Queries.ListActiveGroups(tdb.Ctx, db.ListActiveGroupsParams{
-		Limit:  2,
-		Offset: 2,
+		Column1: page1[len(page1)-1].Name,
+		Limit:   2,
 	})
 	require.NoError(t, err, "Failed to list active groups")
 	assert.Len(t, page2, 1)
@@ -115,8 +115,8 @@ func TestListActiveGroups(t *testing.T) {
 	require.NoError(t, err, "Failed to deactivate group")
 
 	activeGroups, err := tdb.Queries.ListActiveGroups(tdb.Ctx, db.ListActiveGroupsParams{
-		Limit:  10,
-		Offset: 0,
+		Column1: "",
+		Limit:   10,
 	})
 	require.NoError(t, err, "Failed to list active groups after deactivation")
 	assert.Len(t, activeGroups, 2)
@@ -133,20 +133,20 @@ func TestListGroups(t *testing.T) {
 	groupNames := []string{"group-1", "group-2", "group-3"}
 	slices.Sort(groupNames)
 
-	// first page of groups
+	// first page of groups (cursor-based)
 	page1, err := tdb.Queries.ListGroups(tdb.Ctx, db.ListGroupsParams{
-		Limit:  2,
-		Offset: 0,
+		Column1: "",
+		Limit:   2,
 	})
 	require.NoError(t, err, "Failed to list groups")
 	assert.Len(t, page1, 2)
 	assert.Equal(t, groupNames[0], page1[0].Name)
 	assert.Equal(t, groupNames[1], page1[1].Name)
 
-	// second page of groups
+	// second page of groups (cursor-based)
 	page2, err := tdb.Queries.ListGroups(tdb.Ctx, db.ListGroupsParams{
-		Limit:  2,
-		Offset: 2,
+		Column1: page1[len(page1)-1].Name,
+		Limit:   2,
 	})
 	require.NoError(t, err, "Failed to list groups")
 	assert.Len(t, page2, 1)
@@ -156,10 +156,10 @@ func TestListGroups(t *testing.T) {
 	err = tdb.Queries.DeactivateGroup(tdb.Ctx, groups[1].ID)
 	require.NoError(t, err, "Failed to deactivate group")
 
-	// ListGroups should return all groups including deactivated
+	// ListGroups should return all groups including deactivated (cursor-based)
 	allGroups, err := tdb.Queries.ListGroups(tdb.Ctx, db.ListGroupsParams{
-		Limit:  10,
-		Offset: 0,
+		Column1: "",
+		Limit:   10,
 	})
 	require.NoError(t, err, "Failed to list all groups")
 	assert.Len(t, allGroups, 3)

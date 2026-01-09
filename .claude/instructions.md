@@ -137,6 +137,109 @@ Shen is a centralized authentication and authorization service that issues short
 - Foreign keys: Enforce referential integrity
 - Indexes: B-tree for exact matches, partial indexes for filtered queries
 
+### Pagination Patterns: Cursor-Based
+
+**CRITICAL RULE:** NEVER sort pagination queries by `timestamp` or `timestamptz` fields.
+
+#### Sort Field Selection Priority
+
+Choose the sort field in this order:
+1. **Unique orderable index** - If a unique constraint exists on a text field (e.g., `username`, `name`), use it
+2. **Auto-incrementing ID** - Use `id` (integer SERIAL) for simple cursor-based pagination
+3. **ULID/UUID** - Use ULID fields like `kid` (for JWT keys) which are naturally sortable
+
+**Why avoid timestamps for sorting:**
+- Timestamps are not unique - multiple records can have identical values
+- Clock skew and concurrent inserts cause unpredictable ordering
+- Composite cursors `(timestamp, id)` add unnecessary complexity
+- Auto-incrementing IDs provide stable, guaranteed ordering
+
+#### Single-Column Cursor (Unique Text Field)
+
+**Use when table has a unique text constraint** (e.g., `username`, `name`):
+
+```sql
+-- name: ListUsers :many
+SELECT id, username, created_at
+FROM shen_user
+WHERE
+    ($1::text = '' OR username > $1)
+ORDER BY username
+LIMIT $2;
+```
+
+#### Single-Column Cursor (Auto ID)
+
+**Use for tables without a unique orderable text field:**
+
+```sql
+-- name: ListSessionsByUser :many
+SELECT id, hashed_token, user_id, created_at
+FROM shen_session
+WHERE
+    user_id = sqlc.arg(user_id)
+    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
+ORDER BY id ASC
+LIMIT $1;
+```
+
+#### Single-Column Cursor (ULID)
+
+**Use for ULID fields** (naturally sortable, time-ordered):
+
+```sql
+-- name: ListJWTKeys :many
+SELECT id, kid, created_at
+FROM shen_jwt_keys
+WHERE
+    (sqlc.arg(cursor_kid)::text = '' OR kid < sqlc.arg(cursor_kid))
+ORDER BY kid DESC
+LIMIT $1;
+```
+
+#### Composite Cursor (Multiple Unique Fields)
+
+**Only use for multi-column unique constraints** (e.g., composite keys for join tables):
+
+```sql
+-- name: ListAllGroupMembers :many
+SELECT m.id, g.name AS group_name, u.username AS username
+FROM shen_user_group_member m
+JOIN shen_user u ON m.user_id = u.id
+JOIN shen_group g ON m.group_id = g.id
+WHERE
+    ($1::text = '' OR g.name > $1 OR (g.name = $1 AND u.username > $2))
+ORDER BY g.name, u.username
+LIMIT $3;
+```
+
+#### Pagination Conventions
+
+1. **Named parameters**: Use `sqlc.arg()` for filter parameters ONLY
+2. **Cursor parameters**: Use positional parameters for simplicity (e.g., `$1`, `$2`)
+3. **Empty string check**: For text cursors, use `$1::text = ''` to detect initial page
+4. **Zero check**: For ID cursors, use `sqlc.arg(cursor_id) = 0` to detect initial page
+5. **Comparison operator**: Use `>` for ASC, `<` for DESC
+6. **LIMIT**: Always use positional parameter (e.g., `LIMIT $1`)
+
+#### Examples in Codebase
+
+**Auto ID cursor**:
+- [db/queries/session.sql](db/queries/session.sql) - `ListSessionsByUser`, `ListActiveSessions`
+- [db/queries/token.sql](db/queries/token.sql) - `ListTokensByUser`, `ListActiveTokensByUser`
+
+**Unique text cursor**:
+- [db/queries/user.sql](db/queries/user.sql) - `ListUsers` (username)
+- [db/queries/group.sql](db/queries/group.sql) - `ListGroups` (name)
+- [db/queries/application.sql](db/queries/application.sql) - `ListApplications` (name)
+
+**ULID cursor**:
+- [db/queries/jwt_keys.sql](db/queries/jwt_keys.sql) - `ListJWTKeys` (kid)
+
+**Composite cursor**:
+- [db/queries/group_member.sql](db/queries/group_member.sql) - `ListAllGroupMembers` (group_name, username)
+- [db/queries/group_application_role.sql](db/queries/group_application_role.sql) - Multi-column sorting
+
 ## Development Guidelines
 
 ### Before Making Changes

@@ -91,20 +91,20 @@ func TestListActiveApplications(t *testing.T) {
 	appNames := []string{"app-1", "app-2", "app-3"}
 	slices.Sort(appNames)
 
-	// first page of apps
+	// first page of apps (cursor-based)
 	page1, err := tdb.Queries.ListActiveApplications(tdb.Ctx, db.ListActiveApplicationsParams{
-		Limit:  2,
-		Offset: 0,
+		Column1: "",
+		Limit:   2,
 	})
 	require.NoError(t, err, "Failed to list active applications")
 	assert.Len(t, page1, 2)
 	assert.Equal(t, appNames[0], page1[0].Name)
 	assert.Equal(t, appNames[1], page1[1].Name)
 
-	// second page of apps
+	// second page of apps (cursor-based)
 	page2, err := tdb.Queries.ListActiveApplications(tdb.Ctx, db.ListActiveApplicationsParams{
-		Limit:  2,
-		Offset: 2,
+		Column1: page1[len(page1)-1].Name,
+		Limit:   2,
 	})
 	require.NoError(t, err, "Failed to list active applications")
 	assert.Len(t, page2, 1)
@@ -115,8 +115,8 @@ func TestListActiveApplications(t *testing.T) {
 	require.NoError(t, err, "Failed to deactivate application")
 
 	activeApps, err := tdb.Queries.ListActiveApplications(tdb.Ctx, db.ListActiveApplicationsParams{
-		Limit:  10,
-		Offset: 0,
+		Column1: "",
+		Limit:   10,
 	})
 	require.NoError(t, err, "Failed to list active apps after deactivation")
 	assert.Len(t, activeApps, 2)
@@ -133,20 +133,20 @@ func TestListApplications(t *testing.T) {
 	appNames := []string{"app-1", "app-2", "app-3"}
 	slices.Sort(appNames)
 
-	// first page of apps
+	// first page of apps (cursor-based)
 	page1, err := tdb.Queries.ListApplications(tdb.Ctx, db.ListApplicationsParams{
-		Limit:  2,
-		Offset: 0,
+		Column1: "",
+		Limit:   2,
 	})
 	require.NoError(t, err, "Failed to list applications")
 	assert.Len(t, page1, 2)
 	assert.Equal(t, appNames[0], page1[0].Name)
 	assert.Equal(t, appNames[1], page1[1].Name)
 
-	// second page of apps
+	// second page of apps (cursor-based)
 	page2, err := tdb.Queries.ListApplications(tdb.Ctx, db.ListApplicationsParams{
-		Limit:  2,
-		Offset: 2,
+		Column1: page1[len(page1)-1].Name,
+		Limit:   2,
 	})
 	require.NoError(t, err, "Failed to list applications")
 	assert.Len(t, page2, 1)
@@ -156,10 +156,10 @@ func TestListApplications(t *testing.T) {
 	err = tdb.Queries.DeactivateApplication(tdb.Ctx, apps[1].ID)
 	require.NoError(t, err, "Failed to deactivate application")
 
-	// ListApplications should return all apps including deactivated
+	// ListApplications should return all apps including deactivated (cursor-based)
 	allApps, err := tdb.Queries.ListApplications(tdb.Ctx, db.ListApplicationsParams{
-		Limit:  10,
-		Offset: 0,
+		Column1: "",
+		Limit:   10,
 	})
 	require.NoError(t, err, "Failed to list all applications")
 	assert.Len(t, allApps, 3)
