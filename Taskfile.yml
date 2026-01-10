@@ -97,7 +97,7 @@ tasks:
     desc: Build shenctl binary
     cmds:
       - mkdir -p bin
-      - go build -o bin/shenctl ./cmd/shenctl
+      - go build -o bin/shenctl ./cli/shenctl
 
   build:
     desc: Build all binaries
