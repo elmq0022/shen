@@ -21,9 +21,9 @@ This document tracks the implementation milestones for the Shen authentication a
 - [x] `GET /.well-known/jwks.json` endpoint - expose public keys in JWK format
 
 ### CLI (shenctl)
-- [ ] `shenctl auth login` - authenticate with username/password (calls `POST /api/v1/auth/login`)
+- [x] `shenctl auth login` - authenticate with username/password (calls `POST /api/v1/auth/login`)
 - [ ] `shenctl auth logout` - logout and revoke current session (calls `POST /api/v1/auth/logout`)
-- [ ] Store session token in local config file (`~/.shenctl/config` or similar)
+- [x] Store session token in local cache file `~/.cache/shenctl/session` 
 - [ ] Load session token from config for authenticated requests
 - [ ] `shenctl config show` - display current configuration
 - [ ] `shenctl config set` - set configuration values
