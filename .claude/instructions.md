@@ -242,6 +242,12 @@ LIMIT $3;
 
 ## Development Guidelines
 
+### Go Code Style
+- **Prefer `any` over `interface{}`** - Use the modern `any` alias introduced in Go 1.18+ for empty interfaces
+  - Example: `func process(data any)` instead of `func process(data interface{})`
+  - More concise and readable
+  - Semantically identical to `interface{}`
+
 ### Before Making Changes
 1. Read relevant documentation in [docs/](docs/)
 2. Understand existing patterns and rationale
