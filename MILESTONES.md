@@ -23,11 +23,13 @@ This document tracks the implementation milestones for the Shen authentication a
 ### CLI (shenctl)
 - [x] `shenctl auth login` - authenticate with username/password (calls `POST /api/v1/auth/login`)
 - [x] `shenctl auth logout` - logout and revoke current session (calls `POST /api/v1/auth/logout`)
-- [x] Store session token in local cache file `~/.cache/shenctl/session` 
+- [x] Store session token in local cache file `~/.cache/shenctl/session`
 - [x] Load session token from config for authenticated requests
-- [ ] `shenctl config show` - display current configuration
-- [ ] `shenctl config set` - set configuration values
-- [ ] `shenctl config del` - delete configuration keys
+- [x] `shenctl config list` - list all configuration values
+- [x] `shenctl config get` - get a specific configuration value
+- [x] `shenctl config set` - set configuration values
+- [x] `shenctl config unset` - remove configuration values
+- [x] Configuration stored in `$XDG_CONFIG_HOME/shenctl/config.toml`
 
 ### Testing
 - [ ] Integration test: bootstrap creates admin user and JWT keys
