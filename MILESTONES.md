@@ -35,6 +35,7 @@ This document tracks the implementation milestones for the Shen authentication a
 - [ ] Integration test: session token stored and reused by CLI
 - [ ] Integration test: invalid credentials return 401
 - [ ] Integration test: JWKS endpoint returns valid JWK
+- [ ] Integration test: Logout revokes all of the user's active session tokens
 
 ---
 
