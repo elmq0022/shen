@@ -4,36 +4,36 @@ Copyright © 2026 Aaron Elmquist
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/elmq0022/shen/cli/shenctl/cmd/client"
 	"github.com/spf13/cobra"
 )
 
 // authCmd represents the auth command
 var authCmd = &cobra.Command{
 	Use:   "auth",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Authentication commands",
+	Long:  `Manage authentication with the shen server. Use login to authenticate and logout to clear credentials.`,
+}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+var loginCmd = &cobra.Command{
+	Use:   "login",
+	Short: "Login to shen",
+	Long:  `Authenticate with the shen server and store credentials locally.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("auth called")
+		client.Login()
+	},
+}
+
+var logoutCmd = &cobra.Command{
+	Use:   "logout",
+	Short: "Logout from shen",
+	Long:  `Clear stored credentials and logout from the shen server.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		client.Logout()
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(authCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// authCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// authCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	authCmd.AddCommand(loginCmd, logoutCmd)
 }
