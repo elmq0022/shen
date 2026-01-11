@@ -80,20 +80,33 @@ func (h *Handler) Login(c echo.Context) error {
 }
 
 func (h *Handler) Logout(c echo.Context) error {
-	var lr LogoutRequest
-	if err := c.Bind(&lr); err != nil {
-		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse(err.Error()))
+
+	authHeader := c.Request().Header.Get("Authorization")
+	if authHeader == "" {
+		return c.JSON(http.StatusUnauthorized, handlers.NewErrorResponse("Authorization header required"))
 	}
 
-	hashedToken := crypto.HashToken(lr.SessionToken)
+	const prefix = "Bearer "
+	if len(authHeader) < len(prefix) || authHeader[:len(prefix)] != prefix {
+		return c.JSON(http.StatusUnauthorized, handlers.NewErrorResponse("Invalid authorization header format"))
+	}
 
-	// Revoke the session by hashed token
-	err := h.queries.RevokeSessionByHashedToken(c.Request().Context(), hashedToken)
+	sessionToken := authHeader[len(prefix):]
+	hashedToken := crypto.HashToken(sessionToken)
+
+	// Get the session to find the user ID
+	session, err := h.queries.GetSessionByHashedToken(c.Request().Context(), hashedToken)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("Failed to revoke session"))
+		return c.JSON(http.StatusUnauthorized, handlers.NewErrorResponse("Invalid session"))
 	}
 
-	return c.JSON(http.StatusOK, LogoutResponse{Message: "Successfully logged out"})
+	// Revoke all sessions for the user
+	err = h.queries.RevokeAllUserSessions(c.Request().Context(), session.UserID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("Failed to revoke sessions"))
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 // GetJWKS returns the JSON Web Key Set (JWKS) containing all active verification keys.

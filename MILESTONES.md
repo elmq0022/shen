@@ -22,9 +22,9 @@ This document tracks the implementation milestones for the Shen authentication a
 
 ### CLI (shenctl)
 - [x] `shenctl auth login` - authenticate with username/password (calls `POST /api/v1/auth/login`)
-- [ ] `shenctl auth logout` - logout and revoke current session (calls `POST /api/v1/auth/logout`)
+- [x] `shenctl auth logout` - logout and revoke current session (calls `POST /api/v1/auth/logout`)
 - [x] Store session token in local cache file `~/.cache/shenctl/session` 
-- [ ] Load session token from config for authenticated requests
+- [x] Load session token from config for authenticated requests
 - [ ] `shenctl config show` - display current configuration
 - [ ] `shenctl config set` - set configuration values
 - [ ] `shenctl config del` - delete configuration keys
