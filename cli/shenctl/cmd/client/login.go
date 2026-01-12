@@ -28,7 +28,7 @@ func Login() error {
 		Password: password,
 	}
 
-	req, err := utils.NewRequestBuilder(http.MethodPost, "http://localhost:8080/api/v1/auth/login").
+	req, err := utils.NewRequestBuilder(http.MethodPost, "/api/v1/auth/login").
 		WithJSON(loginRequest).
 		Build()
 

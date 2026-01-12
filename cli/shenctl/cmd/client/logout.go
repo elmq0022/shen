@@ -26,7 +26,7 @@ func Logout() error {
 		return fmt.Errorf("failed to read session file: %w", err)
 	}
 
-	req, err := utils.NewRequestBuilder(http.MethodPost, "http://localhost:8080/api/v1/auth/logout").
+	req, err := utils.NewRequestBuilder(http.MethodPost, "/api/v1/auth/logout").
 		WithHeader("Authorization", "Bearer "+strings.TrimSpace(string(sessionToken))).
 		Build()
 

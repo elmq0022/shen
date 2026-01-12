@@ -6,20 +6,33 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+
+	"github.com/spf13/viper"
 )
 
 type RequestBuilder struct {
 	method   string
-	url      string
+	baseURL  string
+	endpoint string
 	headers  map[string]string
 	jsonBody any
 }
 
-func NewRequestBuilder(method, url string) *RequestBuilder {
+func GetBaseURL() string {
+	baseURL := viper.GetString("base_url")
+	if baseURL == "" {
+		return "http://localhost:8080"
+	}
+	return baseURL
+}
+
+func NewRequestBuilder(method, endpoint string) *RequestBuilder {
 	return &RequestBuilder{
-		method:  method,
-		url:     url,
-		headers: make(map[string]string),
+		method:   method,
+		baseURL:  GetBaseURL(),
+		endpoint: endpoint,
+		headers:  make(map[string]string),
 	}
 }
 
@@ -45,7 +58,14 @@ func (b *RequestBuilder) Build() (*http.Request, error) {
 		body = bytes.NewReader(payload)
 	}
 
-	req, err := http.NewRequest(b.method, b.url, body)
+	// Ensure proper URL joining: remove trailing slash from baseURL and ensure endpoint starts with /
+	baseURL := strings.TrimRight(b.baseURL, "/")
+	endpoint := b.endpoint
+	if !strings.HasPrefix(endpoint, "/") {
+		endpoint = "/" + endpoint
+	}
+	fullURL := baseURL + endpoint
+	req, err := http.NewRequest(b.method, fullURL, body)
 	if err != nil {
 		return nil, err
 	}
