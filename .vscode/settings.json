@@ -6,6 +6,6 @@
     "editor.defaultFormatter": "bradymholt.pgformatter"
   },
    "gopls": {
-    "build.buildFlags": ["-tags=integration"]
+    "build.buildFlags": ["-tags=integration,cli_integration"]
   }
 }
