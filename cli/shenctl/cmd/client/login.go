@@ -12,16 +12,7 @@ import (
 	"github.com/elmq0022/shen/internal/handlers/auth"
 )
 
-func Login() error {
-	username, err := utils.ReadUsername()
-	if err != nil {
-		return fmt.Errorf("failed to read username: %w", err)
-	}
-
-	password, err := utils.ReadPassword()
-	if err != nil {
-		return fmt.Errorf("failed to read password: %w", err)
-	}
+func Login(username, password string) error {
 
 	loginRequest := auth.LoginRequest{
 		Username: username,
