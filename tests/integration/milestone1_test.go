@@ -11,8 +11,7 @@ import (
 func TestMilestone1_BootstrapAndAdminAuthentication(t *testing.T) {
 	// Setup: Reset database and start server
 	resetDB(t)
-	server := startServer(shen)
-	defer server.Stop()
+	startTestServer(t, shen)
 
 	t.Run("Bootstrap creates admin user and JWT keys", func(t *testing.T) {
 		// TODO: Verify that bootstrap process created:

@@ -45,25 +45,24 @@ func resetDB(t *testing.T) {
 	}
 }
 
-type Server struct {
-	cmd *exec.Cmd
-}
+func startTestServer(t *testing.T, binaryPath string) {
+	t.Helper()
 
-func startServer(binaryPath string) *Server {
 	cmd := exec.Command(binaryPath)
-	s := &Server{cmd: cmd}
 
 	if err := cmd.Start(); err != nil {
-		panic(fmt.Errorf("could not start the test server: %w", err))
+		t.Fatalf("could not start the test server: %v", err)
 	}
 
 	// Wait for server to be ready
 	if err := waitForServer("http://localhost:8080"); err != nil {
-		s.Stop()
-		panic(fmt.Errorf("server failed to become ready: %w", err))
+		stopServer(cmd)
+		t.Fatalf("server failed to become ready: %v", err)
 	}
 
-	return s
+	t.Cleanup(func() {
+		stopServer(cmd)
+	})
 }
 
 func waitForServer(baseURL string) error {
@@ -82,12 +81,12 @@ func waitForServer(baseURL string) error {
 	return fmt.Errorf("server failed to start within 5 seconds")
 }
 
-func (s *Server) Stop() {
-	if s == nil || s.cmd == nil || s.cmd.Process == nil {
+func stopServer(cmd *exec.Cmd) {
+	if cmd == nil || cmd.Process == nil {
 		return
 	}
-	s.cmd.Process.Kill()
-	s.cmd.Wait()
+	cmd.Process.Kill()
+	cmd.Wait()
 }
 
 func setTempXDGConfig(t *testing.T) string {
