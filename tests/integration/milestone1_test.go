@@ -3,6 +3,9 @@
 package integration
 
 import (
+	"os"
+	"os/exec"
+	"path/filepath"
 	"testing"
 )
 
@@ -12,7 +15,7 @@ func TestMilestone1_BootstrapAndAdminAuthentication(t *testing.T) {
 	// Setup: Reset database and start server
 	resetDB(t)
 	startTestServer(t, shen)
-	setTempXDGConfig(t)
+	xdgDirs := setTempXDG(t)
 
 	t.Run("Bootstrap creates admin user and JWT keys", func(t *testing.T) {
 		// TODO: Verify that bootstrap process created:
@@ -23,12 +26,20 @@ func TestMilestone1_BootstrapAndAdminAuthentication(t *testing.T) {
 	})
 
 	t.Run("Login with default admin credentials", func(t *testing.T) {
-		// TODO: Test successful login with admin credentials
-		// - Run: shenctl auth login
-		// - Provide default admin username/password
-		// - Verify successful authentication response
-		// - Verify session token is returned
-		t.Skip("Not implemented yet")
+		login := exec.Command(shenctl, "auth", "login", "--username", "admin", "--password", "admin")
+		if err := login.Run(); err != nil {
+			t.Fatalf("failed to login %v", err)
+		}
+
+		cacheFile := filepath.Join(xdgDirs.CacheDir, "shenctl", "session")
+		token, err := os.ReadFile(cacheFile)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if string(token) == "" {
+			t.Fatal("no session token")
+		}
 	})
 
 	t.Run("Session token stored and reused by CLI", func(t *testing.T) {

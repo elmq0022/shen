@@ -89,29 +89,58 @@ func stopServer(cmd *exec.Cmd) {
 	cmd.Wait()
 }
 
-func setTempXDGConfig(t *testing.T) string {
+// XDGDirs holds temporary XDG directory paths for testing
+type XDGDirs struct {
+	ConfigDir string
+	CacheDir  string
+}
+
+func setTempXDG(t *testing.T) *XDGDirs {
 	t.Helper()
 
-	tempDir, err := os.MkdirTemp("", "shen-test-config-*")
+	configDir, err := os.MkdirTemp("", "shen-test-config-*")
 	if err != nil {
 		t.Fatalf("could not create temp config dir: %v", err)
 	}
 
-	originalXDG := os.Getenv("XDG_CONFIG_HOME")
+	cacheDir, err := os.MkdirTemp("", "shen-test-cache-*")
+	if err != nil {
+		os.RemoveAll(configDir)
+		t.Fatalf("could not create temp cache dir: %v", err)
+	}
 
-	if err := os.Setenv("XDG_CONFIG_HOME", tempDir); err != nil {
-		os.RemoveAll(tempDir)
+	originalConfig := os.Getenv("XDG_CONFIG_HOME")
+	originalCache := os.Getenv("XDG_CACHE_HOME")
+
+	if err := os.Setenv("XDG_CONFIG_HOME", configDir); err != nil {
+		os.RemoveAll(configDir)
+		os.RemoveAll(cacheDir)
 		t.Fatalf("could not set XDG_CONFIG_HOME: %v", err)
 	}
 
+	if err := os.Setenv("XDG_CACHE_HOME", cacheDir); err != nil {
+		os.RemoveAll(configDir)
+		os.RemoveAll(cacheDir)
+		t.Fatalf("could not set XDG_CACHE_HOME: %v", err)
+	}
+
 	t.Cleanup(func() {
-		if originalXDG != "" {
-			os.Setenv("XDG_CONFIG_HOME", originalXDG)
+		if originalConfig != "" {
+			os.Setenv("XDG_CONFIG_HOME", originalConfig)
 		} else {
 			os.Unsetenv("XDG_CONFIG_HOME")
 		}
-		os.RemoveAll(tempDir)
+		if originalCache != "" {
+			os.Setenv("XDG_CACHE_HOME", originalCache)
+		} else {
+			os.Unsetenv("XDG_CACHE_HOME")
+		}
+		os.RemoveAll(configDir)
+		os.RemoveAll(cacheDir)
 	})
 
-	return tempDir
+	return &XDGDirs{
+		ConfigDir: configDir,
+		CacheDir:  cacheDir,
+	}
 }
