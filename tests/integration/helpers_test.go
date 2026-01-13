@@ -89,3 +89,30 @@ func (s *Server) Stop() {
 	s.cmd.Process.Kill()
 	s.cmd.Wait()
 }
+
+func setTempXDGConfig(t *testing.T) string {
+	t.Helper()
+
+	tempDir, err := os.MkdirTemp("", "shen-test-config-*")
+	if err != nil {
+		t.Fatalf("could not create temp config dir: %v", err)
+	}
+
+	originalXDG := os.Getenv("XDG_CONFIG_HOME")
+
+	if err := os.Setenv("XDG_CONFIG_HOME", tempDir); err != nil {
+		os.RemoveAll(tempDir)
+		t.Fatalf("could not set XDG_CONFIG_HOME: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if originalXDG != "" {
+			os.Setenv("XDG_CONFIG_HOME", originalXDG)
+		} else {
+			os.Unsetenv("XDG_CONFIG_HOME")
+		}
+		os.RemoveAll(tempDir)
+	})
+
+	return tempDir
+}
