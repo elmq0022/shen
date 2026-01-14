@@ -34,9 +34,8 @@ This document tracks the implementation milestones for the Shen authentication a
 ### Testing
 - [x] Integration test: bootstrap creates admin user and JWT keys
 - [x] Integration test: login with default admin credentials and verify session token is stored
-- [ ] Integration test: session token stored and reused by CLI
 - [x] Integration test: invalid credentials return 401
-- [ ] Integration test: JWKS endpoint returns valid JWK
+- [x] Integration test: JWKS endpoint returns valid JWK
 - [x] Integration test: logout revokes all of the active user session tokens
 
 ---
@@ -60,6 +59,7 @@ This document tracks the implementation milestones for the Shen authentication a
 - [ ] `shenctl user delete <username>` - soft delete user
 
 ### Testing
+- [ ] Integration test: session token stored and reused by CLI
 - [ ] Integration test: admin creates new user
 - [ ] Integration test: admin lists users
 - [ ] Integration test: admin updates user role

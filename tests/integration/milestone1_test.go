@@ -3,12 +3,15 @@
 package integration
 
 import (
+	"encoding/json"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
 
 	db "github.com/elmq0022/shen/db/sqlc"
+	"github.com/elmq0022/shen/internal/handlers/auth"
 	"github.com/elmq0022/shen/internal/keys"
 	"github.com/stretchr/testify/assert"
 )
@@ -65,13 +68,6 @@ func TestMilestone1_BootstrapAndAdminAuthentication(t *testing.T) {
 		}
 	})
 
-	t.Run("Session token stored and reused by CLI", func(t *testing.T) {
-		// TODO: Verify session token persistence
-		// - Make authenticated request
-		// - Verify stored token is sent in request headers
-		t.Skip("Not implemented yet")
-	})
-
 	t.Run("Invalid credentials return 401", func(t *testing.T) {
 		loginCmd := exec.Command(shenctl, "auth", "login", "--username", "bob", "--password", "bad-password")
 		if err := loginCmd.Run(); err == nil {
@@ -80,13 +76,23 @@ func TestMilestone1_BootstrapAndAdminAuthentication(t *testing.T) {
 	})
 
 	t.Run("JWKS endpoint returns valid JWK", func(t *testing.T) {
-		// TODO: Test JWKS endpoint
-		// - Make GET request to /.well-known/jwks.json
-		// - Verify response is valid JSON
-		// - Verify response contains keys array
-		// - Verify key format is valid JWK (includes kid, kty, use, alg, n, e)
-		// - Verify public key can be parsed
-		t.Skip("Not implemented yet")
+		resp, err := http.Get("http://localhost:8080/.well-known/jwks.json")
+		if err != nil {
+			t.Fatalf("failed to fetch JWKS endpoint: %v", err)
+		}
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+
+		var jwks auth.JWKS
+		if err := json.NewDecoder(resp.Body).Decode(&jwks); err != nil {
+			t.Fatalf("failed to decode JWKS response: %v", err)
+		}
+
+		assert.NotEmpty(t, jwks.Keys)
+		assert.Equal(t, "RSA", jwks.Keys[0].Kty)
+		assert.Equal(t, "sig", jwks.Keys[0].Use)
 	})
 
 	t.Run("Logout revokes all of the active user session tokens", func(t *testing.T) {
