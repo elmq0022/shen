@@ -7,6 +7,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/elmq0022/shen/internal/keys"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestMilestone1_BootstrapAndAdminAuthentication orchestrates all Milestone 1 tests
@@ -18,11 +21,30 @@ func TestMilestone1_BootstrapAndAdminAuthentication(t *testing.T) {
 	xdgDirs := setTempXDG(t)
 
 	t.Run("Bootstrap creates admin user and JWT keys", func(t *testing.T) {
-		// TODO: Verify that bootstrap process created:
-		// - Default admin user in database
-		// - RSA key pair for JWT signing
-		// - Keys are stored in database in PEM format
-		t.Skip("Not implemented yet")
+		user, err := queries.GetUserByUsername(t.Context(), "admin")
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, "admin", user.Username)
+
+		jwtKey, err := queries.GetActiveSigningKey(t.Context())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.NotEqual(t, "", string(jwtKey.EncryptedPrivateKey))
+		assert.Contains(t, jwtKey.PublicKey, "-----BEGIN PUBLIC KEY-----")
+		assert.Contains(t, jwtKey.PublicKey, "-----END PUBLIC KEY-----")
+
+		kek, err := keys.LoadKEK()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		decryptedPrivateKey, err := keys.DecryptPrivateKey(jwtKey.EncryptedPrivateKey, kek)
+		assert.NoError(t, err, "Private key should decrypt successfully")
+		assert.Contains(t, string(decryptedPrivateKey), "-----BEGIN PRIVATE KEY-----")
+		assert.Contains(t, string(decryptedPrivateKey), "-----END PRIVATE KEY-----")
 	})
 
 	t.Run("Login with default admin credentials", func(t *testing.T) {
