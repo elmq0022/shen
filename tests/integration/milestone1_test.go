@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	db "github.com/elmq0022/shen/db/sqlc"
 	"github.com/elmq0022/shen/internal/keys"
 	"github.com/stretchr/testify/assert"
 )
@@ -47,7 +48,7 @@ func TestMilestone1_BootstrapAndAdminAuthentication(t *testing.T) {
 		assert.Contains(t, string(decryptedPrivateKey), "-----END PRIVATE KEY-----")
 	})
 
-	t.Run("Login with default admin credentials", func(t *testing.T) {
+	t.Run("Login with default admin credentials and verify session token is stored", func(t *testing.T) {
 		login := exec.Command(shenctl, "auth", "login", "--username", "admin", "--password", "admin")
 		if err := login.Run(); err != nil {
 			t.Fatalf("failed to login %v", err)
@@ -66,8 +67,6 @@ func TestMilestone1_BootstrapAndAdminAuthentication(t *testing.T) {
 
 	t.Run("Session token stored and reused by CLI", func(t *testing.T) {
 		// TODO: Verify session token persistence
-		// - Login as admin
-		// - Verify session token is stored in ~/.cache/shenctl/session
 		// - Make authenticated request
 		// - Verify stored token is sent in request headers
 		t.Skip("Not implemented yet")
@@ -92,14 +91,27 @@ func TestMilestone1_BootstrapAndAdminAuthentication(t *testing.T) {
 		t.Skip("Not implemented yet")
 	})
 
-	t.Run("Logout revokes all of the user's active session tokens", func(t *testing.T) {
-		// TODO: Test logout functionality
-		// - Login as admin (create session)
-		// - Verify session is valid (make authenticated request)
-		// - Run: shenctl auth logout
-		// - Verify logout was successful
-		// - Verify session token is no longer valid (401 on authenticated request)
-		// - Verify all user's sessions are revoked (if multiple sessions existed)
-		t.Skip("Not implemented yet")
+	t.Run("Logout revokes all of the active user session tokens", func(t *testing.T) {
+		// TODO: Verify session token is no longer valid (401 on authenticated request)
+		logoutCmd := exec.Command(shenctl, "auth", "logout")
+		if err := logoutCmd.Run(); err != nil {
+			t.Fatalf("logout failed: %v", err)
+		}
+
+		user, err := queries.GetUserByUsername(t.Context(), "admin")
+		if err != nil {
+			t.Fatalf("failed to get user: %v", err)
+		}
+
+		sessions, err := queries.ListActiveSessionsByUser(t.Context(), db.ListActiveSessionsByUserParams{
+			Limit:    int32(10),
+			UserID:   user.ID,
+			CursorID: 0,
+		})
+		if err != nil {
+			t.Fatalf("failed to list sessions: %v", err)
+		}
+
+		assert.Empty(t, sessions)
 	})
 }
