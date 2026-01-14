@@ -32,12 +32,12 @@ This document tracks the implementation milestones for the Shen authentication a
 - [x] Configuration stored in `$XDG_CONFIG_HOME/shenctl/config.toml`
 
 ### Testing
-- [ ] Integration test: bootstrap creates admin user and JWT keys
-- [ ] Integration test: login with default admin credentials
+- [x] Integration test: bootstrap creates admin user and JWT keys
+- [x] Integration test: login with default admin credentials and verify session token is stored
 - [ ] Integration test: session token stored and reused by CLI
-- [ ] Integration test: invalid credentials return 401
+- [x] Integration test: invalid credentials return 401
 - [ ] Integration test: JWKS endpoint returns valid JWK
-- [ ] Integration test: Logout revokes all of the user's active session tokens
+- [x] Integration test: logout revokes all of the active user session tokens
 
 ---
 

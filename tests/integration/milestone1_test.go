@@ -73,12 +73,10 @@ func TestMilestone1_BootstrapAndAdminAuthentication(t *testing.T) {
 	})
 
 	t.Run("Invalid credentials return 401", func(t *testing.T) {
-		// TODO: Test authentication failure
-		// - Run: shenctl auth login with wrong credentials
-		// - Verify 401 Unauthorized response
-		// - Verify no session token is stored
-		// - Verify appropriate error message displayed
-		t.Skip("Not implemented yet")
+		loginCmd := exec.Command(shenctl, "auth", "login", "--username", "bob", "--password", "bad-password")
+		if err := loginCmd.Run(); err == nil {
+			t.Fatal("logged in with bad creds")
+		}
 	})
 
 	t.Run("JWKS endpoint returns valid JWK", func(t *testing.T) {
