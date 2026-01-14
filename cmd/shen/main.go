@@ -10,6 +10,7 @@ import (
 	"github.com/elmq0022/shen/internal/bootstrap"
 	"github.com/elmq0022/shen/internal/crypto"
 	"github.com/elmq0022/shen/internal/handlers/jwks"
+	"github.com/elmq0022/shen/internal/routes"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
@@ -104,7 +105,7 @@ func initServer(queries *db.Queries) *echo.Echo {
 
 	// Auth routes
 	api := e.Group("/api/v1/")
-	NewAuthGroup(api.Group("auth/"), queries)
+	routes.RegisterAuthRoutes(api.Group("auth/"), queries)
 
 	return e
 }
