@@ -9,7 +9,7 @@ import (
 	db "github.com/elmq0022/shen/db/sqlc"
 	"github.com/elmq0022/shen/internal/bootstrap"
 	"github.com/elmq0022/shen/internal/crypto"
-	"github.com/elmq0022/shen/internal/handlers/auth"
+	"github.com/elmq0022/shen/internal/handlers/jwks"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
@@ -91,9 +91,6 @@ func initServer(queries *db.Queries) *echo.Echo {
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 
-	// Initialize handlers
-	authHandler := auth.NewHandler(queries)
-
 	// Health check endpoint
 	e.GET("/api/v1/healthz", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{
@@ -101,12 +98,13 @@ func initServer(queries *db.Queries) *echo.Echo {
 		})
 	})
 
-	// JWKS endpoint (RFC 7517)
-	e.GET("/.well-known/jwks.json", authHandler.GetJWKS)
+	// JWKS endpoint (RFC 7517) - kept at root level per spec
+	jwksHandler := jwks.NewHandler(queries)
+	e.GET("/.well-known/jwks.json", jwksHandler.GetJWKS)
 
 	// Auth routes
-	e.POST("/api/v1/auth/login", authHandler.Login)
-	e.POST("/api/v1/auth/logout", authHandler.Logout)
+	api := e.Group("/api/v1/")
+	NewAuthGroup(api.Group("auth/"), queries)
 
 	return e
 }

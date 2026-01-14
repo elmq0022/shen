@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	db "github.com/elmq0022/shen/db/sqlc"
-	"github.com/elmq0022/shen/internal/handlers/auth"
+	"github.com/elmq0022/shen/internal/handlers/jwks"
 	"github.com/elmq0022/shen/internal/keys"
 	"github.com/stretchr/testify/assert"
 )
@@ -85,7 +85,7 @@ func TestMilestone1_BootstrapAndAdminAuthentication(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 
-		var jwks auth.JWKS
+		var jwks jwks.JWKS
 		if err := json.NewDecoder(resp.Body).Decode(&jwks); err != nil {
 			t.Fatalf("failed to decode JWKS response: %v", err)
 		}
