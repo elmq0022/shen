@@ -191,7 +191,6 @@ const listActiveUsers = `-- name: ListActiveUsers :many
 SELECT
   id,
   username,
-  hashed_password,
   active,
   ROLE,
   created_at,
@@ -211,19 +210,27 @@ type ListActiveUsersParams struct {
 	Limit   int32  `json:"limit"`
 }
 
-func (q *Queries) ListActiveUsers(ctx context.Context, arg ListActiveUsersParams) ([]ShenUser, error) {
+type ListActiveUsersRow struct {
+	ID        int32              `json:"id"`
+	Username  string             `json:"username"`
+	Active    bool               `json:"active"`
+	Role      int32              `json:"role"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) ListActiveUsers(ctx context.Context, arg ListActiveUsersParams) ([]ListActiveUsersRow, error) {
 	rows, err := q.db.Query(ctx, listActiveUsers, arg.Column1, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ShenUser
+	var items []ListActiveUsersRow
 	for rows.Next() {
-		var i ShenUser
+		var i ListActiveUsersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Username,
-			&i.HashedPassword,
 			&i.Active,
 			&i.Role,
 			&i.CreatedAt,
@@ -243,7 +250,6 @@ const listUsers = `-- name: ListUsers :many
 SELECT
   id,
   username,
-  hashed_password,
   active,
   ROLE,
   created_at,
@@ -262,19 +268,27 @@ type ListUsersParams struct {
 	Limit   int32  `json:"limit"`
 }
 
-func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ShenUser, error) {
+type ListUsersRow struct {
+	ID        int32              `json:"id"`
+	Username  string             `json:"username"`
+	Active    bool               `json:"active"`
+	Role      int32              `json:"role"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error) {
 	rows, err := q.db.Query(ctx, listUsers, arg.Column1, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ShenUser
+	var items []ListUsersRow
 	for rows.Next() {
-		var i ShenUser
+		var i ListUsersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Username,
-			&i.HashedPassword,
 			&i.Active,
 			&i.Role,
 			&i.CreatedAt,
@@ -294,7 +308,6 @@ const listUsersByRole = `-- name: ListUsersByRole :many
 SELECT
   id,
   username,
-  hashed_password,
   active,
   ROLE,
   created_at,
@@ -315,19 +328,27 @@ type ListUsersByRoleParams struct {
 	Limit   int32  `json:"limit"`
 }
 
-func (q *Queries) ListUsersByRole(ctx context.Context, arg ListUsersByRoleParams) ([]ShenUser, error) {
+type ListUsersByRoleRow struct {
+	ID        int32              `json:"id"`
+	Username  string             `json:"username"`
+	Active    bool               `json:"active"`
+	Role      int32              `json:"role"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) ListUsersByRole(ctx context.Context, arg ListUsersByRoleParams) ([]ListUsersByRoleRow, error) {
 	rows, err := q.db.Query(ctx, listUsersByRole, arg.Role, arg.Column2, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ShenUser
+	var items []ListUsersByRoleRow
 	for rows.Next() {
-		var i ShenUser
+		var i ListUsersByRoleRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Username,
-			&i.HashedPassword,
 			&i.Active,
 			&i.Role,
 			&i.CreatedAt,

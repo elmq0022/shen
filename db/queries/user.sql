@@ -32,7 +32,6 @@ LIMIT 1;
 SELECT
   id,
   username,
-  hashed_password,
   active,
   ROLE,
   created_at,
@@ -49,7 +48,6 @@ LIMIT $2;
 SELECT
   id,
   username,
-  hashed_password,
   active,
   ROLE,
   created_at,
@@ -123,7 +121,6 @@ WHERE
 SELECT
   id,
   username,
-  hashed_password,
   active,
   ROLE,
   created_at,
