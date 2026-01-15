@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,8 +11,8 @@ import (
 	"github.com/elmq0022/shen/internal/bootstrap"
 	"github.com/elmq0022/shen/internal/crypto"
 	"github.com/elmq0022/shen/internal/handlers/jwks"
+	mw "github.com/elmq0022/shen/internal/middleware"
 	"github.com/elmq0022/shen/internal/routes"
-	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -30,7 +31,7 @@ func main() {
 	log.Println("Shen bootstrap completed successfully")
 
 	// Initialize Echo server
-	e := initServer(queries)
+	e := initServer(ctx, queries)
 
 	// Start server
 	port := getEnv("SHEN_PORT", "8080")
@@ -71,22 +72,12 @@ func runBootstrap(ctx context.Context, queries *db.Queries) {
 	log.Println("Bootstrap: admin user initialized")
 }
 
-type CustomValidator struct {
-	validator *validator.Validate
-}
-
-func (cv *CustomValidator) Validate(i interface{}) error {
-	if err := cv.validator.Struct(i); err != nil {
-		return err
-	}
-	return nil
-}
-
-func initServer(queries *db.Queries) *echo.Echo {
+func initServer(ctx context.Context, queries *db.Queries) *echo.Echo {
 	e := echo.New()
-
-	// Register validator
-	e.Validator = &CustomValidator{validator: validator.New()}
+	shenMiddleware, err := mw.NewMiddleware(ctx, queries)
+	if err != nil {
+		panic(fmt.Errorf("%w", err))
+	}
 
 	// Middleware
 	e.Use(middleware.RequestLogger())
@@ -106,6 +97,7 @@ func initServer(queries *db.Queries) *echo.Echo {
 	// Auth routes
 	api := e.Group("/api/v1/")
 	routes.RegisterAuthRoutes(api.Group("auth/"), queries)
+	routes.RegisterUserRoutes(api.Group("users/", shenMiddleware.IsAdmin), queries)
 
 	return e
 }
