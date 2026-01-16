@@ -97,3 +97,8 @@ func (m *Middleware) RequireRole(roleNames ...string) echo.MiddlewareFunc {
 func (m *Middleware) IsAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return m.RequireRole("admin")(next)
 }
+
+// IsAuthenticated allows any authenticated user (admin or user)
+func (m *Middleware) IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
+	return m.RequireRole("admin", "user")(next)
+}

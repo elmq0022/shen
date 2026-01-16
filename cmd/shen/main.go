@@ -31,7 +31,7 @@ func main() {
 	log.Println("Shen bootstrap completed successfully")
 
 	// Initialize Echo server
-	e := initServer(ctx, queries)
+	e := initServer(ctx, pool, queries)
 
 	// Start server
 	port := getEnv("SHEN_PORT", "8080")
@@ -72,7 +72,7 @@ func runBootstrap(ctx context.Context, queries *db.Queries) {
 	log.Println("Bootstrap: admin user initialized")
 }
 
-func initServer(ctx context.Context, queries *db.Queries) *echo.Echo {
+func initServer(ctx context.Context, pool *pgxpool.Pool, queries *db.Queries) *echo.Echo {
 	e := echo.New()
 	shenMiddleware, err := mw.NewMiddleware(ctx, queries)
 	if err != nil {
@@ -97,7 +97,7 @@ func initServer(ctx context.Context, queries *db.Queries) *echo.Echo {
 	// Auth routes
 	api := e.Group("/api/v1/")
 	routes.RegisterAuthRoutes(api.Group("auth/"), queries)
-	routes.RegisterUserRoutes(api.Group("users/", shenMiddleware.IsAdmin), queries)
+	routes.RegisterUserRoutes(api.Group("users/"), pool, queries, shenMiddleware)
 
 	return e
 }

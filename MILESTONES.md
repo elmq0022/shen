@@ -47,7 +47,7 @@ This document tracks the implementation milestones for the Shen authentication a
 ### Server/Backend
 - [x] `GET /api/v1/users` - list all users (admin only)
 - [x] `POST /api/v1/users` - create new user (admin only)
-- [ ] `PATCH /api/v1/users/:username` - update user role (admin only)
+- [x] `PATCH /api/v1/users/:username` - update user (role: admin only, password: self or admin)
 - [x] `DELETE /api/v1/users/:username` - soft delete user (admin only)
 - [x] Authorization middleware - check user role for admin endpoints
 - [ ] Validate user roles: service, user, admin
@@ -55,7 +55,7 @@ This document tracks the implementation milestones for the Shen authentication a
 ### CLI (shenctl)
 - [ ] `shenctl user list` - list all users
 - [ ] `shenctl user create <username> <role>` - create new user
-- [ ] `shenctl user update <username> <role>` - update user role
+- [ ] `shenctl user update <username> [--role <role>] [--password]` - update user (role: admin only, password: self or admin)
 - [ ] `shenctl user delete <username>` - soft delete user
 
 ### Testing
@@ -63,6 +63,9 @@ This document tracks the implementation milestones for the Shen authentication a
 - [ ] Integration test: admin creates new user
 - [ ] Integration test: admin lists users
 - [ ] Integration test: admin updates user role
+- [ ] Integration test: user updates own password
+- [ ] Integration test: admin updates another user's password
+- [ ] Integration test: user cannot update another user's password
 - [ ] Integration test: admin deletes user
 - [ ] Integration test: non-admin cannot access user management endpoints
 - [ ] Integration test: service accounts cannot login to Shen

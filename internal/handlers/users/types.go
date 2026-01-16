@@ -5,3 +5,8 @@ type CreateUserRequest struct {
 	Password string `json:"password"`
 	Role     string `json:"role"`
 }
+
+type UpdateUserRequest struct {
+	Role     *string `json:"role,omitempty"`
+	Password *string `json:"password,omitempty"`
+}
