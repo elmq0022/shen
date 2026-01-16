@@ -39,7 +39,7 @@ func TestListUsersByGroup(t *testing.T) {
 	f := CreateStandardFixtures(t, tdb)
 
 	users := CreateTestUsers(t, tdb, "member", 3)
-	allMembers := []db.ShenUser{f.User1, f.User2, f.Admin, users[0], users[1], users[2]}
+	allMembers := []db.CreateUserRow{f.User1, f.User2, f.Admin, users[0], users[1], users[2]}
 	addUsersToGroup(t, tdb, allMembers, f.Group1)
 	sortUsersByUsername(allMembers)
 
@@ -79,7 +79,11 @@ func TestListUsersByGroup(t *testing.T) {
 		Column2: "",
 	})
 	require.NoError(t, err, "Failed to retrieve all Group1 members")
-	assert.Equal(t, allMembers, allFetched)
+	require.Len(t, allFetched, len(allMembers))
+	for i, member := range allMembers {
+		assert.Equal(t, member.ID, allFetched[i].ID)
+		assert.Equal(t, member.Username, allFetched[i].Username)
+	}
 }
 
 func TestListGroupsByUser(t *testing.T) {
@@ -90,7 +94,7 @@ func TestListGroupsByUser(t *testing.T) {
 	allGroups := []db.ShenGroup{f.Group1, f.Group2, groups[0], groups[1], groups[2]}
 
 	for _, group := range allGroups {
-		addUsersToGroup(t, tdb, []db.ShenUser{f.User1}, group)
+		addUsersToGroup(t, tdb, []db.CreateUserRow{f.User1}, group)
 	}
 	sortGroupsByName(allGroups)
 
@@ -136,8 +140,8 @@ func TestIsUserInGroup(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	addUsersToGroup(t, tdb, []db.ShenUser{f.User1}, f.Group1)
-	addUsersToGroup(t, tdb, []db.ShenUser{f.User2}, f.Group2)
+	addUsersToGroup(t, tdb, []db.CreateUserRow{f.User1}, f.Group1)
+	addUsersToGroup(t, tdb, []db.CreateUserRow{f.User2}, f.Group2)
 
 	isUser1InGroup1, err := tdb.Queries.IsUserInGroup(tdb.Ctx, db.IsUserInGroupParams{
 		UserID:  f.User1.ID,
@@ -159,14 +163,14 @@ func TestCountUsersByGroup(t *testing.T) {
 	f := CreateStandardFixtures(t, tdb)
 
 	users := CreateTestUsers(t, tdb, "member", 3)
-	allMembers := []db.ShenUser{f.User1, f.User2, f.Admin, users[0], users[1], users[2]}
+	allMembers := []db.CreateUserRow{f.User1, f.User2, f.Admin, users[0], users[1], users[2]}
 	addUsersToGroup(t, tdb, allMembers, f.Group1)
 
 	count, err := tdb.Queries.CountUsersByGroup(tdb.Ctx, f.Group1.ID)
 	require.NoError(t, err, "Failed to count users by group")
 	assert.Equal(t, int64(6), count)
 
-	addUsersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
+	addUsersToGroup(t, tdb, []db.CreateUserRow{f.User1, f.User2}, f.Group2)
 
 	count, err = tdb.Queries.CountUsersByGroup(tdb.Ctx, f.Group2.ID)
 	require.NoError(t, err, "Failed to count users in Group2")
@@ -181,14 +185,14 @@ func TestCountGroupsByUser(t *testing.T) {
 	allGroups := []db.ShenGroup{f.Group1, f.Group2, groups[0], groups[1], groups[2]}
 
 	for _, group := range allGroups {
-		addUsersToGroup(t, tdb, []db.ShenUser{f.User1}, group)
+		addUsersToGroup(t, tdb, []db.CreateUserRow{f.User1}, group)
 	}
 
 	count, err := tdb.Queries.CountGroupsByUser(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to count groups by user")
 	assert.Equal(t, int64(5), count)
 
-	addUsersToGroup(t, tdb, []db.ShenUser{f.User2}, f.Group1)
+	addUsersToGroup(t, tdb, []db.CreateUserRow{f.User2}, f.Group1)
 
 	count, err = tdb.Queries.CountGroupsByUser(tdb.Ctx, f.User2.ID)
 	require.NoError(t, err, "Failed to count groups for User2")
@@ -199,8 +203,8 @@ func TestCountAllGroupMembers(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	addUsersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2, f.Admin}, f.Group1)
-	addUsersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
+	addUsersToGroup(t, tdb, []db.CreateUserRow{f.User1, f.User2, f.Admin}, f.Group1)
+	addUsersToGroup(t, tdb, []db.CreateUserRow{f.User1, f.User2}, f.Group2)
 
 	count, err := tdb.Queries.CountAllGroupMembers(tdb.Ctx)
 	require.NoError(t, err, "Failed to count all group members")
@@ -211,8 +215,8 @@ func TestListAllGroupMembers(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	addUsersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2, f.Admin}, f.Group1)
-	addUsersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
+	addUsersToGroup(t, tdb, []db.CreateUserRow{f.User1, f.User2, f.Admin}, f.Group1)
+	addUsersToGroup(t, tdb, []db.CreateUserRow{f.User1, f.User2}, f.Group2)
 
 	allMembers, err := tdb.Queries.ListAllGroupMembers(tdb.Ctx, db.ListAllGroupMembersParams{
 		Limit:    10,

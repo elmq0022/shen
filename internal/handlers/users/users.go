@@ -1,11 +1,15 @@
 package users
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	db "github.com/elmq0022/shen/db/sqlc"
+	"github.com/elmq0022/shen/internal/crypto"
 	"github.com/elmq0022/shen/internal/handlers"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
 )
 
@@ -35,4 +39,39 @@ func (h *Handler) ListUsers(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, users)
+}
+
+func (h *Handler) CreateUser(c echo.Context) error {
+	var cur CreateUserRequest
+	if err := c.Bind(&cur); err != nil {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse(err.Error()))
+	}
+
+	hashedPassword, err := crypto.HashedPassword(cur.Password)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to hash password"))
+	}
+
+	role, err := h.queries.GetRoleByName(c.Request().Context(), cur.Role)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("invalid role"))
+	}
+
+	user, err := h.queries.CreateUser(c.Request().Context(), db.CreateUserParams{
+		Username: cur.UserName,
+		HashedPassword: pgtype.Text{
+			String: hashedPassword,
+			Valid:  true,
+		},
+		Role: role.ID,
+	})
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return c.JSON(http.StatusConflict, handlers.NewErrorResponse("username already exists"))
+		}
+		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to create user"))
+	}
+
+	return c.JSON(http.StatusCreated, user)
 }

@@ -65,7 +65,7 @@ LIMIT $2;
 INSERT INTO shen_user(username, hashed_password, role)
   VALUES ($1, $2, $3)
 RETURNING
-  id, username, hashed_password, active, role, created_at, updated_at;
+  id, username, active, role, created_at, updated_at;
 
 -- name: UpdateUserPassword :exec
 UPDATE

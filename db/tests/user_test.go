@@ -19,8 +19,6 @@ func TestCreateUser(t *testing.T) {
 
 	// Verify created user fields
 	assert.Equal(t, "alice", created.Username)
-	assert.True(t, created.HashedPassword.Valid)
-	assert.Equal(t, "alice-hash123", created.HashedPassword.String)
 	assert.Equal(t, RoleUser, created.Role)
 	assert.True(t, created.Active, "User should be active by default")
 	assert.NotZero(t, created.ID)
@@ -34,12 +32,16 @@ func TestGetUser(t *testing.T) {
 	// Get user by ID
 	fetchedByID, err := tdb.Queries.GetUserByID(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to get user by ID")
-	assert.Equal(t, f.User1, fetchedByID)
+	assert.Equal(t, f.User1.ID, fetchedByID.ID)
+	assert.Equal(t, f.User1.Username, fetchedByID.Username)
+	assert.Equal(t, f.User1.Active, fetchedByID.Active)
+	assert.Equal(t, f.User1.Role, fetchedByID.Role)
 
 	// Get user by username
 	fetchedByUsername, err := tdb.Queries.GetUserByUsername(tdb.Ctx, "test.user1")
 	require.NoError(t, err, "Failed to get user by username")
-	assert.Equal(t, f.User1, fetchedByUsername)
+	assert.Equal(t, f.User1.ID, fetchedByUsername.ID)
+	assert.Equal(t, f.User1.Username, fetchedByUsername.Username)
 }
 
 func TestDeactivateUser(t *testing.T) {
@@ -58,11 +60,14 @@ func TestUpdateUserPassword(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	oldPassword := f.User1.HashedPassword.String
+	// Fetch user to get current password (CreateUserRow doesn't have it)
+	originalUser, err := tdb.Queries.GetUserByID(tdb.Ctx, f.User1.ID)
+	require.NoError(t, err, "Failed to get original user")
+	oldPassword := originalUser.HashedPassword.String
 
 	// Update password
 	newPassword := "newhash"
-	err := tdb.Queries.UpdateUserPassword(tdb.Ctx, db.UpdateUserPasswordParams{
+	err = tdb.Queries.UpdateUserPassword(tdb.Ctx, db.UpdateUserPasswordParams{
 		ID:             f.User1.ID,
 		HashedPassword: pgtype.Text{String: newPassword, Valid: true},
 	})

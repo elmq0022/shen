@@ -77,7 +77,7 @@ const createUser = `-- name: CreateUser :one
 INSERT INTO shen_user(username, hashed_password, role)
   VALUES ($1, $2, $3)
 RETURNING
-  id, username, hashed_password, active, role, created_at, updated_at
+  id, username, active, role, created_at, updated_at
 `
 
 type CreateUserParams struct {
@@ -86,13 +86,21 @@ type CreateUserParams struct {
 	Role           int32       `json:"role"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (ShenUser, error) {
+type CreateUserRow struct {
+	ID        int32              `json:"id"`
+	Username  string             `json:"username"`
+	Active    bool               `json:"active"`
+	Role      int32              `json:"role"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.HashedPassword, arg.Role)
-	var i ShenUser
+	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
-		&i.HashedPassword,
 		&i.Active,
 		&i.Role,
 		&i.CreatedAt,

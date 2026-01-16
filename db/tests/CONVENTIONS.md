@@ -76,7 +76,7 @@ page2, err := tdb.Queries.ListUsers(tdb.Ctx, db.ListUsersParams{Limit: 2, Cursor
 allUsers, err := tdb.Queries.ListUsers(tdb.Ctx, db.ListUsersParams{Limit: 100, Cursor: ""})
 
 // Contextual naming
-group1Managers := []db.ShenUser{f.User1, f.User2}
+group1Managers := []db.CreateUserRow{f.User1, f.User2}
 addManagersToGroup(t, tdb, group1Managers, f.Group1)
 ```
 

@@ -38,11 +38,11 @@ func TestListManagersByGroup(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	group1Managers := []db.ShenUser{f.User1, f.User2, f.Admin}
+	group1Managers := []db.CreateUserRow{f.User1, f.User2, f.Admin}
 	addManagersToGroup(t, tdb, group1Managers, f.Group1)
 	sortUsersByUsername(group1Managers)
 
-	group2Managers := []db.ShenUser{f.User1, f.User2}
+	group2Managers := []db.CreateUserRow{f.User1, f.User2}
 	addManagersToGroup(t, tdb, group2Managers, f.Group2)
 	sortUsersByUsername(group2Managers)
 
@@ -52,7 +52,11 @@ func TestListManagersByGroup(t *testing.T) {
 		Column2: "",
 	})
 	require.NoError(t, err, "Failed to retrieve Group1 managers")
-	assert.Equal(t, group1Managers, fetchedGroup1Managers)
+	require.Len(t, fetchedGroup1Managers, len(group1Managers))
+	for i, manager := range group1Managers {
+		assert.Equal(t, manager.ID, fetchedGroup1Managers[i].ID)
+		assert.Equal(t, manager.Username, fetchedGroup1Managers[i].Username)
+	}
 
 	fetchedGroup2Managers, err := tdb.Queries.ListManagersByGroup(tdb.Ctx, db.ListManagersByGroupParams{
 		GroupID: f.Group2.ID,
@@ -60,7 +64,11 @@ func TestListManagersByGroup(t *testing.T) {
 		Column2: "",
 	})
 	require.NoError(t, err, "Failed to retrieve Group2 managers")
-	assert.Equal(t, group2Managers, fetchedGroup2Managers)
+	require.Len(t, fetchedGroup2Managers, len(group2Managers))
+	for i, manager := range group2Managers {
+		assert.Equal(t, manager.ID, fetchedGroup2Managers[i].ID)
+		assert.Equal(t, manager.Username, fetchedGroup2Managers[i].Username)
+	}
 }
 
 func TestListGroupsManagedByUser(t *testing.T) {
@@ -68,12 +76,12 @@ func TestListGroupsManagedByUser(t *testing.T) {
 	f := CreateStandardFixtures(t, tdb)
 
 	user1Groups := []db.ShenGroup{f.Group1, f.Group2}
-	addManagersToGroup(t, tdb, []db.ShenUser{f.User1}, f.Group1)
-	addManagersToGroup(t, tdb, []db.ShenUser{f.User1}, f.Group2)
+	addManagersToGroup(t, tdb, []db.CreateUserRow{f.User1}, f.Group1)
+	addManagersToGroup(t, tdb, []db.CreateUserRow{f.User1}, f.Group2)
 	sortGroupsByName(user1Groups)
 
 	user2Groups := []db.ShenGroup{f.Group1}
-	addManagersToGroup(t, tdb, []db.ShenUser{f.User2}, f.Group1)
+	addManagersToGroup(t, tdb, []db.CreateUserRow{f.User2}, f.Group1)
 	sortGroupsByName(user2Groups)
 
 	fetchedUser1Groups, err := tdb.Queries.ListGroupsManagedByUser(tdb.Ctx, db.ListGroupsManagedByUserParams{
@@ -97,8 +105,8 @@ func TestIsUserManagerOfGroup(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	addManagersToGroup(t, tdb, []db.ShenUser{f.User1}, f.Group1)
-	addManagersToGroup(t, tdb, []db.ShenUser{f.User2}, f.Group2)
+	addManagersToGroup(t, tdb, []db.CreateUserRow{f.User1}, f.Group1)
+	addManagersToGroup(t, tdb, []db.CreateUserRow{f.User2}, f.Group2)
 
 	isUser1Manager, err := tdb.Queries.IsUserManagerOfGroup(tdb.Ctx, db.IsUserManagerOfGroupParams{
 		UserID:  f.User1.ID,
@@ -119,8 +127,8 @@ func TestListAllGroupManagers(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	addManagersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2, f.Admin}, f.Group1)
-	addManagersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
+	addManagersToGroup(t, tdb, []db.CreateUserRow{f.User1, f.User2, f.Admin}, f.Group1)
+	addManagersToGroup(t, tdb, []db.CreateUserRow{f.User1, f.User2}, f.Group2)
 
 	allManagers, err := tdb.Queries.ListAllGroupManagers(tdb.Ctx, db.ListAllGroupManagersParams{
 		Limit:    10,
@@ -153,14 +161,14 @@ func TestCountManagersByGroup(t *testing.T) {
 	f := CreateStandardFixtures(t, tdb)
 
 	users := CreateTestUsers(t, tdb, "manager", 3)
-	allManagers := []db.ShenUser{f.User1, f.User2, f.Admin, users[0], users[1], users[2]}
+	allManagers := []db.CreateUserRow{f.User1, f.User2, f.Admin, users[0], users[1], users[2]}
 	addManagersToGroup(t, tdb, allManagers, f.Group1)
 
 	count, err := tdb.Queries.CountManagersByGroup(tdb.Ctx, f.Group1.ID)
 	require.NoError(t, err, "Failed to count managers by group")
 	assert.Equal(t, int64(6), count)
 
-	addManagersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
+	addManagersToGroup(t, tdb, []db.CreateUserRow{f.User1, f.User2}, f.Group2)
 
 	count, err = tdb.Queries.CountManagersByGroup(tdb.Ctx, f.Group2.ID)
 	require.NoError(t, err, "Failed to count managers in Group2")
@@ -175,14 +183,14 @@ func TestCountGroupsManagedByUser(t *testing.T) {
 	allGroups := []db.ShenGroup{f.Group1, f.Group2, groups[0], groups[1], groups[2]}
 
 	for _, group := range allGroups {
-		addManagersToGroup(t, tdb, []db.ShenUser{f.User1}, group)
+		addManagersToGroup(t, tdb, []db.CreateUserRow{f.User1}, group)
 	}
 
 	count, err := tdb.Queries.CountGroupsManagedByUser(tdb.Ctx, f.User1.ID)
 	require.NoError(t, err, "Failed to count groups managed by user")
 	assert.Equal(t, int64(5), count)
 
-	addManagersToGroup(t, tdb, []db.ShenUser{f.User2}, f.Group1)
+	addManagersToGroup(t, tdb, []db.CreateUserRow{f.User2}, f.Group1)
 
 	count, err = tdb.Queries.CountGroupsManagedByUser(tdb.Ctx, f.User2.ID)
 	require.NoError(t, err, "Failed to count groups managed by User2")
@@ -193,8 +201,8 @@ func TestCountAllGroupManagers(t *testing.T) {
 	tdb := SetupTestDB(t)
 	f := CreateStandardFixtures(t, tdb)
 
-	addManagersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2, f.Admin}, f.Group1)
-	addManagersToGroup(t, tdb, []db.ShenUser{f.User1, f.User2}, f.Group2)
+	addManagersToGroup(t, tdb, []db.CreateUserRow{f.User1, f.User2, f.Admin}, f.Group1)
+	addManagersToGroup(t, tdb, []db.CreateUserRow{f.User1, f.User2}, f.Group2)
 
 	count, err := tdb.Queries.CountAllGroupManagers(tdb.Ctx)
 	require.NoError(t, err, "Failed to count all group managers")

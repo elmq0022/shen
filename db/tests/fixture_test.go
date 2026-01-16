@@ -23,7 +23,7 @@ const (
 	ApplicationRoleAdmin         int32 = 5
 )
 
-func CreateTestUser(t *testing.T, tdb *TestDB, username string, role int32) db.ShenUser {
+func CreateTestUser(t *testing.T, tdb *TestDB, username string, role int32) db.CreateUserRow {
 	t.Helper()
 
 	user, err := tdb.Queries.CreateUser(tdb.Ctx, db.CreateUserParams{
@@ -58,10 +58,10 @@ func CreateTestApplication(t *testing.T, tdb *TestDB, name string) db.ShenApplic
 
 // CreateTestUsers creates multiple users with sequential naming.
 // Example: CreateTestUsers(t, tdb, "user", 3) creates user-1, user-2, user-3
-func CreateTestUsers(t *testing.T, tdb *TestDB, prefix string, count int) []db.ShenUser {
+func CreateTestUsers(t *testing.T, tdb *TestDB, prefix string, count int) []db.CreateUserRow {
 	t.Helper()
 
-	users := make([]db.ShenUser, count)
+	users := make([]db.CreateUserRow, count)
 	for i := 0; i < count; i++ {
 		username := fmt.Sprintf("%s-%d", prefix, i+1)
 		users[i] = CreateTestUser(t, tdb, username, RoleUser)
@@ -100,9 +100,9 @@ func CreateTestApplications(t *testing.T, tdb *TestDB, prefix string, count int)
 
 // StandardFixtures contains commonly used test data
 type StandardFixtures struct {
-	User1  db.ShenUser
-	User2  db.ShenUser
-	Admin  db.ShenUser
+	User1  db.CreateUserRow
+	User2  db.CreateUserRow
+	Admin  db.CreateUserRow
 	Group1 db.ShenGroup
 	Group2 db.ShenGroup
 	App1   db.ShenApplication

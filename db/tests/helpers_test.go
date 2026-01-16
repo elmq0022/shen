@@ -14,7 +14,7 @@ import (
 )
 
 // addUsersToGroup adds multiple users as members to a group.
-func addUsersToGroup(t *testing.T, tdb *TestDB, users []db.ShenUser, group db.ShenGroup) {
+func addUsersToGroup(t *testing.T, tdb *TestDB, users []db.CreateUserRow, group db.ShenGroup) {
 	t.Helper()
 	for _, user := range users {
 		_, err := tdb.Queries.AddUserToGroup(tdb.Ctx, db.AddUserToGroupParams{
@@ -29,7 +29,7 @@ func addUsersToGroup(t *testing.T, tdb *TestDB, users []db.ShenUser, group db.Sh
 }
 
 // addManagersToGroup adds multiple users as managers to a group.
-func addManagersToGroup(t *testing.T, tdb *TestDB, users []db.ShenUser, group db.ShenGroup) {
+func addManagersToGroup(t *testing.T, tdb *TestDB, users []db.CreateUserRow, group db.ShenGroup) {
 	t.Helper()
 	for _, user := range users {
 		_, err := tdb.Queries.AddManagerToGroup(tdb.Ctx, db.AddManagerToGroupParams{
@@ -44,8 +44,8 @@ func addManagersToGroup(t *testing.T, tdb *TestDB, users []db.ShenUser, group db
 }
 
 // sortUsersByUsername sorts a slice of users by username in ascending order.
-func sortUsersByUsername(users []db.ShenUser) {
-	slices.SortFunc(users, func(a, b db.ShenUser) int {
+func sortUsersByUsername(users []db.CreateUserRow) {
+	slices.SortFunc(users, func(a, b db.CreateUserRow) int {
 		if a.Username < b.Username {
 			return -1
 		} else if a.Username == b.Username {
