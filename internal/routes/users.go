@@ -8,5 +8,7 @@ import (
 
 func RegisterUserRoutes(g *echo.Group, queries *db.Queries) {
 	h := users.NewHandler(queries)
-	g.GET("/users", h.ListUsers)
+	g.GET("", h.ListUsers)
+	g.POST("", h.CreateUser)
+	g.DELETE(":username", h.DeleteUser)
 }

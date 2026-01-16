@@ -45,11 +45,11 @@ This document tracks the implementation milestones for the Shen authentication a
 **Goal:** Admin can manage users (create, list, update, delete) via CLI.
 
 ### Server/Backend
-- [ ] `GET /api/v1/users` - list all users (admin only)
-- [ ] `POST /api/v1/users` - create new user (admin only)
+- [x] `GET /api/v1/users` - list all users (admin only)
+- [x] `POST /api/v1/users` - create new user (admin only)
 - [ ] `PATCH /api/v1/users/:username` - update user role (admin only)
-- [ ] `DELETE /api/v1/users/:username` - soft delete user (admin only)
-- [ ] Authorization middleware - check user role for admin endpoints
+- [x] `DELETE /api/v1/users/:username` - soft delete user (admin only)
+- [x] Authorization middleware - check user role for admin endpoints
 - [ ] Validate user roles: service, user, admin
 
 ### CLI (shenctl)

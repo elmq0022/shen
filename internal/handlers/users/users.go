@@ -75,3 +75,21 @@ func (h *Handler) CreateUser(c echo.Context) error {
 
 	return c.JSON(http.StatusCreated, user)
 }
+
+func (h *Handler) DeleteUser(c echo.Context) error {
+	username := c.Param("username")
+	if username == "" {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("no username provided"))
+	}
+
+	user, err := h.queries.GetUserByUsername(c.Request().Context(), username)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, handlers.NewErrorResponse("user does not exist"))
+	}
+
+	if err := h.queries.DeactivateUser(c.Request().Context(), user.ID); err != nil {
+		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to deactivate user"))
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
