@@ -65,7 +65,7 @@ Examples:
 }
 
 var updateUserCmd = &cobra.Command{
-	Use:   "update <username> [--role <role>] [--password]",
+	Use:   "update <username>",
 	Short: "Update a user",
 	Long: `Update an existing user in Shen.
 
@@ -73,8 +73,6 @@ You can update the user's role and/or password.
   - Only admins can change user roles
   - Users can change their own password
   - Admins can change any user's password
-
-Use --password to be prompted for a new password.
 
 Examples:
   shenctl user update alice --role user
@@ -108,13 +106,8 @@ func init() {
 	userCmd.AddCommand(createUserCmd)
 	userCmd.AddCommand(updateUserCmd)
 	userCmd.AddCommand(deleteUserCmd)
-	// Here you will define your flags and configuration settings.
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// userCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// userCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// update user flags
+	updateUserCmd.Flags().StringP("password", "p", "", "New password (prompts if flag is present but empty)")
+	updateUserCmd.Flags().StringP("role", "r", "", "New role for the user (admin, user, or service)")
 }
