@@ -16,7 +16,7 @@ func Logout() error {
 	}
 
 	req, err := utils.NewRequestBuilder(http.MethodPost, "/api/v1/auth/logout").
-		WithHeader("Authorization", authHeader).
+		WithAuthHeader(authHeader).
 		Build()
 
 	if err != nil {

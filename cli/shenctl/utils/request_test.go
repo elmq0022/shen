@@ -35,6 +35,15 @@ func TestWithHeader(t *testing.T) {
 	}
 }
 
+func TestWithAuthHeader(t *testing.T) {
+	builder := NewRequestBuilder("GET", "/api/test").
+		WithAuthHeader("Bearer token")
+
+	if builder.headers["Authorization"] != "Bearer token" {
+		t.Errorf("expected Authorization header 'Bearer token', got %s", builder.headers["Authorization"])
+	}
+}
+
 func TestWithJSON(t *testing.T) {
 	body := map[string]string{"key": "value"}
 	builder := NewRequestBuilder("POST", "/api/test").

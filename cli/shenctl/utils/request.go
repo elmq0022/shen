@@ -42,6 +42,10 @@ func (b *RequestBuilder) WithHeader(name, value string) *RequestBuilder {
 	return b
 }
 
+func (b *RequestBuilder) WithAuthHeader(value string) *RequestBuilder {
+	return b.WithHeader("Authorization", value)
+}
+
 func (b *RequestBuilder) WithJSON(body any) *RequestBuilder {
 	b.jsonBody = body
 	b.headers["Content-Type"] = "application/json"
