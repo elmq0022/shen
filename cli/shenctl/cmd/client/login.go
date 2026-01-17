@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
+	clientutils "github.com/elmq0022/shen/cli/shenctl/cmd/client/utils"
 	"github.com/elmq0022/shen/cli/shenctl/utils"
 	"github.com/elmq0022/shen/internal/handlers/auth"
 )
@@ -27,9 +27,7 @@ func Login(username, password string) error {
 		return fmt.Errorf("failed to build login request: %w", err)
 	}
 
-	client := &http.Client{Timeout: 30 * time.Second}
-
-	resp, err := client.Do(req)
+	resp, err := clientutils.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to connect to server: %w", err)
 	}

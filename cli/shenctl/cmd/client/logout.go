@@ -3,8 +3,8 @@ package client
 import (
 	"fmt"
 	"net/http"
-	"time"
 
+	clientutils "github.com/elmq0022/shen/cli/shenctl/cmd/client/utils"
 	cmdutils "github.com/elmq0022/shen/cli/shenctl/cmd/utils"
 	"github.com/elmq0022/shen/cli/shenctl/utils"
 )
@@ -23,8 +23,7 @@ func Logout() error {
 		return fmt.Errorf("failed to build logout request: %w", err)
 	}
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := clientutils.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to connect to server: %w", err)
 	}
