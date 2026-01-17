@@ -50,25 +50,25 @@ This document tracks the implementation milestones for the Shen authentication a
 - [x] `PATCH /api/v1/users/:username` - update user (role: admin only, password: self or admin)
 - [x] `DELETE /api/v1/users/:username` - soft delete user (admin only)
 - [x] Authorization middleware - check user role for admin endpoints
-- [ ] Validate user roles: service, user, admin
+- [x] Validate user roles: service, user, admin
 
 ### CLI (shenctl)
-- [ ] `shenctl user list` - list all users
-- [ ] `shenctl user create <username> <role>` - create new user
-- [ ] `shenctl user update <username> [--role <role>] [--password <password>]` - update user (role: admin only, password: self or admin)
-- [ ] `shenctl user delete <username>` - soft delete user
+- [x] `shenctl user list` - list all users
+- [x] `shenctl user create <username> <role>` - create new user
+- [x] `shenctl user update <username> [--role <role>] [--password <password>]` - update user (role: admin only, password: self or admin)
+- [x] `shenctl user delete <username>` - soft delete user
 
 ### Testing
-- [ ] Integration test: session token stored and reused by CLI
-- [ ] Integration test: admin creates new user
-- [ ] Integration test: admin lists users
-- [ ] Integration test: admin updates user role
-- [ ] Integration test: user updates own password
-- [ ] Integration test: admin updates another user's password
-- [ ] Integration test: user cannot update another user's password
-- [ ] Integration test: admin deletes user
-- [ ] Integration test: non-admin cannot access user management endpoints
-- [ ] Integration test: service accounts cannot login to Shen
+- [x] Integration test: session token stored and reused by CLI
+- [x] Integration test: admin creates new user
+- [x] Integration test: admin lists users
+- [x] Integration test: admin updates user role
+- [x] Integration test: user updates own password
+- [x] Integration test: admin updates another user's password
+- [x] Integration test: user cannot update another user's password
+- [x] Integration test: admin deletes user
+- [x] Integration test: non-admin cannot access user management endpoints
+- [x] Integration test: service accounts cannot login to Shen
 
 ---
 
