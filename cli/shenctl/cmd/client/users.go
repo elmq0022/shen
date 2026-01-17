@@ -190,6 +190,51 @@ func UpdateUser(username string, role *string, password *string) error {
 	return nil
 }
 
-func DeleteUser() error {
+func DeleteUser(username string) error {
+	username = strings.TrimSpace(username)
+	if username == "" {
+		return fmt.Errorf("username is required")
+	}
+
+	authHeader, err := cmdutils.GetAuthHeader()
+	if err != nil {
+		return fmt.Errorf("authentication failed: %w", err)
+	}
+
+	req, err := utils.NewRequestBuilder(http.MethodDelete, "/api/v1/user/"+username).
+		WithAuthHeader(authHeader).
+		Build()
+	if err != nil {
+		return fmt.Errorf("failed to build request: %w", err)
+	}
+
+	resp, err := clientutils.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to connect to server: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent {
+		errMsg := clientutils.ReadErrorBody(resp)
+		switch resp.StatusCode {
+		case http.StatusUnauthorized:
+			return fmt.Errorf("unauthorized: invalid or expired credentials")
+		case http.StatusForbidden:
+			return fmt.Errorf("forbidden: insufficient permissions to delete users")
+		case http.StatusNotFound:
+			return fmt.Errorf("user %q not found", username)
+		case http.StatusBadRequest:
+			if errMsg != "" {
+				return fmt.Errorf("invalid request: %s", errMsg)
+			}
+			return fmt.Errorf("invalid request: username is required")
+		default:
+			if errMsg != "" {
+				return fmt.Errorf("failed to delete user (%s): %s", resp.Status, errMsg)
+			}
+			return fmt.Errorf("failed to delete user: server returned %s", resp.Status)
+		}
+	}
+
 	return nil
 }

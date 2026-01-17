@@ -173,8 +173,16 @@ Requires admin privileges.
 
 Examples:
   shenctl user delete alice`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("user called")
+		username := args[0]
+
+		if err := client.DeleteUser(username); err != nil {
+			fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
+			return
+		}
+
+		fmt.Printf("User %s deleted successfully\n", username)
 	},
 }
 
