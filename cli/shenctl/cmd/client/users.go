@@ -20,7 +20,7 @@ func ListActiveUsers(cursor string, limit int) ([]db.ListActiveUsersRow, error) 
 		return nil, err
 	}
 
-	req, err := utils.NewRequestBuilder(http.MethodGet, "/api/v1/user").
+	req, err := utils.NewRequestBuilder(http.MethodGet, "/api/v1/users/").
 		WithAuthHeader(authHeader).Build()
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func CreateUser(username, password, role string) (db.CreateUserRow, error) {
 	if username == "" {
 		return db.CreateUserRow{}, fmt.Errorf("username is required")
 	}
-	if password == "" {
+	if password == "" && role != "service" {
 		return db.CreateUserRow{}, fmt.Errorf("password is required")
 	}
 	if role == "" {
@@ -70,18 +70,13 @@ func CreateUser(username, password, role string) (db.CreateUserRow, error) {
 		return db.CreateUserRow{}, fmt.Errorf("authentication failed: %w", err)
 	}
 
-	data, err := json.Marshal(users.CreateUserRequest{
-		UserName: username,
-		Password: password,
-		Role:     role,
-	})
-	if err != nil {
-		return db.CreateUserRow{}, fmt.Errorf("failed to prepare user data: %w", err)
-	}
-
-	req, err := utils.NewRequestBuilder(http.MethodPost, "/api/v1/user").
+	req, err := utils.NewRequestBuilder(http.MethodPost, "/api/v1/users/").
 		WithAuthHeader(authHeader).
-		WithJSON(data).
+		WithJSON(users.CreateUserRequest{
+			UserName: username,
+			Password: password,
+			Role:     role,
+		}).
 		Build()
 	if err != nil {
 		return db.CreateUserRow{}, fmt.Errorf("failed to build request: %w", err)
@@ -143,17 +138,12 @@ func UpdateUser(username string, role *string, password *string) error {
 		return fmt.Errorf("authentication failed: %w", err)
 	}
 
-	data, err := json.Marshal(users.UpdateUserRequest{
-		Role:     role,
-		Password: password,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to prepare update data: %w", err)
-	}
-
-	req, err := utils.NewRequestBuilder(http.MethodPatch, "/api/v1/user/"+username).
+	req, err := utils.NewRequestBuilder(http.MethodPatch, "/api/v1/users/"+username).
 		WithAuthHeader(authHeader).
-		WithJSON(data).
+		WithJSON(users.UpdateUserRequest{
+			Role:     role,
+			Password: password,
+		}).
 		Build()
 	if err != nil {
 		return fmt.Errorf("failed to build request: %w", err)
@@ -201,7 +191,7 @@ func DeleteUser(username string) error {
 		return fmt.Errorf("authentication failed: %w", err)
 	}
 
-	req, err := utils.NewRequestBuilder(http.MethodDelete, "/api/v1/user/"+username).
+	req, err := utils.NewRequestBuilder(http.MethodDelete, "/api/v1/users/"+username).
 		WithAuthHeader(authHeader).
 		Build()
 	if err != nil {

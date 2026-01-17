@@ -49,23 +49,27 @@ func (h *Handler) CreateUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse(err.Error()))
 	}
 
-	hashedPassword, err := crypto.HashedPassword(cur.Password)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to hash password"))
-	}
-
 	role, err := h.queries.GetRoleByName(c.Request().Context(), cur.Role)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("invalid role"))
 	}
 
+	// Service accounts don't have passwords
+	var hashedPasswordText pgtype.Text
+	if cur.Role == "service" {
+		hashedPasswordText = pgtype.Text{Valid: false}
+	} else {
+		hashedPassword, err := crypto.HashedPassword(cur.Password)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to hash password"))
+		}
+		hashedPasswordText = pgtype.Text{String: hashedPassword, Valid: true}
+	}
+
 	user, err := h.queries.CreateUser(c.Request().Context(), db.CreateUserParams{
-		Username: cur.UserName,
-		HashedPassword: pgtype.Text{
-			String: hashedPassword,
-			Valid:  true,
-		},
-		Role: role.ID,
+		Username:       cur.UserName,
+		HashedPassword: hashedPasswordText,
+		Role:           role.ID,
 	})
 	if err != nil {
 		var pgErr *pgconn.PgError

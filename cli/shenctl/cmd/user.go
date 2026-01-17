@@ -53,8 +53,8 @@ Examples:
 		for {
 			users, err := client.ListActiveUsers(cursor, limit)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Could not read api: %v", err)
-				return
+				fmt.Fprintf(os.Stderr, "Could not read api: %v\n", err)
+				os.Exit(1)
 			}
 
 			for _, user := range users {
@@ -96,14 +96,14 @@ Examples:
 			password, err = utils.ReadPassword()
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error reading password: %v\n", err)
-				return
+				os.Exit(1)
 			}
 		}
 
 		user, err := client.CreateUser(username, password, role)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error creating user: %v\n", err)
-			return
+			os.Exit(1)
 		}
 
 		fmt.Printf("%s\t%s\n", user.Username, role)
@@ -139,22 +139,27 @@ Examples:
 		}
 
 		if passwordFlag {
-			pw, err := utils.ReadPassword()
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error reading password: %v\n", err)
-				return
+			newPasswordFlag, _ := cmd.Flags().GetString("new-password")
+			if newPasswordFlag != "" {
+				password = &newPasswordFlag
+			} else {
+				pw, err := utils.ReadPassword()
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error reading password: %v\n", err)
+					os.Exit(1)
+				}
+				password = &pw
 			}
-			password = &pw
 		}
 
 		if role == nil && password == nil {
 			fmt.Fprintln(os.Stderr, "Error: at least one of --role or --password must be provided")
-			return
+			os.Exit(1)
 		}
 
 		if err := client.UpdateUser(username, role, password); err != nil {
 			fmt.Fprintf(os.Stderr, "Error updating user: %v\n", err)
-			return
+			os.Exit(1)
 		}
 
 		fmt.Printf("User %s updated successfully\n", username)
@@ -179,7 +184,7 @@ Examples:
 
 		if err := client.DeleteUser(username); err != nil {
 			fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
-			return
+			os.Exit(1)
 		}
 
 		fmt.Printf("User %s deleted successfully\n", username)
@@ -201,5 +206,6 @@ func init() {
 
 	// update user flags
 	updateUserCmd.Flags().BoolP("password", "p", false, "Prompt for new password")
+	updateUserCmd.Flags().StringP("new-password", "n", "", "New password for the user (use with --password to skip prompt)")
 	updateUserCmd.Flags().StringP("role", "r", "", "New role for the user (admin, user, or service)")
 }
