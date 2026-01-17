@@ -55,7 +55,7 @@ This document tracks the implementation milestones for the Shen authentication a
 ### CLI (shenctl)
 - [ ] `shenctl user list` - list all users
 - [ ] `shenctl user create <username> <role>` - create new user
-- [ ] `shenctl user update <username> [--role <role>] [--password]` - update user (role: admin only, password: self or admin)
+- [ ] `shenctl user update <username> [--role <role>] [--password <password>]` - update user (role: admin only, password: self or admin)
 - [ ] `shenctl user delete <username>` - soft delete user
 
 ### Testing

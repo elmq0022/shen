@@ -107,6 +107,9 @@ func init() {
 	userCmd.AddCommand(updateUserCmd)
 	userCmd.AddCommand(deleteUserCmd)
 
+	// list user flags
+	listUserCmd.Flags().StringP("all", "a", "", "use to retrive a complete list of user instead of the first 10")
+
 	// update user flags
 	updateUserCmd.Flags().StringP("password", "p", "", "New password (prompts if flag is present but empty)")
 	updateUserCmd.Flags().StringP("role", "r", "", "New role for the user (admin, user, or service)")
