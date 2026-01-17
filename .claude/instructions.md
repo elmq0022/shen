@@ -259,6 +259,9 @@ LIMIT $3;
 - Unit tests for business logic
 - Integration tests for database queries
 - Test timezone handling for all timestamp operations
+- **Unit Tests**: Run with `task test:unit`
+- **DB Integration Tests**: Run with `source .envrc && task test:integration` (spins up database)
+- **CLI Integration Tests**: Run with `source .envrc && task test:cli` (spins up database)
 
 ### Migrations
 - Use golang-migrate for all schema changes
