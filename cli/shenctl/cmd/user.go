@@ -5,7 +5,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/elmq0022/shen/cli/shenctl/cmd/client"
 	"github.com/spf13/cobra"
 )
 
@@ -35,12 +37,35 @@ var listUserCmd = &cobra.Command{
 	Long: `List all users in Shen.
 
 Displays username, role, and active status for each user.
+By default, only the first 10 users are shown. Use --all to retrieve the complete list.
 Requires admin privileges.
 
 Examples:
-  shenctl user list`,
+  shenctl user list
+  shenctl user list --all`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("user called")
+		all, _ := cmd.Flags().GetBool("all")
+
+		cursor := ""
+		limit := 10
+
+		for {
+			users, err := client.ListUsers(cursor, limit)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Could not read api: %v", err)
+				return
+			}
+
+			for _, user := range users {
+				fmt.Printf("%s\t%d\t%v\n", user.Username, user.Role, user.Active)
+			}
+
+			if !all || len(users) < limit {
+				break
+			}
+
+			cursor = users[len(users)-1].Username
+		}
 	},
 }
 
@@ -79,7 +104,6 @@ Examples:
   shenctl user update alice --password
   shenctl user update alice --role admin --password`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("user called")
 	},
 }
 
@@ -108,7 +132,7 @@ func init() {
 	userCmd.AddCommand(deleteUserCmd)
 
 	// list user flags
-	listUserCmd.Flags().StringP("all", "a", "", "use to retrive a complete list of user instead of the first 10")
+	listUserCmd.Flags().BoolP("all", "a", false, "use to retrive a complete list of user instead of the first 10")
 
 	// update user flags
 	updateUserCmd.Flags().StringP("password", "p", "", "New password (prompts if flag is present but empty)")
