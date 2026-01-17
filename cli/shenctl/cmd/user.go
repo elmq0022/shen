@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/elmq0022/shen/cli/shenctl/cmd/client"
+	"github.com/elmq0022/shen/cli/shenctl/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -84,8 +85,28 @@ Examples:
   shenctl user create alice admin
   shenctl user create bob user
   shenctl user create ci-deploy service`,
+	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("user called")
+		username := args[0]
+		role := args[1]
+
+		password, _ := cmd.Flags().GetString("password")
+		if password == "" && role != "service" {
+			var err error
+			password, err = utils.ReadPassword()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error reading password: %v\n", err)
+				return
+			}
+		}
+
+		user, err := client.CreateUser(username, password, role)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error creating user: %v\n", err)
+			return
+		}
+
+		fmt.Printf("%s\t%s\n", user.Username, role)
 	},
 }
 
@@ -133,6 +154,9 @@ func init() {
 
 	// list user flags
 	listUserCmd.Flags().BoolP("all", "a", false, "use to retrive a complete list of user instead of the first 10")
+
+	// create user flags
+	createUserCmd.Flags().StringP("password", "p", "", "Password for the user (prompts if not provided)")
 
 	// update user flags
 	updateUserCmd.Flags().StringP("password", "p", "", "New password (prompts if flag is present but empty)")
