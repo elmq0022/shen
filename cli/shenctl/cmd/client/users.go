@@ -12,7 +12,7 @@ import (
 	db "github.com/elmq0022/shen/db/sqlc"
 )
 
-func ListUsers(cursor string, limit int) ([]db.ListUsersRow, error) {
+func ListActiveUsers(cursor string, limit int) ([]db.ListActiveUsersRow, error) {
 	authHeader, err := cmdutils.GetAuthHeader()
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func ListUsers(cursor string, limit int) ([]db.ListUsersRow, error) {
 		return nil, fmt.Errorf("unexpected status: %s", resp.Status)
 	}
 
-	var users []db.ListUsersRow
+	var users []db.ListActiveUsersRow
 	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
 		return nil, fmt.Errorf("failed to decode users response: %w", err)
 	}

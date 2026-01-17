@@ -32,7 +32,7 @@ func (h *Handler) ListUsers(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("invalid limit parameter"))
 	}
 
-	users, err := h.queries.ListUsers(c.Request().Context(), db.ListUsersParams{
+	users, err := h.queries.ListActiveUsers(c.Request().Context(), db.ListActiveUsersParams{
 		Column1: cursor,
 		Limit:   int32(limit),
 	})

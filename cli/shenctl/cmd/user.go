@@ -34,9 +34,9 @@ Examples:
 var listUserCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all users",
-	Long: `List all users in Shen.
+	Long: `List active users in Shen.
 
-Displays username, role, and active status for each user.
+Displays username and role for each active user.
 By default, only the first 10 users are shown. Use --all to retrieve the complete list.
 Requires admin privileges.
 
@@ -50,14 +50,14 @@ Examples:
 		limit := 10
 
 		for {
-			users, err := client.ListUsers(cursor, limit)
+			users, err := client.ListActiveUsers(cursor, limit)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Could not read api: %v", err)
 				return
 			}
 
 			for _, user := range users {
-				fmt.Printf("%s\t%d\t%v\n", user.Username, user.Role, user.Active)
+				fmt.Printf("%s\t%s\n", user.Username, user.Role)
 			}
 
 			if !all || len(users) < limit {

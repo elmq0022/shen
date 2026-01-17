@@ -197,19 +197,21 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (ShenU
 
 const listActiveUsers = `-- name: ListActiveUsers :many
 SELECT
-  id,
-  username,
-  active,
-  ROLE,
-  created_at,
-  updated_at
+  su.id,
+  su.username,
+  su.active,
+  sur.name AS role,
+  su.created_at,
+  su.updated_at
 FROM
-  shen_user
+  shen_user su
+JOIN
+  shen_user_role sur ON su.role = sur.id
 WHERE
-  active = TRUE
-  AND ($1::text = '' OR username > $1)
+  su.active = TRUE
+  AND ($1::text = '' OR su.username > $1)
 ORDER BY
-  username
+  su.username
 LIMIT $2
 `
 
@@ -222,7 +224,7 @@ type ListActiveUsersRow struct {
 	ID        int32              `json:"id"`
 	Username  string             `json:"username"`
 	Active    bool               `json:"active"`
-	Role      int32              `json:"role"`
+	Role      string             `json:"role"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
