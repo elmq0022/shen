@@ -128,7 +128,65 @@ func CreateUser(username, password, role string) (db.CreateUserRow, error) {
 	return user, nil
 }
 
-func UpdateUser() error {
+func UpdateUser(username string, role *string, password *string) error {
+	username = strings.TrimSpace(username)
+	if username == "" {
+		return fmt.Errorf("username is required")
+	}
+
+	if role == nil && password == nil {
+		return fmt.Errorf("at least one of role or password must be provided")
+	}
+
+	authHeader, err := cmdutils.GetAuthHeader()
+	if err != nil {
+		return fmt.Errorf("authentication failed: %w", err)
+	}
+
+	data, err := json.Marshal(users.UpdateUserRequest{
+		Role:     role,
+		Password: password,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to prepare update data: %w", err)
+	}
+
+	req, err := utils.NewRequestBuilder(http.MethodPatch, "/api/v1/user/"+username).
+		WithAuthHeader(authHeader).
+		WithJSON(data).
+		Build()
+	if err != nil {
+		return fmt.Errorf("failed to build request: %w", err)
+	}
+
+	resp, err := clientutils.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to connect to server: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent {
+		errMsg := clientutils.ReadErrorBody(resp)
+		switch resp.StatusCode {
+		case http.StatusUnauthorized:
+			return fmt.Errorf("unauthorized: invalid or expired credentials")
+		case http.StatusForbidden:
+			return fmt.Errorf("forbidden: %s", errMsg)
+		case http.StatusNotFound:
+			return fmt.Errorf("user %q not found", username)
+		case http.StatusBadRequest:
+			if errMsg != "" {
+				return fmt.Errorf("invalid request: %s", errMsg)
+			}
+			return fmt.Errorf("invalid request: check role value")
+		default:
+			if errMsg != "" {
+				return fmt.Errorf("failed to update user (%s): %s", resp.Status, errMsg)
+			}
+			return fmt.Errorf("failed to update user: server returned %s", resp.Status)
+		}
+	}
+
 	return nil
 }
 

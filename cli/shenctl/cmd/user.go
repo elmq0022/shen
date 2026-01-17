@@ -124,7 +124,40 @@ Examples:
   shenctl user update alice --role user
   shenctl user update alice --password
   shenctl user update alice --role admin --password`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		username := args[0]
+
+		roleFlag, _ := cmd.Flags().GetString("role")
+		passwordFlag, _ := cmd.Flags().GetBool("password")
+
+		var role *string
+		var password *string
+
+		if roleFlag != "" {
+			role = &roleFlag
+		}
+
+		if passwordFlag {
+			pw, err := utils.ReadPassword()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error reading password: %v\n", err)
+				return
+			}
+			password = &pw
+		}
+
+		if role == nil && password == nil {
+			fmt.Fprintln(os.Stderr, "Error: at least one of --role or --password must be provided")
+			return
+		}
+
+		if err := client.UpdateUser(username, role, password); err != nil {
+			fmt.Fprintf(os.Stderr, "Error updating user: %v\n", err)
+			return
+		}
+
+		fmt.Printf("User %s updated successfully\n", username)
 	},
 }
 
@@ -159,6 +192,6 @@ func init() {
 	createUserCmd.Flags().StringP("password", "p", "", "Password for the user (prompts if not provided)")
 
 	// update user flags
-	updateUserCmd.Flags().StringP("password", "p", "", "New password (prompts if flag is present but empty)")
+	updateUserCmd.Flags().BoolP("password", "p", false, "Prompt for new password")
 	updateUserCmd.Flags().StringP("role", "r", "", "New role for the user (admin, user, or service)")
 }
