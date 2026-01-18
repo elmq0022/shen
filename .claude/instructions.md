@@ -275,24 +275,24 @@ task test:unit -- ./internal/middleware/...                 # middleware package
 **DB Integration Tests** (requires database):
 ```bash
 source .envrc && task test:integration                      # all integration tests
-task test:integration -- -run "^Test.*User"                 # user tests
-task test:integration -- -run "^Test.*(Group|Member|Manager)"  # group tests (includes members/managers)
-task test:integration -- -run "^Test.*Application"          # application tests
-task test:integration -- -run "^Test.*Role"                 # role tests (includes application roles)
-task test:integration -- -run "^Test.*Session"              # session tests
-task test:integration -- -run "^Test.*Token"                # token tests
-task test:integration -- -run "^Test.*JWT"                  # JWT key tests
-task test:integration -- -run "^Test.*Bootstrap"            # bootstrap tests
+source .envrc && task test:integration -- -run "^Test.*User"                 # user tests
+source .envrc && task test:integration -- -run "^Test.*(Group|Member|Manager)"  # group tests (includes members/managers)
+source .envrc && task test:integration -- -run "^Test.*Application"          # application tests
+source .envrc && task test:integration -- -run "^Test.*Role"                 # role tests (includes application roles)
+source .envrc && task test:integration -- -run "^Test.*Session"              # session tests
+source .envrc && task test:integration -- -run "^Test.*Token"                # token tests
+source .envrc && task test:integration -- -run "^Test.*JWT"                  # JWT key tests
+source .envrc && task test:integration -- -run "^Test.*Bootstrap"            # bootstrap tests
 ```
 
 **CLI Integration Tests** (requires database, compiles binaries):
 ```bash
 source .envrc && task test:cli                              # all CLI tests
-task test:cli -- -run "^TestMilestone1"                     # milestone 1 (bootstrap, admin auth)
-task test:cli -- -run "^TestMilestone2"                     # milestone 2 (user management)
-task test:cli -- -run "^TestMilestone3"                     # milestone 3 (application management)
-task test:cli -- -run "^TestMilestone4"                     # milestone 4 (group management)
-task test:cli -- -run "^TestMilestone5"                     # milestone 5 (group role assignments)
+source .envrc && task test:cli -- -run "^TestMilestone1"                     # milestone 1 (bootstrap, admin auth)
+source .envrc && task test:cli -- -run "^TestMilestone2"                     # milestone 2 (user management)
+source .envrc && task test:cli -- -run "^TestMilestone3"                     # milestone 3 (application management)
+source .envrc && task test:cli -- -run "^TestMilestone4"                     # milestone 4 (group management)
+source .envrc && task test:cli -- -run "^TestMilestone5"                     # milestone 5 (group role assignments)
 ```
 
 **All Tests**:
