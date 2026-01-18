@@ -100,28 +100,28 @@ This document tracks the implementation milestones for the Shen authentication a
 **Goal:** Admin can create groups and manage group memberships via CLI.
 
 ### Server/Backend
-- [ ] `GET /api/v1/groups` - list all groups (admin only)
-- [ ] `POST /api/v1/groups` - create new group (admin only)
-- [ ] `DELETE /api/v1/groups/:name` - delete group (admin only)
-- [ ] `POST /api/v1/groups/:name/members` - add users to group (admin or group manager)
-- [ ] `DELETE /api/v1/groups/:name/members` - remove users from group (admin or group manager)
-- [ ] `GET /api/v1/groups/:name/members` - list group members
-- [ ] Authorization middleware - check admin or group manager privileges
+- [x] `GET /api/v1/groups` - list all groups (admin only)
+- [x] `POST /api/v1/groups` - create new group (admin only)
+- [x] `DELETE /api/v1/groups/:name` - delete group (admin only)
+- [x] `POST /api/v1/groups/:name/members` - add users to group (admin or group manager)
+- [x] `DELETE /api/v1/groups/:name/members` - remove users from group (admin or group manager)
+- [x] `GET /api/v1/groups/:name/members` - list group members
+- [x] Authorization middleware - check admin or group manager privileges
 
 ### CLI (shenctl)
-- [ ] `shenctl group list` - list all groups
-- [ ] `shenctl group create <name>` - create new group
-- [ ] `shenctl group delete <name>` - delete group
-- [ ] `shenctl group add-users <group> <user1> <user2> ...` - add users to group
-- [ ] `shenctl group remove-users <group> <user1> <user2> ...` - remove users from group
-- [ ] `shenctl user add-groups <username> <group1> <group2> ...` - add user to groups
+- [x] `shenctl group list` - list all groups
+- [x] `shenctl group create <name>` - create new group
+- [x] `shenctl group delete <name>` - delete group
+- [x] `shenctl group add-users <group> <user1> <user2> ...` - add users to group
+- [x] `shenctl group remove-users <group> <user1> <user2> ...` - remove users from group
+- [x] `shenctl user add-groups <username> <group1> <group2> ...` - add user to groups
 
 ### Testing
-- [ ] Integration test: admin creates group
-- [ ] Integration test: admin adds users to group
-- [ ] Integration test: admin removes users from group
-- [ ] Integration test: list group members
-- [ ] Integration test: delete group removes all memberships
+- [x] Integration test: admin creates group
+- [x] Integration test: admin adds users to group
+- [x] Integration test: admin removes users from group
+- [x] Integration test: list group members
+- [x] Integration test: delete group removes all memberships
 
 ---
 

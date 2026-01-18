@@ -99,6 +99,7 @@ func initServer(ctx context.Context, pool *pgxpool.Pool, queries *db.Queries) *e
 	routes.RegisterAuthRoutes(api.Group("auth/"), queries)
 	routes.RegisterUserRoutes(api.Group("users/"), pool, queries, shenMiddleware)
 	routes.RegisterApplicationRoutes(api.Group("applications/"), pool, queries, shenMiddleware)
+	routes.RegisterGroupRoutes(api.Group("groups/"), pool, queries, shenMiddleware)
 
 	return e
 }

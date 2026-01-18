@@ -228,3 +228,45 @@ func DeleteUser(username string) error {
 
 	return nil
 }
+
+// AddUserToGroupsResult represents the result of adding a user to multiple groups
+type AddUserToGroupsResult struct {
+	Added    []string
+	NotFound []string
+	Errors   []string
+}
+
+// AddUserToGroups adds a user to multiple groups
+func AddUserToGroups(username string, groupNames []string) (*AddUserToGroupsResult, error) {
+	username = strings.TrimSpace(username)
+	if username == "" {
+		return nil, fmt.Errorf("username is required")
+	}
+	if len(groupNames) == 0 {
+		return nil, fmt.Errorf("at least one group name is required")
+	}
+
+	result := &AddUserToGroupsResult{}
+
+	for _, groupName := range groupNames {
+		groupName = strings.TrimSpace(groupName)
+		if groupName == "" {
+			continue
+		}
+
+		resp, err := AddUsersToGroup(groupName, []string{username})
+		if err != nil {
+			result.Errors = append(result.Errors, fmt.Sprintf("%s: %v", groupName, err))
+			continue
+		}
+
+		if len(resp.Added) > 0 {
+			result.Added = append(result.Added, groupName)
+		}
+		if len(resp.NotFound) > 0 {
+			result.NotFound = append(result.NotFound, groupName)
+		}
+	}
+
+	return result, nil
+}

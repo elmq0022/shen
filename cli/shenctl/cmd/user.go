@@ -191,12 +191,46 @@ Examples:
 	},
 }
 
+var addGroupsCmd = &cobra.Command{
+	Use:   "add-groups <username> <group1> [group2] ...",
+	Short: "Add a user to groups",
+	Long: `Add a user to one or more groups.
+
+Requires admin privileges.
+
+Examples:
+  shenctl user add-groups alice engineering
+  shenctl user add-groups alice engineering data-science`,
+	Args: cobra.MinimumNArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		username := args[0]
+		groupNames := args[1:]
+
+		result, err := client.AddUserToGroups(username, groupNames)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error adding user to groups: %v\n", err)
+			os.Exit(1)
+		}
+
+		if len(result.Added) > 0 {
+			fmt.Printf("Added %s to groups: %v\n", username, result.Added)
+		}
+		if len(result.NotFound) > 0 {
+			fmt.Fprintf(os.Stderr, "Groups not found: %v\n", result.NotFound)
+		}
+		if len(result.Errors) > 0 {
+			fmt.Fprintf(os.Stderr, "Errors: %v\n", result.Errors)
+		}
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(userCmd)
 	userCmd.AddCommand(listUserCmd)
 	userCmd.AddCommand(createUserCmd)
 	userCmd.AddCommand(updateUserCmd)
 	userCmd.AddCommand(deleteUserCmd)
+	userCmd.AddCommand(addGroupsCmd)
 
 	// list user flags
 	listUserCmd.Flags().BoolP("all", "a", false, "use to retrive a complete list of user instead of the first 10")
