@@ -236,3 +236,198 @@ func (h *Handler) RemoveGroupMembers(c echo.Context) error {
 		"not_found": notFoundUsers,
 	})
 }
+
+func (h *Handler) AddGroupRole(c echo.Context) error {
+	name := c.Param("name")
+	if name == "" {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("no group name provided"))
+	}
+
+	group, err := h.queries.GetGroupByName(c.Request().Context(), name)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, handlers.NewErrorResponse("group not found"))
+	}
+
+	if !group.Active {
+		return c.JSON(http.StatusNotFound, handlers.NewErrorResponse("group not found"))
+	}
+
+	var req GroupRoleRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse(err.Error()))
+	}
+
+	appName := strings.ToLower(strings.TrimSpace(req.Application))
+	roleName := strings.ToLower(strings.TrimSpace(req.Role))
+
+	if appName == "" {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("application name is required"))
+	}
+	if roleName == "" {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("role name is required"))
+	}
+
+	// Validate application exists and is active
+	app, err := h.queries.GetApplicationByName(c.Request().Context(), appName)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, handlers.NewErrorResponse("application not found"))
+	}
+	if !app.Active {
+		return c.JSON(http.StatusNotFound, handlers.NewErrorResponse("application not found"))
+	}
+
+	// Validate role exists (from seeded values)
+	role, err := h.queries.GetApplicationRoleByName(c.Request().Context(), roleName)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("invalid role: must be one of authenticated, viewer, auditor, operator, admin"))
+	}
+
+	// Add the role assignment
+	_, err = h.queries.AddGroupApplicationRole(c.Request().Context(), db.AddGroupApplicationRoleParams{
+		GroupID:       group.ID,
+		ApplicationID: app.ID,
+		RoleID:        role.ID,
+	})
+	if err != nil {
+		var pgErr *pgconn.PgError
+		// Handle duplicate - return success (idempotent)
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return c.JSON(http.StatusCreated, GroupRoleResponse{
+				Application: appName,
+				Role:        roleName,
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to add role to group"))
+	}
+
+	return c.JSON(http.StatusCreated, GroupRoleResponse{
+		Application: appName,
+		Role:        roleName,
+	})
+}
+
+func (h *Handler) RemoveGroupRole(c echo.Context) error {
+	name := c.Param("name")
+	if name == "" {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("no group name provided"))
+	}
+
+	group, err := h.queries.GetGroupByName(c.Request().Context(), name)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, handlers.NewErrorResponse("group not found"))
+	}
+
+	var req GroupRoleRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse(err.Error()))
+	}
+
+	appName := strings.ToLower(strings.TrimSpace(req.Application))
+	roleName := strings.ToLower(strings.TrimSpace(req.Role))
+
+	if appName == "" {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("application name is required"))
+	}
+	if roleName == "" {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("role name is required"))
+	}
+
+	// Validate application exists
+	app, err := h.queries.GetApplicationByName(c.Request().Context(), appName)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, handlers.NewErrorResponse("application not found"))
+	}
+
+	// Validate role exists
+	role, err := h.queries.GetApplicationRoleByName(c.Request().Context(), roleName)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("invalid role: must be one of authenticated, viewer, auditor, operator, admin"))
+	}
+
+	// Delete the role assignment
+	err = h.queries.DeleteGroupApplicationRole(c.Request().Context(), db.DeleteGroupApplicationRoleParams{
+		GroupID:       group.ID,
+		ApplicationID: app.ID,
+		RoleID:        role.ID,
+	})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to remove role from group"))
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *Handler) ListGroupRoles(c echo.Context) error {
+	name := c.Param("name")
+	if name == "" {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("no group name provided"))
+	}
+
+	group, err := h.queries.GetGroupByName(c.Request().Context(), name)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, handlers.NewErrorResponse("group not found"))
+	}
+
+	if !group.Active {
+		return c.JSON(http.StatusNotFound, handlers.NewErrorResponse("group not found"))
+	}
+
+	appFilter := strings.ToLower(strings.TrimSpace(c.QueryParam("application")))
+	cursorApp := c.QueryParam("cursor_app")
+	cursorRole := c.QueryParam("cursor_role")
+	limitStr := c.QueryParam("limit")
+
+	limit, err := strconv.ParseInt(limitStr, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("invalid limit parameter"))
+	}
+
+	// If application filter is provided, use the filtered query
+	if appFilter != "" {
+		app, err := h.queries.GetApplicationByName(c.Request().Context(), appFilter)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, handlers.NewErrorResponse("application not found"))
+		}
+
+		roles, err := h.queries.ListGroupApplicationRolesByGroupAndApplication(c.Request().Context(), db.ListGroupApplicationRolesByGroupAndApplicationParams{
+			GroupID:        group.ID,
+			ApplicationID:  app.ID,
+			CursorRoleName: cursorRole,
+			Limit:          int32(limit),
+		})
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to list group roles"))
+		}
+
+		// Convert to response format
+		response := make([]GroupRoleResponse, len(roles))
+		for i, role := range roles {
+			response[i] = GroupRoleResponse{
+				Application: appFilter,
+				Role:        role.RoleName,
+			}
+		}
+		return c.JSON(http.StatusOK, response)
+	}
+
+	// No application filter - list all roles for the group
+	roles, err := h.queries.ListGroupApplicationRolesByGroup(c.Request().Context(), db.ListGroupApplicationRolesByGroupParams{
+		GroupID:               group.ID,
+		CursorApplicationName: cursorApp,
+		CursorRoleName:        cursorRole,
+		Limit:                 int32(limit),
+	})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to list group roles"))
+	}
+
+	// Convert to response format
+	response := make([]GroupRoleResponse, len(roles))
+	for i, role := range roles {
+		response[i] = GroupRoleResponse{
+			Application: role.ApplicationName,
+			Role:        role.RoleName,
+		}
+	}
+	return c.JSON(http.StatusOK, response)
+}

@@ -181,6 +181,111 @@ Examples:
 	},
 }
 
+var addRoleCmd = &cobra.Command{
+	Use:   "add-role <group> <application> <role>",
+	Short: "Assign a role to a group for an application",
+	Long: `Assign an application role to a group.
+
+This enables RBAC by mapping groups to application roles.
+Available roles: authenticated, viewer, auditor, operator, admin
+
+Requires admin privileges.
+
+Examples:
+  shenctl group add-role engineering myapp viewer
+  shenctl group add-role ops myapp operator`,
+	Args: cobra.ExactArgs(3),
+	Run: func(cmd *cobra.Command, args []string) {
+		groupName := args[0]
+		application := args[1]
+		role := args[2]
+
+		if err := client.AddRoleToGroup(groupName, application, role); err != nil {
+			fmt.Fprintf(os.Stderr, "Error adding role to group: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("Role %s for %s added to group %s\n", role, application, groupName)
+	},
+}
+
+var removeRoleCmd = &cobra.Command{
+	Use:   "remove-role <group> <application> <role>",
+	Short: "Remove a role from a group for an application",
+	Long: `Remove an application role from a group.
+
+Requires admin privileges.
+
+Examples:
+  shenctl group remove-role engineering myapp viewer
+  shenctl group remove-role ops myapp operator`,
+	Args: cobra.ExactArgs(3),
+	Run: func(cmd *cobra.Command, args []string) {
+		groupName := args[0]
+		application := args[1]
+		role := args[2]
+
+		if err := client.RemoveRoleFromGroup(groupName, application, role); err != nil {
+			fmt.Fprintf(os.Stderr, "Error removing role from group: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("Role %s for %s removed from group %s\n", role, application, groupName)
+	},
+}
+
+var listRolesCmd = &cobra.Command{
+	Use:   "list-roles <group> [application]",
+	Short: "List roles assigned to a group",
+	Long: `List roles assigned to a group, optionally filtered by application.
+
+Displays the application and role for each assignment.
+By default, only the first 10 roles are shown. Use --all to retrieve the complete list.
+Supports cursor-based pagination with --cursor-app, --cursor-role, and --limit flags.
+
+Requires admin privileges.
+
+Examples:
+  shenctl group list-roles engineering
+  shenctl group list-roles engineering myapp
+  shenctl group list-roles engineering --all
+  shenctl group list-roles engineering --limit 5`,
+	Args: cobra.RangeArgs(1, 2),
+	Run: func(cmd *cobra.Command, args []string) {
+		groupName := args[0]
+		application := ""
+		if len(args) > 1 {
+			application = args[1]
+		}
+
+		all, _ := cmd.Flags().GetBool("all")
+		cursorApp, _ := cmd.Flags().GetString("cursor-app")
+		cursorRole, _ := cmd.Flags().GetString("cursor-role")
+		limit, _ := cmd.Flags().GetInt("limit")
+
+		for {
+			roles, err := client.ListGroupRoles(groupName, application, cursorApp, cursorRole, limit)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error listing group roles: %v\n", err)
+				os.Exit(1)
+			}
+
+			for _, role := range roles {
+				fmt.Printf("%s\t%s\n", role.Application, role.Role)
+			}
+
+			if !all || len(roles) < limit {
+				break
+			}
+
+			// Update cursors for next page
+			lastRole := roles[len(roles)-1]
+			cursorApp = lastRole.Application
+			cursorRole = lastRole.Role
+		}
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(groupCmd)
 	groupCmd.AddCommand(listGroupCmd)
@@ -188,9 +293,18 @@ func init() {
 	groupCmd.AddCommand(deleteGroupCmd)
 	groupCmd.AddCommand(addUsersCmd)
 	groupCmd.AddCommand(removeUsersCmd)
+	groupCmd.AddCommand(addRoleCmd)
+	groupCmd.AddCommand(removeRoleCmd)
+	groupCmd.AddCommand(listRolesCmd)
 
 	// list group flags
 	listGroupCmd.Flags().BoolP("all", "a", false, "retrieve a complete list of groups instead of the first 10")
 	listGroupCmd.Flags().StringP("cursor", "c", "", "cursor for pagination (group name to start after)")
 	listGroupCmd.Flags().IntP("limit", "l", 10, "number of groups to retrieve per request")
+
+	// list-roles flags
+	listRolesCmd.Flags().BoolP("all", "a", false, "retrieve a complete list of roles instead of the first 10")
+	listRolesCmd.Flags().String("cursor-app", "", "cursor for pagination (application name)")
+	listRolesCmd.Flags().String("cursor-role", "", "cursor for pagination (role name)")
+	listRolesCmd.Flags().IntP("limit", "l", 10, "number of roles to retrieve per request")
 }

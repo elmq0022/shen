@@ -355,3 +355,200 @@ func RemoveUsersFromGroup(groupName string, usernames []string) (*RemoveUsersRes
 
 	return &result, nil
 }
+
+// GroupRole represents a role assignment for a group
+type GroupRole struct {
+	Application string `json:"application"`
+	Role        string `json:"role"`
+}
+
+func AddRoleToGroup(groupName, application, role string) error {
+	groupName = strings.TrimSpace(groupName)
+	application = strings.TrimSpace(application)
+	role = strings.TrimSpace(role)
+
+	if groupName == "" {
+		return fmt.Errorf("group name is required")
+	}
+	if application == "" {
+		return fmt.Errorf("application name is required")
+	}
+	if role == "" {
+		return fmt.Errorf("role name is required")
+	}
+
+	authHeader, err := cmdutils.GetAuthHeader()
+	if err != nil {
+		return fmt.Errorf("authentication failed: %w", err)
+	}
+
+	req, err := utils.NewRequestBuilder(http.MethodPost, "/api/v1/groups/"+groupName+"/roles").
+		WithAuthHeader(authHeader).
+		WithJSON(groups.GroupRoleRequest{
+			Application: application,
+			Role:        role,
+		}).
+		Build()
+	if err != nil {
+		return fmt.Errorf("failed to build request: %w", err)
+	}
+
+	resp, err := clientutils.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to connect to server: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		errMsg := clientutils.ReadErrorBody(resp)
+		switch resp.StatusCode {
+		case http.StatusUnauthorized:
+			return fmt.Errorf("unauthorized: invalid or expired credentials")
+		case http.StatusForbidden:
+			return fmt.Errorf("forbidden: insufficient permissions to add role to group")
+		case http.StatusNotFound:
+			return fmt.Errorf("group or application not found")
+		case http.StatusBadRequest:
+			if errMsg != "" {
+				return fmt.Errorf("invalid request: %s", errMsg)
+			}
+			return fmt.Errorf("invalid request: check group, application, and role names")
+		default:
+			if errMsg != "" {
+				return fmt.Errorf("failed to add role to group (%s): %s", resp.Status, errMsg)
+			}
+			return fmt.Errorf("failed to add role to group: server returned %s", resp.Status)
+		}
+	}
+
+	return nil
+}
+
+func RemoveRoleFromGroup(groupName, application, role string) error {
+	groupName = strings.TrimSpace(groupName)
+	application = strings.TrimSpace(application)
+	role = strings.TrimSpace(role)
+
+	if groupName == "" {
+		return fmt.Errorf("group name is required")
+	}
+	if application == "" {
+		return fmt.Errorf("application name is required")
+	}
+	if role == "" {
+		return fmt.Errorf("role name is required")
+	}
+
+	authHeader, err := cmdutils.GetAuthHeader()
+	if err != nil {
+		return fmt.Errorf("authentication failed: %w", err)
+	}
+
+	req, err := utils.NewRequestBuilder(http.MethodDelete, "/api/v1/groups/"+groupName+"/roles").
+		WithAuthHeader(authHeader).
+		WithJSON(groups.GroupRoleRequest{
+			Application: application,
+			Role:        role,
+		}).
+		Build()
+	if err != nil {
+		return fmt.Errorf("failed to build request: %w", err)
+	}
+
+	resp, err := clientutils.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to connect to server: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent {
+		errMsg := clientutils.ReadErrorBody(resp)
+		switch resp.StatusCode {
+		case http.StatusUnauthorized:
+			return fmt.Errorf("unauthorized: invalid or expired credentials")
+		case http.StatusForbidden:
+			return fmt.Errorf("forbidden: insufficient permissions to remove role from group")
+		case http.StatusNotFound:
+			return fmt.Errorf("group or application not found")
+		case http.StatusBadRequest:
+			if errMsg != "" {
+				return fmt.Errorf("invalid request: %s", errMsg)
+			}
+			return fmt.Errorf("invalid request: check group, application, and role names")
+		default:
+			if errMsg != "" {
+				return fmt.Errorf("failed to remove role from group (%s): %s", resp.Status, errMsg)
+			}
+			return fmt.Errorf("failed to remove role from group: server returned %s", resp.Status)
+		}
+	}
+
+	return nil
+}
+
+func ListGroupRoles(groupName, application, cursorApp, cursorRole string, limit int) ([]GroupRole, error) {
+	groupName = strings.TrimSpace(groupName)
+	if groupName == "" {
+		return nil, fmt.Errorf("group name is required")
+	}
+
+	authHeader, err := cmdutils.GetAuthHeader()
+	if err != nil {
+		return nil, fmt.Errorf("authentication failed: %w", err)
+	}
+
+	req, err := utils.NewRequestBuilder(http.MethodGet, "/api/v1/groups/"+groupName+"/roles").
+		WithAuthHeader(authHeader).
+		Build()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build request: %w", err)
+	}
+
+	query := req.URL.Query()
+	if application != "" {
+		query.Add("application", application)
+	}
+	if cursorApp != "" {
+		query.Add("cursor_app", cursorApp)
+	}
+	if cursorRole != "" {
+		query.Add("cursor_role", cursorRole)
+	}
+	query.Add("limit", strconv.Itoa(limit))
+	req.URL.RawQuery = query.Encode()
+
+	resp, err := clientutils.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to server: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		errMsg := clientutils.ReadErrorBody(resp)
+		switch resp.StatusCode {
+		case http.StatusUnauthorized:
+			return nil, fmt.Errorf("unauthorized: invalid or expired credentials")
+		case http.StatusForbidden:
+			return nil, fmt.Errorf("forbidden: insufficient permissions to list group roles")
+		case http.StatusNotFound:
+			return nil, fmt.Errorf("group or application not found")
+		case http.StatusBadRequest:
+			if errMsg != "" {
+				return nil, fmt.Errorf("invalid request: %s", errMsg)
+			}
+			return nil, fmt.Errorf("invalid request")
+		default:
+			if errMsg != "" {
+				return nil, fmt.Errorf("failed to list group roles (%s): %s", resp.Status, errMsg)
+			}
+			return nil, fmt.Errorf("failed to list group roles: server returned %s", resp.Status)
+		}
+	}
+
+	var roles []GroupRole
+	if err := json.NewDecoder(resp.Body).Decode(&roles); err != nil {
+		return nil, fmt.Errorf("failed to parse server response: %w", err)
+	}
+
+	return roles, nil
+}

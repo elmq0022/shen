@@ -16,4 +16,7 @@ func RegisterGroupRoutes(g *echo.Group, pool *pgxpool.Pool, queries *db.Queries,
 	g.GET(":name/members", h.ListGroupMembers, mw.IsAdmin)
 	g.POST(":name/members", h.AddGroupMembers, mw.IsAdmin)
 	g.DELETE(":name/members", h.RemoveGroupMembers, mw.IsAdmin)
+	g.GET(":name/roles", h.ListGroupRoles, mw.IsAdmin)
+	g.POST(":name/roles", h.AddGroupRole, mw.IsAdmin)
+	g.DELETE(":name/roles", h.RemoveGroupRole, mw.IsAdmin)
 }

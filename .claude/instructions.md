@@ -259,9 +259,46 @@ LIMIT $3;
 - Unit tests for business logic
 - Integration tests for database queries
 - Test timezone handling for all timestamp operations
-- **Unit Tests**: Run with `task test:unit`
-- **DB Integration Tests**: Run with `source .envrc && task test:integration` (spins up database)
-- **CLI Integration Tests**: Run with `source .envrc && task test:cli` (spins up database)
+
+#### Running Tests
+
+**Unit Tests** (no database required):
+```bash
+task test:unit                                              # all unit tests
+task test:unit -- -run TestPassword                         # specific test
+task test:unit -- ./internal/crypto/...                     # crypto package (password, token)
+task test:unit -- ./internal/keys/...                       # keys package
+task test:unit -- ./internal/bootstrap/...                  # bootstrap package
+task test:unit -- ./internal/middleware/...                 # middleware package
+```
+
+**DB Integration Tests** (requires database):
+```bash
+source .envrc && task test:integration                      # all integration tests
+source .envrc && task test:integration -- -run "^Test.*User"                 # user tests
+source .envrc && task test:integration -- -run "^Test.*(Group|Member|Manager)"  # group tests (includes members/managers)
+source .envrc && task test:integration -- -run "^Test.*Application"          # application tests
+source .envrc && task test:integration -- -run "^Test.*Role"                 # role tests (includes application roles)
+source .envrc && task test:integration -- -run "^Test.*Session"              # session tests
+source .envrc && task test:integration -- -run "^Test.*Token"                # token tests
+source .envrc && task test:integration -- -run "^Test.*JWT"                  # JWT key tests
+source .envrc && task test:integration -- -run "^Test.*Bootstrap"            # bootstrap tests
+```
+
+**CLI Integration Tests** (requires database, compiles binaries):
+```bash
+source .envrc && task test:cli                              # all CLI tests
+source .envrc && task test:cli -- -run "^TestMilestone1"                     # milestone 1 (bootstrap, admin auth)
+source .envrc && task test:cli -- -run "^TestMilestone2"                     # milestone 2 (user management)
+source .envrc && task test:cli -- -run "^TestMilestone3"                     # milestone 3 (application management)
+source .envrc && task test:cli -- -run "^TestMilestone4"                     # milestone 4 (group management)
+source .envrc && task test:cli -- -run "^TestMilestone5"                     # milestone 5 (group role assignments)
+```
+
+**All Tests**:
+```bash
+task test:all                                               # runs unit, integration, and CLI tests
+```
 
 ### Migrations
 - Use golang-migrate for all schema changes
