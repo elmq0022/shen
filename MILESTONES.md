@@ -127,27 +127,28 @@ This document tracks the implementation milestones for the Shen authentication a
 
 ## Milestone 5: RBAC - Group Role Assignments
 
-**Goal:** Admin can assign application roles to groups, enabling RBAC.
+**Goal:** Admin can assign application roles to groups, enabling RBAC. Shen acts as a token vending machine - it collects roles and groups and returns them in the JWT. Applications decide how to interpret them.
 
 ### Server/Backend
-- [ ] Seed application roles in database (authenticated, viewer, auditor, operator, admin)
-- [ ] `POST /api/v1/groups/:name/roles` - assign role to group for application (admin only)
-- [ ] `DELETE /api/v1/groups/:name/roles` - remove role from group for application (admin only)
-- [ ] `GET /api/v1/groups/:name/roles` - list roles for group (optionally filtered by application)
-- [ ] Validate application roles against seeded values
-- [ ] Role priority logic (highest priority wins when user is in multiple groups)
+- [x] Seed application roles in database (authenticated, viewer, auditor, operator, admin)
+- [x] `POST /api/v1/groups/:name/roles` - assign role to group for application (admin only)
+- [x] `DELETE /api/v1/groups/:name/roles` - remove role from group for application (admin only)
+- [x] `GET /api/v1/groups/:name/roles` - list roles for group (optionally filtered by application)
+- [x] Validate application roles against seeded values
+
+**Note:** Shen does NOT implement role priority or "highest role" logic. When a user belongs to multiple groups, Shen returns the deduplicated union of all roles as an array. Applications are responsible for interpreting roles and groups according to their own authorization logic. This provides a clear boundary between Shen (identity/token provider) and consuming applications (authorization decisions).
 
 ### CLI (shenctl)
-- [ ] `shenctl group add-role <group> <application> <role>` - assign role to group
-- [ ] `shenctl group remove-role <group> <application> <role>` - remove role from group
-- [ ] `shenctl group list-roles <group> [application]` - list roles for group
+- [x] `shenctl group add-role <group> <application> <role>` - assign role to group
+- [x] `shenctl group remove-role <group> <application> <role>` - remove role from group
+- [x] `shenctl group list-roles <group> [application]` - list roles for group
 
 ### Testing
-- [ ] Integration test: admin assigns role to group for application
-- [ ] Integration test: admin removes role from group
-- [ ] Integration test: list roles for group
-- [ ] Integration test: list roles filtered by application
-- [ ] Integration test: validate role priority resolution (highest wins)
+- [x] Integration test: admin assigns role to group for application
+- [x] Integration test: admin removes role from group
+- [x] Integration test: list roles for group
+- [x] Integration test: list roles filtered by application
+- [x] Integration test: user in multiple groups gets all roles as array (no priority resolution)
 
 ---
 
@@ -182,7 +183,7 @@ This document tracks the implementation milestones for the Shen authentication a
 - [ ] Integration test: exchange PAT for JWT
 - [ ] Integration test: JWT contains correct claims (username, roles, groups, aud, exp)
 - [ ] Integration test: JWT is signed with RSA key
-- [ ] Integration test: role resolution - user in multiple groups gets highest priority role
+- [ ] Integration test: role resolution - user in multiple groups gets all roles as deduplicated array
 - [ ] Integration test: expired PAT cannot be exchanged
 - [ ] Integration test: PAT for inactive application returns 404
 - [ ] Integration test: user without group membership cannot get JWT

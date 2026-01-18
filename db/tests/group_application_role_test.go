@@ -353,3 +353,64 @@ func TestCountAllGroupApplicationRoles(t *testing.T) {
 	require.NoError(t, err, "Failed to count all roles")
 	assert.Equal(t, int64(4), count)
 }
+
+func TestListGroupApplicationRolesByGroupAndApplication(t *testing.T) {
+	tdb := SetupTestDB(t)
+	f := CreateStandardFixtures(t, tdb)
+
+	// Add roles for Group1 on App1 and App2
+	addGroupApplicationRoles(t, tdb, []db.AddGroupApplicationRoleParams{
+		{GroupID: f.Group1.ID, ApplicationID: f.App1.ID, RoleID: ApplicationRoleViewer},
+		{GroupID: f.Group1.ID, ApplicationID: f.App1.ID, RoleID: ApplicationRoleOperator},
+		{GroupID: f.Group1.ID, ApplicationID: f.App1.ID, RoleID: ApplicationRoleAuditor},
+		{GroupID: f.Group1.ID, ApplicationID: f.App2.ID, RoleID: ApplicationRoleAdmin},
+		{GroupID: f.Group1.ID, ApplicationID: f.App2.ID, RoleID: ApplicationRoleViewer},
+	})
+
+	// List roles for Group1+App1 only - should get 3 roles
+	roles, err := tdb.Queries.ListGroupApplicationRolesByGroupAndApplication(tdb.Ctx, db.ListGroupApplicationRolesByGroupAndApplicationParams{
+		GroupID:        f.Group1.ID,
+		ApplicationID:  f.App1.ID,
+		CursorRoleName: "",
+		Limit:          10,
+	})
+	require.NoError(t, err, "Failed to list roles for group and application")
+	assert.Len(t, roles, 3, "Should only return roles for App1")
+
+	// Verify roles are sorted by name
+	assert.Equal(t, "auditor", roles[0].RoleName)
+	assert.Equal(t, "operator", roles[1].RoleName)
+	assert.Equal(t, "viewer", roles[2].RoleName)
+
+	// Test cursor pagination - get roles after "auditor"
+	page2, err := tdb.Queries.ListGroupApplicationRolesByGroupAndApplication(tdb.Ctx, db.ListGroupApplicationRolesByGroupAndApplicationParams{
+		GroupID:        f.Group1.ID,
+		ApplicationID:  f.App1.ID,
+		CursorRoleName: "auditor",
+		Limit:          10,
+	})
+	require.NoError(t, err, "Failed to list roles with cursor")
+	assert.Len(t, page2, 2, "Should return 2 roles after auditor")
+	assert.Equal(t, "operator", page2[0].RoleName)
+	assert.Equal(t, "viewer", page2[1].RoleName)
+
+	// Test with limit
+	limited, err := tdb.Queries.ListGroupApplicationRolesByGroupAndApplication(tdb.Ctx, db.ListGroupApplicationRolesByGroupAndApplicationParams{
+		GroupID:        f.Group1.ID,
+		ApplicationID:  f.App1.ID,
+		CursorRoleName: "",
+		Limit:          2,
+	})
+	require.NoError(t, err, "Failed to list roles with limit")
+	assert.Len(t, limited, 2, "Should respect limit")
+
+	// List roles for Group1+App2 - should get 2 roles
+	app2Roles, err := tdb.Queries.ListGroupApplicationRolesByGroupAndApplication(tdb.Ctx, db.ListGroupApplicationRolesByGroupAndApplicationParams{
+		GroupID:        f.Group1.ID,
+		ApplicationID:  f.App2.ID,
+		CursorRoleName: "",
+		Limit:          10,
+	})
+	require.NoError(t, err, "Failed to list roles for App2")
+	assert.Len(t, app2Roles, 2, "Should only return roles for App2")
+}

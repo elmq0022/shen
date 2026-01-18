@@ -489,3 +489,65 @@ func (q *Queries) ListGroupApplicationRolesByGroup(ctx context.Context, arg List
 	}
 	return items, nil
 }
+
+const listGroupApplicationRolesByGroupAndApplication = `-- name: ListGroupApplicationRolesByGroupAndApplication :many
+SELECT
+    gar.id,
+    r.name AS role_name,
+    gar.created_at,
+    gar.updated_at
+FROM
+    shen_group_application_role gar
+    JOIN shen_application_role r ON gar.role_id = r.id
+WHERE
+    gar.group_id = $2
+    AND gar.application_id = $3
+    AND ($4::text IS NULL OR r.name > $4)
+ORDER BY
+    r.name
+LIMIT $1
+`
+
+type ListGroupApplicationRolesByGroupAndApplicationParams struct {
+	Limit          int32  `json:"limit"`
+	GroupID        int32  `json:"group_id"`
+	ApplicationID  int32  `json:"application_id"`
+	CursorRoleName string `json:"cursor_role_name"`
+}
+
+type ListGroupApplicationRolesByGroupAndApplicationRow struct {
+	ID        int32              `json:"id"`
+	RoleName  string             `json:"role_name"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) ListGroupApplicationRolesByGroupAndApplication(ctx context.Context, arg ListGroupApplicationRolesByGroupAndApplicationParams) ([]ListGroupApplicationRolesByGroupAndApplicationRow, error) {
+	rows, err := q.db.Query(ctx, listGroupApplicationRolesByGroupAndApplication,
+		arg.Limit,
+		arg.GroupID,
+		arg.ApplicationID,
+		arg.CursorRoleName,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListGroupApplicationRolesByGroupAndApplicationRow
+	for rows.Next() {
+		var i ListGroupApplicationRolesByGroupAndApplicationRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.RoleName,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

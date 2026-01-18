@@ -64,6 +64,23 @@ ORDER BY
     r.name
 LIMIT $1;
 
+-- name: ListGroupApplicationRolesByGroupAndApplication :many
+SELECT
+    gar.id,
+    r.name AS role_name,
+    gar.created_at,
+    gar.updated_at
+FROM
+    shen_group_application_role gar
+    JOIN shen_application_role r ON gar.role_id = r.id
+WHERE
+    gar.group_id = sqlc.arg(group_id)
+    AND gar.application_id = sqlc.arg(application_id)
+    AND (sqlc.arg(cursor_role_name)::text IS NULL OR r.name > sqlc.arg(cursor_role_name))
+ORDER BY
+    r.name
+LIMIT $1;
+
 -- name: CountGroupApplicationRolesByGroup :one
 SELECT
     COUNT(*)
