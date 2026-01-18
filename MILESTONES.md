@@ -77,21 +77,21 @@ This document tracks the implementation milestones for the Shen authentication a
 **Goal:** Admin can register and manage applications via CLI.
 
 ### Server/Backend
-- [ ] `GET /api/v1/applications` - list all applications (admin only)
-- [ ] `POST /api/v1/applications` - create new application (admin only)
-- [ ] `DELETE /api/v1/applications/:name` - soft delete application (admin only)
-- [ ] Validate application names (lowercase enforcement)
+- [x] `GET /api/v1/applications` - list all applications (admin only)
+- [x] `POST /api/v1/applications` - create new application (admin only)
+- [x] `DELETE /api/v1/applications/:name` - soft delete application (admin only)
+- [x] Validate application names (lowercase enforcement)
 
 ### CLI (shenctl)
-- [ ] `shenctl application list` - list all applications
-- [ ] `shenctl application create <name>` - create new application
-- [ ] `shenctl application delete <name>` - soft delete application
+- [x] `shenctl application list` - list all applications
+- [x] `shenctl application create <name>` - create new application
+- [x] `shenctl application delete <name>` - soft delete application
 
 ### Testing
-- [ ] Integration test: admin creates application
-- [ ] Integration test: admin lists applications
-- [ ] Integration test: admin deletes application
-- [ ] Integration test: application names are normalized to lowercase
+- [x] Integration test: admin creates application
+- [x] Integration test: admin lists applications
+- [x] Integration test: admin deletes application
+- [x] Integration test: application names are normalized to lowercase
 
 ---
 

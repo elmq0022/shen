@@ -1,0 +1,16 @@
+package routes
+
+import (
+	db "github.com/elmq0022/shen/db/sqlc"
+	"github.com/elmq0022/shen/internal/handlers/applications"
+	"github.com/elmq0022/shen/internal/middleware"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/labstack/echo/v4"
+)
+
+func RegisterApplicationRoutes(g *echo.Group, pool *pgxpool.Pool, queries *db.Queries, mw middleware.Middleware) {
+	h := applications.NewHandler(pool, queries)
+	g.GET("", h.ListApplications, mw.IsAdmin)
+	g.POST("", h.CreateApplication, mw.IsAdmin)
+	g.DELETE(":name", h.DeleteApplication, mw.IsAdmin)
+}
