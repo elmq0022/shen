@@ -19,7 +19,7 @@ Authorization: Bearer <session-token>
 ```
 
 **Query Parameters:**
-- `exp` *(optional)* - ISO 8601 datetime in UTC for custom expiration
+- `exp` *(optional)* - ISO 8601 datetime in UTC for custom expiration (maximum 6 months)
 
 **Response:**
 
@@ -54,11 +54,9 @@ User exchanges their PAT for a short-lived JWT containing application-specific p
 POST /api/v1/authorize
 ```
 
-**Request Payload:**
-```json
-{
-    "pat": "shen_pat_a1b2c3d4e5f6..."
-}
+**Headers:**
+```
+Authorization: Bearer <pat>
 ```
 
 **Process:**
@@ -231,6 +229,49 @@ If the JWT has expired, the user or client must resubmit the PAT to `/api/v1/aut
 **When JWTs expire:**
 - Client simply exchanges the PAT again via `POST /api/v1/authorize`
 - No separate refresh endpoint needed
+
+### PAT Generation
+
+**Chosen approach:** Generate PATs using 32 bytes (256 bits) from a cryptographically secure random number generator (CSPRNG), encoded as URL-safe base64.
+
+**Token format:**
+```
+shen_pat_<base64url-encoded-random-bytes>
+```
+
+**Example:**
+```
+shen_pat_Xt7K9mP2vQ4wR8yN3bF6hJ1cL5zA0dE7gI2kM9oU4sW
+```
+
+**Implementation (Go):**
+```go
+import (
+    "crypto/rand"
+    "encoding/base64"
+)
+
+func GeneratePAT() (string, error) {
+    bytes := make([]byte, 32)  // 256 bits of entropy
+    if _, err := rand.Read(bytes); err != nil {
+        return "", err
+    }
+    token := base64.RawURLEncoding.EncodeToString(bytes)
+    return "shen_pat_" + token, nil
+}
+```
+
+**Why this approach:**
+1. **CSPRNG source** - `crypto/rand` uses the OS-level CSPRNG (`/dev/urandom` on Linux, `CryptGenRandom` on Windows)
+2. **256 bits of entropy** - Exceeds OWASP minimum recommendation of 128 bits for session tokens
+3. **URL-safe encoding** - Base64 URL encoding avoids `+` and `/` characters that require URL escaping
+4. **No padding** - `RawURLEncoding` omits `=` padding for cleaner tokens
+5. **Identifiable prefix** - `shen_pat_` makes tokens easily identifiable in logs, configs, and secret scanners
+
+**Why NOT `math/rand`:**
+- `math/rand` is a pseudo-random number generator (PRNG) seeded with predictable values
+- An attacker who knows the seed or observes enough outputs can predict future tokens
+- **Never use `math/rand` for security-sensitive token generation**
 
 ### Password Hashing: Argon2id
 

@@ -157,14 +157,13 @@ This document tracks the implementation milestones for the Shen authentication a
 **Goal:** Users can create PATs for applications and exchange them for JWTs.
 
 ### Server/Backend
-- [ ] `POST /api/v1/token/:name/:application` - create PAT (user or admin)
-- [ ] `GET /api/v1/tokens` - list tokens for authenticated user
+- [x] `POST /api/v1/token/:name/:application` - create PAT (user or admin)
+- [x] `GET /api/v1/tokens` - list tokens for authenticated user
 - [ ] `GET /api/v1/tokens?user=<username>` - list tokens for specific user (admin only)
-- [ ] PAT generation (cryptographically secure random, 32 bytes)
-- [ ] PAT hashing with Argon2id before storage
-- [ ] Token expiration validation (default 30 days, configurable)
+- [x] PAT generation (cryptographically secure random, 32 bytes)
+- [x] PAT hashing with Argon2id before storage
+- [x] Token expiration validation (default 30 days, configurable, max 6 months)
 - [ ] `POST /api/v1/authorize` - exchange PAT for short-lived JWT
-- [ ] Role resolution via group memberships
 - [ ] JWT generation with claims: username, aud, exp, roles, groups, iat
 - [ ] JWT signing with RSA private key from database
 - [ ] Validate PAT is not expired or revoked

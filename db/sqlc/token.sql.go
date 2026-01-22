@@ -286,24 +286,25 @@ func (q *Queries) IsTokenValid(ctx context.Context, hashedToken string) (bool, e
 
 const listActiveTokensByUser = `-- name: ListActiveTokensByUser :many
 SELECT
-    id,
-    name,
-    hashed_token,
-    user_id,
-    application_id,
-    created_at,
-    expires_at,
-    revoked,
-    revoked_at
+    t.id,
+    t.name,
+    t.user_id,
+    a.name AS application_name,
+    t.created_at,
+    t.expires_at,
+    t.revoked,
+    t.revoked_at
 FROM
-    shen_token
+    shen_token t
+JOIN
+    shen_application a ON t.application_id = a.id
 WHERE
-    user_id = $2
-    AND revoked = FALSE
-    AND expires_at > NOW()
-    AND ($3 = 0 OR id > $3)
+    t.user_id = $2
+    AND t.revoked = FALSE
+    AND t.expires_at > NOW()
+    AND ($3 = 0 OR t.id > $3)
 ORDER BY
-    id ASC
+    t.id ASC
 LIMIT $1
 `
 
@@ -313,21 +314,31 @@ type ListActiveTokensByUserParams struct {
 	CursorID interface{} `json:"cursor_id"`
 }
 
-func (q *Queries) ListActiveTokensByUser(ctx context.Context, arg ListActiveTokensByUserParams) ([]ShenToken, error) {
+type ListActiveTokensByUserRow struct {
+	ID              int32              `json:"id"`
+	Name            string             `json:"name"`
+	UserID          int32              `json:"user_id"`
+	ApplicationName string             `json:"application_name"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	Revoked         bool               `json:"revoked"`
+	RevokedAt       pgtype.Timestamptz `json:"revoked_at"`
+}
+
+func (q *Queries) ListActiveTokensByUser(ctx context.Context, arg ListActiveTokensByUserParams) ([]ListActiveTokensByUserRow, error) {
 	rows, err := q.db.Query(ctx, listActiveTokensByUser, arg.Limit, arg.UserID, arg.CursorID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ShenToken
+	var items []ListActiveTokensByUserRow
 	for rows.Next() {
-		var i ShenToken
+		var i ListActiveTokensByUserRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.HashedToken,
 			&i.UserID,
-			&i.ApplicationID,
+			&i.ApplicationName,
 			&i.CreatedAt,
 			&i.ExpiresAt,
 			&i.Revoked,
@@ -345,25 +356,26 @@ func (q *Queries) ListActiveTokensByUser(ctx context.Context, arg ListActiveToke
 
 const listActiveTokensByUserApplication = `-- name: ListActiveTokensByUserApplication :many
 SELECT
-    id,
-    name,
-    hashed_token,
-    user_id,
-    application_id,
-    created_at,
-    expires_at,
-    revoked,
-    revoked_at
+    t.id,
+    t.name,
+    t.user_id,
+    a.name AS application_name,
+    t.created_at,
+    t.expires_at,
+    t.revoked,
+    t.revoked_at
 FROM
-    shen_token
+    shen_token t
+JOIN
+    shen_application a ON t.application_id = a.id
 WHERE
-    user_id = $2
-    AND application_id = $3
-    AND revoked = FALSE
-    AND expires_at > NOW()
-    AND ($4 = 0 OR id > $4)
+    t.user_id = $2
+    AND t.application_id = $3
+    AND t.revoked = FALSE
+    AND t.expires_at > NOW()
+    AND ($4 = 0 OR t.id > $4)
 ORDER BY
-    id ASC
+    t.id ASC
 LIMIT $1
 `
 
@@ -374,7 +386,18 @@ type ListActiveTokensByUserApplicationParams struct {
 	CursorID      interface{} `json:"cursor_id"`
 }
 
-func (q *Queries) ListActiveTokensByUserApplication(ctx context.Context, arg ListActiveTokensByUserApplicationParams) ([]ShenToken, error) {
+type ListActiveTokensByUserApplicationRow struct {
+	ID              int32              `json:"id"`
+	Name            string             `json:"name"`
+	UserID          int32              `json:"user_id"`
+	ApplicationName string             `json:"application_name"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	Revoked         bool               `json:"revoked"`
+	RevokedAt       pgtype.Timestamptz `json:"revoked_at"`
+}
+
+func (q *Queries) ListActiveTokensByUserApplication(ctx context.Context, arg ListActiveTokensByUserApplicationParams) ([]ListActiveTokensByUserApplicationRow, error) {
 	rows, err := q.db.Query(ctx, listActiveTokensByUserApplication,
 		arg.Limit,
 		arg.UserID,
@@ -385,15 +408,14 @@ func (q *Queries) ListActiveTokensByUserApplication(ctx context.Context, arg Lis
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ShenToken
+	var items []ListActiveTokensByUserApplicationRow
 	for rows.Next() {
-		var i ShenToken
+		var i ListActiveTokensByUserApplicationRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.HashedToken,
 			&i.UserID,
-			&i.ApplicationID,
+			&i.ApplicationName,
 			&i.CreatedAt,
 			&i.ExpiresAt,
 			&i.Revoked,
@@ -411,22 +433,23 @@ func (q *Queries) ListActiveTokensByUserApplication(ctx context.Context, arg Lis
 
 const listTokensByApplication = `-- name: ListTokensByApplication :many
 SELECT
-    id,
-    name,
-    hashed_token,
-    user_id,
-    application_id,
-    created_at,
-    expires_at,
-    revoked,
-    revoked_at
+    t.id,
+    t.name,
+    t.user_id,
+    a.name AS application_name,
+    t.created_at,
+    t.expires_at,
+    t.revoked,
+    t.revoked_at
 FROM
-    shen_token
+    shen_token t
+JOIN
+    shen_application a ON t.application_id = a.id
 WHERE
-    application_id = $2
-    AND ($3 = 0 OR id > $3)
+    t.application_id = $2
+    AND ($3 = 0 OR t.id > $3)
 ORDER BY
-    id ASC
+    t.id ASC
 LIMIT $1
 `
 
@@ -436,21 +459,31 @@ type ListTokensByApplicationParams struct {
 	CursorID      interface{} `json:"cursor_id"`
 }
 
-func (q *Queries) ListTokensByApplication(ctx context.Context, arg ListTokensByApplicationParams) ([]ShenToken, error) {
+type ListTokensByApplicationRow struct {
+	ID              int32              `json:"id"`
+	Name            string             `json:"name"`
+	UserID          int32              `json:"user_id"`
+	ApplicationName string             `json:"application_name"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	Revoked         bool               `json:"revoked"`
+	RevokedAt       pgtype.Timestamptz `json:"revoked_at"`
+}
+
+func (q *Queries) ListTokensByApplication(ctx context.Context, arg ListTokensByApplicationParams) ([]ListTokensByApplicationRow, error) {
 	rows, err := q.db.Query(ctx, listTokensByApplication, arg.Limit, arg.ApplicationID, arg.CursorID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ShenToken
+	var items []ListTokensByApplicationRow
 	for rows.Next() {
-		var i ShenToken
+		var i ListTokensByApplicationRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.HashedToken,
 			&i.UserID,
-			&i.ApplicationID,
+			&i.ApplicationName,
 			&i.CreatedAt,
 			&i.ExpiresAt,
 			&i.Revoked,
@@ -468,22 +501,23 @@ func (q *Queries) ListTokensByApplication(ctx context.Context, arg ListTokensByA
 
 const listTokensByUser = `-- name: ListTokensByUser :many
 SELECT
-    id,
-    name,
-    hashed_token,
-    user_id,
-    application_id,
-    created_at,
-    expires_at,
-    revoked,
-    revoked_at
+    t.id,
+    t.name,
+    t.user_id,
+    a.name AS application_name,
+    t.created_at,
+    t.expires_at,
+    t.revoked,
+    t.revoked_at
 FROM
-    shen_token
+    shen_token t
+JOIN
+    shen_application a ON t.application_id = a.id
 WHERE
-    user_id = $2
-    AND ($3 = 0 OR id > $3)
+    t.user_id = $2
+    AND ($3 = 0 OR t.id > $3)
 ORDER BY
-    id ASC
+    t.id ASC
 LIMIT $1
 `
 
@@ -493,21 +527,31 @@ type ListTokensByUserParams struct {
 	CursorID interface{} `json:"cursor_id"`
 }
 
-func (q *Queries) ListTokensByUser(ctx context.Context, arg ListTokensByUserParams) ([]ShenToken, error) {
+type ListTokensByUserRow struct {
+	ID              int32              `json:"id"`
+	Name            string             `json:"name"`
+	UserID          int32              `json:"user_id"`
+	ApplicationName string             `json:"application_name"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	Revoked         bool               `json:"revoked"`
+	RevokedAt       pgtype.Timestamptz `json:"revoked_at"`
+}
+
+func (q *Queries) ListTokensByUser(ctx context.Context, arg ListTokensByUserParams) ([]ListTokensByUserRow, error) {
 	rows, err := q.db.Query(ctx, listTokensByUser, arg.Limit, arg.UserID, arg.CursorID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ShenToken
+	var items []ListTokensByUserRow
 	for rows.Next() {
-		var i ShenToken
+		var i ListTokensByUserRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.HashedToken,
 			&i.UserID,
-			&i.ApplicationID,
+			&i.ApplicationName,
 			&i.CreatedAt,
 			&i.ExpiresAt,
 			&i.Revoked,
@@ -525,23 +569,24 @@ func (q *Queries) ListTokensByUser(ctx context.Context, arg ListTokensByUserPara
 
 const listTokensByUserApplication = `-- name: ListTokensByUserApplication :many
 SELECT
-    id,
-    name,
-    hashed_token,
-    user_id,
-    application_id,
-    created_at,
-    expires_at,
-    revoked,
-    revoked_at
+    t.id,
+    t.name,
+    t.user_id,
+    a.name AS application_name,
+    t.created_at,
+    t.expires_at,
+    t.revoked,
+    t.revoked_at
 FROM
-    shen_token
+    shen_token t
+JOIN
+    shen_application a ON t.application_id = a.id
 WHERE
-    user_id = $2
-    AND application_id = $3
-    AND ($4 = 0 OR id > $4)
+    t.user_id = $2
+    AND t.application_id = $3
+    AND ($4 = 0 OR t.id > $4)
 ORDER BY
-    id ASC
+    t.id ASC
 LIMIT $1
 `
 
@@ -552,7 +597,18 @@ type ListTokensByUserApplicationParams struct {
 	CursorID      interface{} `json:"cursor_id"`
 }
 
-func (q *Queries) ListTokensByUserApplication(ctx context.Context, arg ListTokensByUserApplicationParams) ([]ShenToken, error) {
+type ListTokensByUserApplicationRow struct {
+	ID              int32              `json:"id"`
+	Name            string             `json:"name"`
+	UserID          int32              `json:"user_id"`
+	ApplicationName string             `json:"application_name"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	Revoked         bool               `json:"revoked"`
+	RevokedAt       pgtype.Timestamptz `json:"revoked_at"`
+}
+
+func (q *Queries) ListTokensByUserApplication(ctx context.Context, arg ListTokensByUserApplicationParams) ([]ListTokensByUserApplicationRow, error) {
 	rows, err := q.db.Query(ctx, listTokensByUserApplication,
 		arg.Limit,
 		arg.UserID,
@@ -563,15 +619,14 @@ func (q *Queries) ListTokensByUserApplication(ctx context.Context, arg ListToken
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ShenToken
+	var items []ListTokensByUserApplicationRow
 	for rows.Next() {
-		var i ShenToken
+		var i ListTokensByUserApplicationRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.HashedToken,
 			&i.UserID,
-			&i.ApplicationID,
+			&i.ApplicationName,
 			&i.CreatedAt,
 			&i.ExpiresAt,
 			&i.Revoked,

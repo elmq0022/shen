@@ -8,6 +8,6 @@ import (
 
 func RegisterAuthRoutes(g *echo.Group, queries *db.Queries) {
 	authHandler := auth.NewHandler(queries)
-	g.POST("login", authHandler.Login)
-	g.POST("logout", authHandler.Logout)
+	g.POST("/login", authHandler.Login)
+	g.POST("/logout", authHandler.Logout)
 }

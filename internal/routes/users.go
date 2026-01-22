@@ -12,6 +12,6 @@ func RegisterUserRoutes(g *echo.Group, pool *pgxpool.Pool, queries *db.Queries, 
 	h := users.NewHandler(pool, queries)
 	g.GET("", h.ListUsers, mw.IsAdmin)
 	g.POST("", h.CreateUser, mw.IsAdmin)
-	g.DELETE(":username", h.DeleteUser, mw.IsAdmin)
-	g.PATCH(":username", h.UpdateUser, mw.IsAuthenticated)
+	g.DELETE("/:username", h.DeleteUser, mw.IsAdmin)
+	g.PATCH("/:username", h.UpdateUser, mw.IsAuthenticated)
 }
