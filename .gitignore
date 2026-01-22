@@ -19,3 +19,7 @@ bin/
 Thumbs.db
 
 .aider.*
+
+# binaries
+shen
+shenctl
