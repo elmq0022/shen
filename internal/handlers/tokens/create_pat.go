@@ -55,10 +55,7 @@ func (h *Handler) CreatePAT(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to generate token"))
 	}
 
-	hashedPAT, err := crypto.HashedPassword(pat)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to hash token"))
-	}
+	hashedPAT := crypto.HashToken(pat)
 
 	var exp time.Time
 	expString := c.QueryParam("exp")

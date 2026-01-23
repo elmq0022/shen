@@ -159,7 +159,7 @@ This document tracks the implementation milestones for the Shen authentication a
 ### Server/Backend
 - [x] `POST /api/v1/token/:name/:application` - create PAT (user or admin)
 - [x] `GET /api/v1/tokens` - list tokens for authenticated user
-- [ ] `GET /api/v1/tokens?user=<username>` - list tokens for specific user (admin only)
+- [x] `GET /api/v1/tokens?user=<username>` - list tokens for specific user (admin only)
 - [x] PAT generation (cryptographically secure random, 32 bytes)
 - [x] PAT hashing with Argon2id before storage
 - [x] Token expiration validation (default 30 days, configurable, max 6 months)
