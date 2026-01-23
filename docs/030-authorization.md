@@ -68,7 +68,8 @@ Authorization: Bearer <pat>
 5. A short-lived JWT is generated and returned
 
 **Short-lived JWT contains:**
-- `username` - User identifier
+- `iss` - Issuer identifier (`"shen"`)
+- `sub` - Subject (username)
 - `aud` - Application name (from the PAT record)
 - `exp` - Expiration (420 sec, or 7 min, by default, configurable via `SHEN_JWT_SECONDS_TO_EXPIRY`) - NumericDate (Unix timestamp)
 - `roles` - Array of application roles the user has (determined by group memberships)
@@ -159,7 +160,8 @@ Authorization: Bearer <short-lived-jwt>
 
 The application must verify the following JWT claims:
 - `sig` - Signature is valid (using Shen's public key)
-- `username` - User identifier
+- `iss` - Issuer is `"shen"`
+- `sub` - Subject (username)
 - `aud` - Audience matches the application name
 - `exp` - Token has not expired
 - `iat` - Issued at timestamp

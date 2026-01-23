@@ -11,5 +11,10 @@ import (
 func RegisterTokenRoutes(g *echo.Group, pool *pgxpool.Pool, queries *db.Queries, mw middleware.Middleware) {
 	h := tokens.NewHandler(pool, queries)
 	g.POST("/:name/:application", h.CreatePAT, mw.IsAuthenticated)
-	// g.GET() // list tokens endpoint
+	g.GET("", h.ListPATs, mw.IsAuthenticated)
+}
+
+func RegisterAuthorizeRoute(g *echo.Group, pool *pgxpool.Pool, queries *db.Queries, mw middleware.Middleware) {
+	h := tokens.NewHandler(pool, queries)
+	g.POST("", h.Authorize, mw.HasValidPAT)
 }

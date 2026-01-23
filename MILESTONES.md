@@ -161,13 +161,13 @@ This document tracks the implementation milestones for the Shen authentication a
 - [x] `GET /api/v1/tokens` - list tokens for authenticated user
 - [x] `GET /api/v1/tokens?user=<username>` - list tokens for specific user (admin only)
 - [x] PAT generation (cryptographically secure random, 32 bytes)
-- [x] PAT hashing with Argon2id before storage
+- [x] PAT hashing with SHA-256 before storage
 - [x] Token expiration validation (default 30 days, configurable, max 6 months)
-- [ ] `POST /api/v1/authorize` - exchange PAT for short-lived JWT
-- [ ] JWT generation with claims: username, aud, exp, roles, groups, iat
-- [ ] JWT signing with RSA private key from database
-- [ ] Validate PAT is not expired or revoked
-- [ ] Validate application is active
+- [x] `POST /api/v1/authorize` - exchange PAT for short-lived JWT
+- [x] JWT generation with claims: sub, iss, aud, exp, roles, groups, iat
+- [x] JWT signing with RSA private key from database
+- [x] Validate PAT is not expired or revoked
+- [x] Validate application is active
 
 ### CLI (shenctl)
 - [ ] `shenctl token list` - list your own tokens

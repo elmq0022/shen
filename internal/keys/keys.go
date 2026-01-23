@@ -43,6 +43,38 @@ func GenerateAndEncryptJWTKey(kek []byte) (string, []byte, string, error) {
 	return kid, encryptedPrivatePEM, publicPEM, nil
 }
 
+// GetSigningKey decrypts an encrypted private key and parses it into an RSA private key
+// ready for JWT signing.
+//
+// Parameters:
+//   - encryptedKey: encrypted private key bytes from database (from GetActiveSigningKey)
+//   - kek: 32-byte key encryption key (from LoadKEK)
+//
+// Returns the parsed RSA private key, or an error if decryption or parsing fails.
+func GetSigningKey(encryptedKey []byte, kek []byte) (*rsa.PrivateKey, error) {
+	privateKeyPEM, err := DecryptPrivateKey(encryptedKey, kek)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt private key: %w", err)
+	}
+
+	block, _ := pem.Decode(privateKeyPEM)
+	if block == nil {
+		return nil, fmt.Errorf("failed to decode PEM block")
+	}
+
+	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse private key: %w", err)
+	}
+
+	rsaKey, ok := key.(*rsa.PrivateKey)
+	if !ok {
+		return nil, fmt.Errorf("private key is not an RSA key")
+	}
+
+	return rsaKey, nil
+}
+
 // DecryptPrivateKey decrypts an encrypted private key using AES-256-GCM.
 // The encryptedKey must be in the format produced by EncryptPrivateKey:
 // [12-byte nonce][ciphertext][16-byte auth tag].
