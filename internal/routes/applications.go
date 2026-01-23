@@ -12,5 +12,5 @@ func RegisterApplicationRoutes(g *echo.Group, pool *pgxpool.Pool, queries *db.Qu
 	h := applications.NewHandler(pool, queries)
 	g.GET("", h.ListApplications, mw.IsAdmin)
 	g.POST("", h.CreateApplication, mw.IsAdmin)
-	g.DELETE(":name", h.DeleteApplication, mw.IsAdmin)
+	g.DELETE("/:name", h.DeleteApplication, mw.IsAdmin)
 }

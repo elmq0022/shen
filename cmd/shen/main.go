@@ -80,6 +80,7 @@ func initServer(ctx context.Context, pool *pgxpool.Pool, queries *db.Queries) *e
 	}
 
 	// Middleware
+	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 
@@ -95,11 +96,12 @@ func initServer(ctx context.Context, pool *pgxpool.Pool, queries *db.Queries) *e
 	e.GET("/.well-known/jwks.json", jwksHandler.GetJWKS)
 
 	// Auth routes
-	api := e.Group("/api/v1/")
-	routes.RegisterAuthRoutes(api.Group("auth/"), queries)
-	routes.RegisterUserRoutes(api.Group("users/"), pool, queries, shenMiddleware)
-	routes.RegisterApplicationRoutes(api.Group("applications/"), pool, queries, shenMiddleware)
-	routes.RegisterGroupRoutes(api.Group("groups/"), pool, queries, shenMiddleware)
+	api := e.Group("/api/v1")
+	routes.RegisterAuthRoutes(api.Group("/auth"), queries)
+	routes.RegisterUserRoutes(api.Group("/users"), pool, queries, shenMiddleware)
+	routes.RegisterApplicationRoutes(api.Group("/applications"), pool, queries, shenMiddleware)
+	routes.RegisterGroupRoutes(api.Group("/groups"), pool, queries, shenMiddleware)
+	routes.RegisterTokenRoutes(api.Group("/tokens"), pool, queries, shenMiddleware)
 
 	return e
 }

@@ -53,108 +53,113 @@ LIMIT 1;
 
 -- name: ListTokensByUser :many
 SELECT
-    id,
-    name,
-    hashed_token,
-    user_id,
-    application_id,
-    created_at,
-    expires_at,
-    revoked,
-    revoked_at
+    t.id,
+    t.name,
+    t.user_id,
+    a.name AS application_name,
+    t.created_at,
+    t.expires_at,
+    t.revoked,
+    t.revoked_at
 FROM
-    shen_token
+    shen_token t
+JOIN
+    shen_application a ON t.application_id = a.id
 WHERE
-    user_id = sqlc.arg(user_id)
-    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
+    t.user_id = sqlc.arg(user_id)
+    AND (sqlc.arg(cursor_id) = 0 OR t.id > sqlc.arg(cursor_id))
 ORDER BY
-    id ASC
+    t.id ASC
 LIMIT $1;
 
 -- name: ListTokensByApplication :many
 SELECT
-    id,
-    name,
-    hashed_token,
-    user_id,
-    application_id,
-    created_at,
-    expires_at,
-    revoked,
-    revoked_at
+    t.id,
+    t.name,
+    t.user_id,
+    a.name AS application_name,
+    t.created_at,
+    t.expires_at,
+    t.revoked,
+    t.revoked_at
 FROM
-    shen_token
+    shen_token t
+JOIN
+    shen_application a ON t.application_id = a.id
 WHERE
-    application_id = sqlc.arg(application_id)
-    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
+    t.application_id = sqlc.arg(application_id)
+    AND (sqlc.arg(cursor_id) = 0 OR t.id > sqlc.arg(cursor_id))
 ORDER BY
-    id ASC
+    t.id ASC
 LIMIT $1;
 
 -- name: ListTokensByUserApplication :many
 SELECT
-    id,
-    name,
-    hashed_token,
-    user_id,
-    application_id,
-    created_at,
-    expires_at,
-    revoked,
-    revoked_at
+    t.id,
+    t.name,
+    t.user_id,
+    a.name AS application_name,
+    t.created_at,
+    t.expires_at,
+    t.revoked,
+    t.revoked_at
 FROM
-    shen_token
+    shen_token t
+JOIN
+    shen_application a ON t.application_id = a.id
 WHERE
-    user_id = sqlc.arg(user_id)
-    AND application_id = sqlc.arg(application_id)
-    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
+    t.user_id = sqlc.arg(user_id)
+    AND t.application_id = sqlc.arg(application_id)
+    AND (sqlc.arg(cursor_id) = 0 OR t.id > sqlc.arg(cursor_id))
 ORDER BY
-    id ASC
+    t.id ASC
 LIMIT $1;
 
 -- name: ListActiveTokensByUser :many
 SELECT
-    id,
-    name,
-    hashed_token,
-    user_id,
-    application_id,
-    created_at,
-    expires_at,
-    revoked,
-    revoked_at
+    t.id,
+    t.name,
+    t.user_id,
+    a.name AS application_name,
+    t.created_at,
+    t.expires_at,
+    t.revoked,
+    t.revoked_at
 FROM
-    shen_token
+    shen_token t
+JOIN
+    shen_application a ON t.application_id = a.id
 WHERE
-    user_id = sqlc.arg(user_id)
-    AND revoked = FALSE
-    AND expires_at > NOW()
-    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
+    t.user_id = sqlc.arg(user_id)
+    AND t.revoked = FALSE
+    AND t.expires_at > NOW()
+    AND (sqlc.arg(cursor_id) = 0 OR t.id > sqlc.arg(cursor_id))
 ORDER BY
-    id ASC
+    t.id ASC
 LIMIT $1;
 
 -- name: ListActiveTokensByUserApplication :many
 SELECT
-    id,
-    name,
-    hashed_token,
-    user_id,
-    application_id,
-    created_at,
-    expires_at,
-    revoked,
-    revoked_at
+    t.id,
+    t.name,
+    t.user_id,
+    a.name AS application_name,
+    t.created_at,
+    t.expires_at,
+    t.revoked,
+    t.revoked_at
 FROM
-    shen_token
+    shen_token t
+JOIN
+    shen_application a ON t.application_id = a.id
 WHERE
-    user_id = sqlc.arg(user_id)
-    AND application_id = sqlc.arg(application_id)
-    AND revoked = FALSE
-    AND expires_at > NOW()
-    AND (sqlc.arg(cursor_id) = 0 OR id > sqlc.arg(cursor_id))
+    t.user_id = sqlc.arg(user_id)
+    AND t.application_id = sqlc.arg(application_id)
+    AND t.revoked = FALSE
+    AND t.expires_at > NOW()
+    AND (sqlc.arg(cursor_id) = 0 OR t.id > sqlc.arg(cursor_id))
 ORDER BY
-    id ASC
+    t.id ASC
 LIMIT $1;
 
 -- name: CountTokensByUser :one
