@@ -6,19 +6,13 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	clientutils "github.com/elmq0022/shen/cli/shenctl/cmd/client/utils"
 	cmdutils "github.com/elmq0022/shen/cli/shenctl/cmd/utils"
 	"github.com/elmq0022/shen/cli/shenctl/utils"
 	db "github.com/elmq0022/shen/db/sqlc"
+	"github.com/elmq0022/shen/internal/handlers/tokens"
 )
-
-type CreatePATResponse struct {
-	Name string    `json:"name"`
-	PAT  string    `json:"pat"`
-	Exp  time.Time `json:"exp"`
-}
 
 func ListTokens(user string, cursor int32, limit int32) ([]db.ListTokensByUserRow, error) {
 	authHeader, err := cmdutils.GetAuthHeader()
@@ -73,7 +67,7 @@ func ListTokens(user string, cursor int32, limit int32) ([]db.ListTokensByUserRo
 	return tokens, nil
 }
 
-func CreateToken(name, application, expiration string) (*CreatePATResponse, error) {
+func CreateToken(name, application, expiration string) (*tokens.CreatePATResponse, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		return nil, fmt.Errorf("token name is required")
@@ -132,7 +126,7 @@ func CreateToken(name, application, expiration string) (*CreatePATResponse, erro
 		}
 	}
 
-	var patResp CreatePATResponse
+	var patResp tokens.CreatePATResponse
 	if err := json.NewDecoder(resp.Body).Decode(&patResp); err != nil {
 		return nil, fmt.Errorf("failed to parse server response: %w", err)
 	}
