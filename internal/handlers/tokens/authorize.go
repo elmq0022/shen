@@ -88,9 +88,3 @@ func (h *Handler) Authorize(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, AuthorizationResponse{Token: signedToken})
 }
-
-type ShenClaims struct {
-	jwt.RegisteredClaims
-	Roles  []string `json:"roles"`
-	Groups []string `json:"groups"`
-}
