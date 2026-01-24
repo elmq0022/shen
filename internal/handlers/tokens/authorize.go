@@ -94,7 +94,3 @@ type ShenClaims struct {
 	Roles  []string `json:"roles"`
 	Groups []string `json:"groups"`
 }
-
-type AuthorizationResponse struct {
-	Token string `json:"token"`
-}
