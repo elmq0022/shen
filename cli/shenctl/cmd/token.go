@@ -44,22 +44,11 @@ Examples:
 	Run: func(cmd *cobra.Command, args []string) {
 		all, _ := cmd.Flags().GetBool("all")
 		user, _ := cmd.Flags().GetString("user")
-		cursorStr, _ := cmd.Flags().GetString("cursor")
+		cursor, _ := cmd.Flags().GetInt("cursor")
 		limit, _ := cmd.Flags().GetInt("limit")
 
-		var cursor int32
-		if cursorStr != "" {
-			var c int
-			_, err := fmt.Sscanf(cursorStr, "%d", &c)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: invalid cursor value: %v\n", err)
-				os.Exit(1)
-			}
-			cursor = int32(c)
-		}
-
 		for {
-			tokens, err := client.ListTokens(user, cursor, limit)
+			tokens, err := client.ListTokens(user, int32(cursor), int32(limit))
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
@@ -70,7 +59,7 @@ Examples:
 					token.ID,
 					token.Name,
 					token.ApplicationName,
-					token.ExpiresAt.Time.Format("2006-01-02"),
+					token.ExpiresAt.Time.Local().Format("2006-01-02 MST"),
 				)
 			}
 
@@ -78,7 +67,7 @@ Examples:
 				break
 			}
 
-			cursor = tokens[len(tokens)-1].ID
+			cursor = int(tokens[len(tokens)-1].ID)
 		}
 	},
 }
@@ -117,7 +106,7 @@ func init() {
 	// list token flags
 	listTokenCmd.Flags().BoolP("all", "a", false, "retrieve all tokens instead of first 10")
 	listTokenCmd.Flags().StringP("user", "u", "", "list tokens for specific user (admin only)")
-	listTokenCmd.Flags().StringP("cursor", "c", "", "cursor for pagination (token ID)")
+	listTokenCmd.Flags().IntP("cursor", "c", 0, "cursor for pagination (token ID)")
 	listTokenCmd.Flags().IntP("limit", "l", 10, "number of tokens per request")
 
 	// create token flags

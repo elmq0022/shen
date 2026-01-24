@@ -20,7 +20,7 @@ type CreatePATResponse struct {
 	Exp  time.Time `json:"exp"`
 }
 
-func ListTokens(user string, cursor int32, limit int) ([]db.ListTokensByUserRow, error) {
+func ListTokens(user string, cursor int32, limit int32) ([]db.ListTokensByUserRow, error) {
 	authHeader, err := cmdutils.GetAuthHeader()
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func ListTokens(user string, cursor int32, limit int) ([]db.ListTokensByUserRow,
 	if cursor > 0 {
 		query.Add("cursor", strconv.Itoa(int(cursor)))
 	}
-	query.Add("limit", strconv.Itoa(limit))
+	query.Add("limit", strconv.Itoa(int(limit)))
 	if user != "" {
 		query.Add("user", user)
 	}
