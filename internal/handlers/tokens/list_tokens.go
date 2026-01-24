@@ -10,11 +10,22 @@ import (
 )
 
 func (h *Handler) ListPATs(c echo.Context) error {
-	user := c.Get("user").(db.ShenUser)
+	requestor := c.Get("user").(db.ShenUser)
 
-	queryUser := c.QueryParam("user")
-	if queryUser != "" {
-		return c.JSON(http.StatusBadRequest, handlers.NewErrorResponse("not implemented"))
+	admin, err := h.Queries.GetRoleByName(c.Request().Context(), "admin")
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("could not resolve roles"))
+	}
+
+	var user db.ShenUser = requestor
+	if queryUser := c.QueryParam("user"); queryUser != "" && queryUser != requestor.Username {
+		if requestor.Role != admin.ID {
+			return c.JSON(http.StatusUnauthorized, handlers.NewErrorResponse("you must be an administrator to view another user's PATs"))
+		}
+		user, err = h.Queries.GetUserByUsername(c.Request().Context(), queryUser)
+		if err != nil {
+			return c.JSON(http.StatusNotFound, handlers.NewErrorResponse("user not found"))
+		}
 	}
 
 	var cursorID int32

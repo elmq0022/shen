@@ -23,7 +23,7 @@ Authorization: Bearer <session-token>
 
 **Response:**
 
-Shen presents the plaintext PAT to the user **only once**. The hashed value is stored using Argon2id.
+Shen presents the plaintext PAT to the user **only once**. The hashed value is stored using SHA-256 (see [Token Hashing](#token-hashing-sha-256) for rationale).
 
 ```
 Status: 200 OK
@@ -68,7 +68,8 @@ Authorization: Bearer <pat>
 5. A short-lived JWT is generated and returned
 
 **Short-lived JWT contains:**
-- `username` - User identifier
+- `iss` - Issuer identifier (`"shen"`)
+- `sub` - Subject (username)
 - `aud` - Application name (from the PAT record)
 - `exp` - Expiration (420 sec, or 7 min, by default, configurable via `SHEN_JWT_SECONDS_TO_EXPIRY`) - NumericDate (Unix timestamp)
 - `roles` - Array of application roles the user has (determined by group memberships)
@@ -159,7 +160,8 @@ Authorization: Bearer <short-lived-jwt>
 
 The application must verify the following JWT claims:
 - `sig` - Signature is valid (using Shen's public key)
-- `username` - User identifier
+- `iss` - Issuer is `"shen"`
+- `sub` - Subject (username)
 - `aud` - Audience matches the application name
 - `exp` - Token has not expired
 - `iat` - Issued at timestamp
@@ -273,11 +275,51 @@ func GeneratePAT() (string, error) {
 - An attacker who knows the seed or observes enough outputs can predict future tokens
 - **Never use `math/rand` for security-sensitive token generation**
 
+### Token Hashing: SHA-256
+
+**Chosen approach:** Hash PATs and session tokens using SHA-256.
+
+**Why SHA-256 for tokens (not Argon2id):**
+
+1. **High entropy tokens don't need slow hashes** - PATs and session tokens are generated with 256 bits of cryptographic randomness. Unlike passwords (which humans choose and are often weak), these tokens cannot be brute-forced or dictionary-attacked.
+
+2. **Performance** - Token verification happens on every API request. SHA-256 is fast (~microseconds), while Argon2id is intentionally slow (~100ms+). Using Argon2id for tokens would create unacceptable latency.
+
+3. **Different threat model** - Slow hashes protect against offline brute-force attacks on leaked databases. With 256 bits of entropy, an attacker would need 2^256 attempts to find a collision - computationally infeasible regardless of hash speed.
+
+**Implementation:**
+```go
+import (
+    "crypto/sha256"
+    "encoding/hex"
+)
+
+func HashToken(token string) string {
+    hash := sha256.Sum256([]byte(token))
+    return hex.EncodeToString(hash[:])
+}
+```
+
+**Security properties:**
+- One-way: Cannot recover the original token from the hash
+- Deterministic: Same token always produces the same hash (required for lookup)
+- Fast: Suitable for high-frequency verification
+- Collision-resistant: Computationally infeasible to find two tokens with the same hash
+
 ### Password Hashing: Argon2id
 
-**Chosen approach:** Hash PATs and passwords using Argon2id.
+**Chosen approach:** Hash user passwords using Argon2id.
 
-**Why Argon2id:**
+**Why Argon2id for passwords (not SHA-256):**
+
+Passwords are low-entropy secrets chosen by humans. Even with complexity requirements, passwords are vulnerable to:
+- Dictionary attacks (common passwords, leaked password lists)
+- Brute-force attacks (trying all combinations up to a certain length)
+- Rainbow table attacks (precomputed hash lookups)
+
+Slow, memory-hard hashes like Argon2id make these attacks computationally expensive.
+
+**Why Argon2id specifically:**
 1. **Modern best practice** - OWASP recommended algorithm (current standard since 2015)
 2. **Memory-hard algorithm** - Resists GPU and ASIC-based cracking attacks by requiring significant RAM
 3. **Hybrid approach** - Combines Argon2i (side-channel attack resistant) with Argon2d (GPU/ASIC resistant)

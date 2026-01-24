@@ -23,7 +23,7 @@ func (h *Handler) CreatePAT(c echo.Context) error {
 	user := c.Get("user").(db.ShenUser)
 
 	app, err := h.Queries.GetApplicationByName(c.Request().Context(), appName)
-	if err != nil {
+	if err != nil || !app.Active {
 		return c.JSON(http.StatusNotFound, handlers.NewErrorResponse("application not found"))
 	}
 
@@ -55,11 +55,6 @@ func (h *Handler) CreatePAT(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to generate token"))
 	}
 
-	hashedPAT, err := crypto.HashedPassword(pat)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, handlers.NewErrorResponse("failed to hash token"))
-	}
-
 	var exp time.Time
 	expString := c.QueryParam("exp")
 	if expString != "" {
@@ -76,7 +71,7 @@ func (h *Handler) CreatePAT(c echo.Context) error {
 
 	_, err = h.Queries.CreateToken(c.Request().Context(), db.CreateTokenParams{
 		Name:          name,
-		HashedToken:   hashedPAT,
+		HashedToken:   crypto.HashToken(pat),
 		UserID:        user.ID,
 		ApplicationID: app.ID,
 		ExpiresAt: pgtype.Timestamptz{

@@ -15,6 +15,7 @@ type Querier interface {
 	GetSessionByHashedToken(ctx context.Context, hashedToken string) (db.ShenSession, error)
 	GetUserByID(ctx context.Context, id int32) (db.ShenUser, error)
 	ListRoles(ctx context.Context) ([]db.ShenUserRole, error)
+	GetTokenByHashedToken(ctx context.Context, hashedToken string) (db.ShenToken, error)
 }
 
 type Middleware struct {
@@ -101,4 +102,44 @@ func (m *Middleware) IsAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 // IsAuthenticated allows any authenticated user (admin or user)
 func (m *Middleware) IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 	return m.RequireRole("admin", "user")(next)
+}
+
+func (m *Middleware) HasValidPAT(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		authHeader := c.Request().Header.Get("Authorization")
+		if authHeader == "" {
+			return echo.NewHTTPError(http.StatusUnauthorized, "Authorization header required")
+		}
+
+		prefix := "Bearer "
+		if !strings.HasPrefix(authHeader, prefix) {
+			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authorization header format")
+		}
+
+		pat := strings.TrimPrefix(authHeader, prefix)
+		hashedPat := crypto.HashToken(pat)
+
+		token, err := m.queries.GetTokenByHashedToken(c.Request().Context(), hashedPat)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized, "invalid or expired token")
+		}
+
+		if token.Revoked {
+			return echo.NewHTTPError(http.StatusUnauthorized, "token has been revoked")
+		}
+
+		if token.ExpiresAt.Valid && token.ExpiresAt.Time.Before(time.Now()) {
+			return echo.NewHTTPError(http.StatusUnauthorized, "token has expired")
+		}
+
+		user, err := m.queries.GetUserByID(c.Request().Context(), token.UserID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusUnauthorized, "user not found")
+		}
+
+		c.Set("user", user)
+		c.Set("pat", token)
+
+		return next(c)
+	}
 }

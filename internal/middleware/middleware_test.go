@@ -23,6 +23,7 @@ type mockQueries struct {
 	getSessionByHashedTokenFunc func(ctx context.Context, hashedToken string) (db.ShenSession, error)
 	getUserByIDFunc             func(ctx context.Context, id int32) (db.ShenUser, error)
 	listRolesFunc               func(ctx context.Context) ([]db.ShenUserRole, error)
+	getTokenByHashedTokenFunc   func(ctx context.Context, hashedToken string) (db.ShenToken, error)
 }
 
 func (m *mockQueries) GetSessionByHashedToken(ctx context.Context, hashedToken string) (db.ShenSession, error) {
@@ -44,6 +45,13 @@ func (m *mockQueries) ListRoles(ctx context.Context) ([]db.ShenUserRole, error) 
 		return m.listRolesFunc(ctx)
 	}
 	return nil, errors.New("not implemented")
+}
+
+func (m *mockQueries) GetTokenByHashedToken(ctx context.Context, hashedToken string) (db.ShenToken, error) {
+	if m.getTokenByHashedTokenFunc != nil {
+		return m.getTokenByHashedTokenFunc(ctx, hashedToken)
+	}
+	return db.ShenToken{}, errors.New("not implemented")
 }
 
 func createMockMiddleware(t *testing.T) (middleware.Middleware, *mockQueries) {

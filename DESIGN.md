@@ -69,16 +69,29 @@ Shen provides:
    - 1 month expiration (configurable)
    - Database-backed for instant revocation
    - Required for all `shenctl` operations
+   - Stored as SHA-256 hash (see [Token Security](#token-security))
 
 2. **Personal Access Tokens (PATs)** - For application access
    - Scoped to user + application
    - 1 month expiration (configurable)
    - Exchanged for short-lived JWTs
+   - Stored as SHA-256 hash (see [Token Security](#token-security))
 
 3. **Short-lived JWTs** - For authenticated application requests
    - 7 minute expiration (configurable)
    - Signed with RSA keys
    - Contains user, role, and application scope
+
+### Token Security
+
+Session tokens and PATs are stored as SHA-256 hashes, not plaintext. When a client presents a token, Shen hashes it and compares against the stored hash.
+
+**Why SHA-256 (not Argon2id)?**
+- Tokens have 256 bits of cryptographic entropy - impossible to brute-force
+- SHA-256 is fast (~μs), suitable for per-request verification
+- Argon2id is intentionally slow (~100ms+), used for passwords which have low entropy
+
+See [Authorization Flow](./docs/030-authorization.md#token-hashing-sha-256) for detailed rationale.
 
 ### Permission Model
 

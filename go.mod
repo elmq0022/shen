@@ -3,6 +3,7 @@ module github.com/elmq0022/shen
 go 1.24.3
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/labstack/echo/v4 v4.15.0
 	github.com/oklog/ulid/v2 v2.1.1

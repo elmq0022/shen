@@ -159,33 +159,33 @@ This document tracks the implementation milestones for the Shen authentication a
 ### Server/Backend
 - [x] `POST /api/v1/token/:name/:application` - create PAT (user or admin)
 - [x] `GET /api/v1/tokens` - list tokens for authenticated user
-- [ ] `GET /api/v1/tokens?user=<username>` - list tokens for specific user (admin only)
+- [x] `GET /api/v1/tokens?user=<username>` - list tokens for specific user (admin only)
 - [x] PAT generation (cryptographically secure random, 32 bytes)
-- [x] PAT hashing with Argon2id before storage
+- [x] PAT hashing with SHA-256 before storage
 - [x] Token expiration validation (default 30 days, configurable, max 6 months)
-- [ ] `POST /api/v1/authorize` - exchange PAT for short-lived JWT
-- [ ] JWT generation with claims: username, aud, exp, roles, groups, iat
-- [ ] JWT signing with RSA private key from database
-- [ ] Validate PAT is not expired or revoked
-- [ ] Validate application is active
+- [x] `POST /api/v1/authorize` - exchange PAT for short-lived JWT
+- [x] JWT generation with claims: sub, iss, aud, exp, roles, groups, iat
+- [x] JWT signing with RSA private key from database
+- [x] Validate PAT is not expired or revoked
+- [x] Validate application is active
 
 ### CLI (shenctl)
-- [ ] `shenctl token list` - list your own tokens
-- [ ] `shenctl token list --user <username>` - list tokens for specific user (admin only)
-- [ ] `shenctl token create <name> <application>` - create token for yourself
-- [ ] `shenctl token create <name> <application> <user>` - create token for specific user (admin only)
+- [x] `shenctl token list` - list your own tokens
+- [x] `shenctl token list --user <username>` - list tokens for specific user (admin only)
+- [x] `shenctl token create <name> <application>` - create token for yourself
+- [x] `shenctl token create <name> <application> <user>` - create token for specific user (admin only)
 
 ### Testing
-- [ ] Integration test: user creates PAT for application
-- [ ] Integration test: PAT is returned only once (plaintext)
-- [ ] Integration test: PAT is hashed before database storage
-- [ ] Integration test: exchange PAT for JWT
-- [ ] Integration test: JWT contains correct claims (username, roles, groups, aud, exp)
-- [ ] Integration test: JWT is signed with RSA key
-- [ ] Integration test: role resolution - user in multiple groups gets all roles as deduplicated array
-- [ ] Integration test: expired PAT cannot be exchanged
-- [ ] Integration test: PAT for inactive application returns 404
-- [ ] Integration test: user without group membership cannot get JWT
+- [x] Integration test: user creates PAT for application
+- [x] Integration test: PAT is returned only once (plaintext)
+- [x] Integration test: PAT is hashed before database storage
+- [x] Integration test: exchange PAT for JWT
+- [x] Integration test: JWT contains correct claims (username, roles, groups, aud, exp)
+- [x] Integration test: JWT is signed with RSA key
+- [x] Integration test: role resolution - user in multiple groups gets all roles as deduplicated array
+- [x] Integration test: expired PAT cannot be exchanged
+- [x] Integration test: PAT for inactive application returns 404
+- [x] Integration test: user without group membership cannot get JWT
 
 ---
 
